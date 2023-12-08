@@ -28,10 +28,11 @@ const Scene = class {
   }
 }
 
-player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, inv: false }
+player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, inv: false, dash: 0, dash_interval: 0 }
 
 bullets = []
 enemies = []
+effects = []
 
 const Scene_Main = class extends Scene {
   constructor() {
@@ -57,6 +58,16 @@ const Scene_Main = class extends Scene {
     if (pressed.includes("ArrowDown")) { player.v.y++; }
 
     player.speed = pressed.includes("ShiftLeft") ? 6 : 12
+
+    if (player.dash > 0) { player.speed = 36 }
+
+    if (pushed.includes("Space") && player.dash_interval == 0) {
+      player.dash_interval = 48
+      player.dash = 16
+    }
+
+    if (player.dash > 0) { player.dash--; }
+    if (player.dash_interval > 0) { player.dash_interval--; }
 
     player.v = player.v.nor()
     player.p = player.v.mlt(player.speed).add(player.p)
@@ -86,6 +97,7 @@ const Scene_Main = class extends Scene {
         console.log("dead")
       }
     })
+
 
     //描画
     ctx.clearRect(0, 0, width, height)
