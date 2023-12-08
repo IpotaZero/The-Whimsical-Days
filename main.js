@@ -59,14 +59,20 @@ const Scene_Main = class extends Scene {
 
     player.speed = pressed.includes("ShiftLeft") ? 6 : 12
 
-    if (player.dash > 0) { player.speed = 36 }
+    if (player.dash > 0) { player.speed = 60 }
 
     if (pushed.includes("Space") && player.dash_interval == 0) {
       player.dash_interval = 48
-      player.dash = 16
+      player.dash = 12
+      player.inv = true
     }
 
-    if (player.dash > 0) { player.dash--; }
+    if (player.dash > 0) {
+      player.dash--;
+      effects.push({ ...player, "effect_time": 12, "effect_type": "player" })
+    } else {
+      player.inv = false
+    }
     if (player.dash_interval > 0) { player.dash_interval--; }
 
     player.v = player.v.nor()
@@ -98,12 +104,16 @@ const Scene_Main = class extends Scene {
       }
     })
 
+    bullets = bullets.filter((b) => { return b.life > 0 })
+    enemies = enemies.filter((e) => { return e.life > 0 })
 
     //描画
     ctx.clearRect(0, 0, width, height)
 
     Icircle(player.p.x, player.p.y, player.r, "red")
-    Icircle(player.p.x, player.p.y, player.r + player.graze_r, "white", "stroke", 2)
+    ctx.beginPath();
+    ctx.arc(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / 48))
+    ctx.stroke()
 
     bullets.forEach((b) => {
       Icircle(b.p.x, b.p.y, b.r, "white")
@@ -112,6 +122,15 @@ const Scene_Main = class extends Scene {
     enemies.forEach((e) => {
       Icircle(e.p.x, e.p.y, e.r, "white", "stroke", 2)
     })
+
+    effects.forEach((e) => {
+      if (e.effect_type == "player") {
+        Icircle(e.p.x, e.p.y, e.r, "rgba(255,0,0," + (e.effect_time / 12) + ")")
+      }
+      e.effect_time--;
+    })
+
+    effects = effects.filter((e) => { return e.effect_time > 0 })
 
     Irect(game_width, 0, width - game_width, height, "rgba(127,127,127,1)")
   }
