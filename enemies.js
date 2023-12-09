@@ -17,6 +17,10 @@ function linear_move(frame, time, p0, p1, fun = x => x) {
   return p0.add(p1.sub(p0).mlt(fun(frame / time)))
 }
 
+function circular_move(center, frame, radius, cycle, rad = 0) {
+  return center.add(new vec(Math.cos(frame * Math.PI * 2 / cycle + rad), Math.sin(frame * Math.PI * 2 / cycle + rad)).mlt(radius));
+}
+
 
 function get_angle(v0, v1) {
   let a = Math.atan(v1.y / v1.x) - Math.atan(v0.y / v0.x);
@@ -63,7 +67,7 @@ enemy_data.carotene_1 = {
     me.frame++;
     if (me.life <= 0) {
       bullets = []
-      next_enemies.push({ ...enemy_data["carotene_2_0"] }, { ...enemy_data["carotene_2_1"] }, { ...enemy_data["carotene_2_2"] })
+      next_enemies.push({ ...enemy_data["carotene_2"] }, { ...enemy_data["carotene_2_0"] }, { ...enemy_data["carotene_2_1"] })
       enemy_vrs.p = me.p
       sound_play(SoundData.KO)
     }
@@ -74,7 +78,7 @@ enemy_data.carotene_1 = {
 
 enemy_data.carotene_2_0 = {
   p: new vec(-100, 60), r: 32, frame: 0, life: 50, maxlife: 50, damaged: false, f: (me) => {
-    if (me.frame < 48) {
+    if (me.frame <= 48) {
       me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
       me.r = 16 + 16 * (48 - me.frame) / 48
     } else {
@@ -96,7 +100,7 @@ enemy_data.carotene_2_0 = {
 
 enemy_data.carotene_2_1 = {
   p: new vec(-100, 60), r: 32, frame: 0, life: 50, maxlife: 50, damaged: false, f: (me) => {
-    if (me.frame < 48) {
+    if (me.frame <= 48) {
       me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
       me.r = 16 + 16 * (48 - me.frame) / 48
     } else {
@@ -116,13 +120,13 @@ enemy_data.carotene_2_1 = {
 }
 
 
-enemy_data.carotene_2_2 = {
+enemy_data.carotene_2 = {
   p: new vec(-100, 60), r: 32, frame: 0, life: 300, maxlife: 300, damaged: false, f: (me) => {
-    if (me.frame < 48) {
+    if (me.frame <= 48) {
       me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
     } else {
       if (me.frame % 12 == 0) {
-        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 12), "aim", player.p, "laser", 30]))
+        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 12), "aim", player.p, "arrow", 30]))
       }
     }
 
@@ -130,7 +134,58 @@ enemy_data.carotene_2_2 = {
     if (me.life <= 0) {
       bullets = []
       enemies = []
-      next_enemies.push({ ...enemy_data["carotene_2_2"] })
+      next_enemies.push({ ...enemy_data["carotene_3"] })
+      for (let i = 0; i < 4; i++) { next_enemies.push({ ...enemy_data["carotene_3_" + i] }) }
+      enemy_vrs.p = me.p
+      sound_play(SoundData.KO)
+    }
+
+  }
+}
+
+function carotene_3(num) {
+  enemy_data["carotene_3_" + num] = {
+    p: new vec(-100, 60), r: 16, frame: 0, life: 50, maxlife: 50, damaged: false, f: (me) => {
+      if (me.frame <= 24) {
+        me.p = linear_move(me.frame, 24, new vec(game_width / 2, game_height / 2), new vec(game_width / 2, game_height / 2).add(new vec(120, 0).rot(Math.PI / 2 * num)), x => x ** 2)
+        me.r = 16 + 16 * (24 - me.frame) / 24
+      } else if (me.frame <= 48) {
+        me.p = linear_move(me.frame - 24, 24, new vec(game_width / 2, game_height / 2).add(new vec(120, 0).rot(Math.PI / 2 * num)), new vec(game_width / 2, 150).add(new vec(120, 0).rot(Math.PI / 2 * num)), x => x ** 2)
+      } else {
+        me.p = circular_move(new vec(game_width / 2, 150), me.frame - 48, 120, 144, Math.PI / 2 * num)
+        if (me.frame % 12 == 0) {
+          bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 12), "aim", player.p, "arrow", 30]))
+        }
+      }
+
+      me.frame++;
+      if (me.life <= 0) {
+        sound_play(SoundData.KO)
+      }
+
+    }
+  }
+}
+
+for (let i = 0; i < 4; i++) { carotene_3(i) }
+
+enemy_data.carotene_3 = {
+  p: new vec(-100, 60), r: 32, frame: 0, life: 300, maxlife: 300, damaged: false, f: (me) => {
+    if (me.frame <= 24) {
+      me.p = linear_move(me.frame, 24, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
+    } else if (me.frame <= 48) {
+      me.p = linear_move(me.frame - 24, 24, new vec(game_width / 2, game_height / 2), new vec(game_width / 2, 150), x => x ** 2)
+    } else {
+      if (me.frame % 12 == 0) {
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(0, 12), "aim", player.p, "ex", 32, me.p]))
+      }
+    }
+
+    me.frame++;
+    if (me.life <= 0) {
+      bullets = []
+      enemies = []
+      next_enemies.push({ ...enemy_data["carotene_2"] })
       enemy_vrs.p = me.p
       sound_play(SoundData.KO)
     }
