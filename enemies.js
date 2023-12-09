@@ -1,5 +1,5 @@
 bullet_model = {
-  type: "enemy", colour: "yellow",
+  type: "enemy", colour: "yellow", app: "donut",
   p: new vec(0, 0), r: 3, life: 1, v: new vec(0, 0), f: [
     (me) => { me.p = me.p.add(me.v) },
     (me) => { if (wall(me.p)) { me.life--; } }
@@ -7,10 +7,22 @@ bullet_model = {
 }
 
 enemy_data = {}
+enemy_vrs = {}
 
 function wall(p) {
   return p.x < 0 || game_width < p.x | p.y < 0 || game_height < p.y
 }
+
+function linear_move(frame, time, p0, p1, fun = x => x) {
+  return p0.add(p1.sub(p0).mlt(fun(frame / time)))
+}
+
+
+function get_angle(v0, v1) {
+  let a = Math.atan(v1.y / v1.x) - Math.atan(v0.y / v0.x);
+  return v1.x > 0 ? a : a + Math.PI;
+}
+
 
 enemy_data.carotene_0 = {
   p: new vec(game_width / 2, 60), r: 32, frame: 0, life: 200, maxlife: 200, damaged: false, f: (me) => {
@@ -24,10 +36,39 @@ enemy_data.carotene_0 = {
     me.frame++;
     if (me.life <= 0) {
       bullets = []
+      next_enemies.push({ ...enemy_data["carotene_1"] })
+      enemy_vrs.p = me.p
     }
 
   }
 }
+
+
+enemy_data.carotene_1 = {
+  p: new vec(-100, 60), r: 32, frame: 0, life: 200, maxlife: 200, damaged: false, f: (me) => {
+    if (me.frame < 48) {
+      me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height - 60), x => x ** 2)
+      for (let i = 0; i < 7; i++) {
+        bullets.push(...remodel([bullet_model], ["r", 6, "colourful", me.frame, "p", new vec(game_width / 2 + 60 * (i - 3), me.p.y - 60), "v", new vec(0, -1), "delete", 1, "arrow", 64]))
+      }
+    } else {
+      me.p.x = game_width / 3 * Math.sin((me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
+
+      if (me.frame % 8 == 0) {
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 12, "p", me.p, "v", new vec(0, -6), "nway", 5, Math.PI / 24, me.p]))
+      }
+    }
+
+    me.frame++;
+    if (me.life <= 0) {
+      bullets = []
+      next_enemies.push({ ...enemy_data["carotene_1"] })
+    }
+
+  }
+}
+
+
 
 
 function remodel(bulletArr, pro) {
@@ -127,7 +168,7 @@ function remodel(bulletArr, pro) {
           bul.push(...remodel([b], ["v", new vec(1, 0), "laser", larrow]));
           bul.push(...remodel([b], ["p", b.p.add(new vec(1, 0).nor().mlt(larrow)), "v", new vec(-1, -1), "laser", larrow / 2]));
           bul.push(...remodel([b], ["p", b.p.add(new vec(1, 0).nor().mlt(larrow)), "v", new vec(-1, 1), "laser", larrow / 2]));
-          c.push(...remodel(bul, ["v", new vec(b.v.length, 0), "rev", getAngle(new vec(1, 0), b.v), b.p]));
+          c.push(...remodel(bul, ["v", new vec(b.v.length, 0), "rev", get_angle(new vec(1, 0), b.v), b.p]));
         });
         i++; break;
 

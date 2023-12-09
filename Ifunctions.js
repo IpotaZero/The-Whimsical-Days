@@ -3,7 +3,7 @@ SoundData.text = false;
 SoundData.muteBGM = false;
 SoundData.muteSE = false;
 
-function playSound(sound, mode = "as se") {
+function sound_play(sound, mode = "as se") {
 	switch (mode) {
 		case "as se":
 			sound.currentTime = 0;
@@ -31,7 +31,7 @@ function Itext(frame, x, y, text) {
 			for (let i = 0; i < frame; i++) {
 				t = t + text.charAt(i);
 			}
-			if (SoundData.text) { playSound(SoundData.textSending); }
+			if (SoundData.text) { sound_play(SoundData.textSending); }
 		} else {
 			t = text;
 		}
