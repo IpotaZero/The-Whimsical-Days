@@ -3,7 +3,7 @@ SoundData.text = false;
 SoundData.muteBGM = false;
 SoundData.muteSE = false;
 
-function playSound(sound, mode = "as se") {
+function sound_play(sound, mode = "as se") {
 	switch (mode) {
 		case "as se":
 			sound.currentTime = 0;
@@ -31,7 +31,7 @@ function Itext(frame, x, y, text) {
 			for (let i = 0; i < frame; i++) {
 				t = t + text.charAt(i);
 			}
-			if (SoundData.text) { playSound(SoundData.textSending); }
+			if (SoundData.text) { sound_play(SoundData.textSending); }
 		} else {
 			t = text;
 		}
@@ -42,7 +42,7 @@ function Itext(frame, x, y, text) {
 }
 
 //待機可能改行テキスト
-function Itext4(frame, x, y, lineSpace, textArr) {
+function Itext4(frame, x, y, line_space, textArr) {
 	let t = 0;
 	let I = 0;
 
@@ -51,9 +51,9 @@ function Itext4(frame, x, y, lineSpace, textArr) {
 
 		if (typeof obj == "string") {
 			if (frame == null) {
-				Itext(null, x, y + lineSpace * I, obj);
+				Itext(null, x, y + line_space * I, obj);
 			} else {
-				Itext(frame - t, x, y + lineSpace * I, obj);
+				Itext(frame - t, x, y + line_space * I, obj);
 				t += obj.length;
 			}
 			I++;
@@ -63,14 +63,31 @@ function Itext4(frame, x, y, lineSpace, textArr) {
 	}
 }
 
-function Itext5(frame, x, y, _fontsize, text) {
+function Itext5(frame, x, y, line_space, text) {
 	let textArr = text.split("\n");
-	Itext4(frame, x, y, _fontsize, textArr);
+	Itext4(frame, x, y, line_space, textArr);
 }
 
 function Icircle(x, y, r, c, id = "fill", size = 2) {
 	ctx.beginPath();
 	ctx.arc(x, y, r, 0, 2 * Math.PI);
+
+	switch (id) {
+		case "fill":
+			ctx.fillStyle = c;
+			ctx.fill();
+			break;
+		case "stroke":
+			ctx.strokeStyle = c;
+			ctx.lineWidth = size;
+			ctx.stroke();
+			break;
+	}
+}
+
+function Iarc(x, y, r, start, end, c, id = "fill", size = 2) {
+	ctx.beginPath();
+	ctx.arc(x, y, r, start, end);
 
 	switch (id) {
 		case "fill":
@@ -130,8 +147,8 @@ function Iline2(colour, size, points) {
 
 function Ifont(size, colour = "black", _font = "Arial") {
 	ctx.fillStyle = colour;
-	fontsize = size;
-	ctx.font = fontsize + "px " + _font;
+	font_size = size;
+	ctx.font = font_size + "px " + _font;
 }
 
 const vec = class {

@@ -27,6 +27,6 @@ document.addEventListener("keyup", (e) => {
 	pressed = pressed.filter((f) => { return e.code != f; });
 });
 
-let fontsize = 24;
+let font_size = 24;
 
 console.log("Init.js_loaded");
