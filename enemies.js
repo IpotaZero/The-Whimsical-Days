@@ -30,7 +30,7 @@ enemy_data.carotene_0 = {
     me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 120) + game_width / 2
 
     if (me.frame % 8 == 0) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 12, "p", me.p, "v", new vec(12, 0), "ex", 36, me.p]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "ex", 36, me.p]))
     }
 
     me.frame++;
@@ -38,6 +38,7 @@ enemy_data.carotene_0 = {
       bullets = []
       next_enemies.push({ ...enemy_data["carotene_1"] })
       enemy_vrs.p = me.p
+      sound_play(SoundData.KO)
     }
 
   }
@@ -55,14 +56,83 @@ enemy_data.carotene_1 = {
       me.p.x = game_width / 3 * Math.sin((me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
 
       if (me.frame % 8 == 0) {
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 12, "p", me.p, "v", new vec(0, -6), "nway", 5, Math.PI / 24, me.p]))
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 16, "p", me.p, "v", new vec(0, -6), "aim", player.p, "nway", 5, Math.PI / 24, me.p]))
       }
     }
 
     me.frame++;
     if (me.life <= 0) {
       bullets = []
-      next_enemies.push({ ...enemy_data["carotene_1"] })
+      next_enemies.push({ ...enemy_data["carotene_2_0"] }, { ...enemy_data["carotene_2_1"] }, { ...enemy_data["carotene_2_2"] })
+      enemy_vrs.p = me.p
+      sound_play(SoundData.KO)
+    }
+
+  }
+}
+
+
+enemy_data.carotene_2_0 = {
+  p: new vec(-100, 60), r: 32, frame: 0, life: 50, maxlife: 50, damaged: false, f: (me) => {
+    if (me.frame < 48) {
+      me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
+      me.r = 16 + 16 * (48 - me.frame) / 48
+    } else {
+      me.p.x = game_width / 3 * Math.sin((me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
+
+      if (me.frame % 4 == 0) {
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, -6)]))
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, 6)]))
+      }
+    }
+
+    me.frame++;
+    if (me.life <= 0) {
+      sound_play(SoundData.KO)
+    }
+  }
+}
+
+
+enemy_data.carotene_2_1 = {
+  p: new vec(-100, 60), r: 32, frame: 0, life: 50, maxlife: 50, damaged: false, f: (me) => {
+    if (me.frame < 48) {
+      me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
+      me.r = 16 + 16 * (48 - me.frame) / 48
+    } else {
+      me.p.x = game_width / 3 * Math.sin(-(me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
+
+      if (me.frame % 4 == 0) {
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, -6)]))
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, 6)]))
+      }
+    }
+
+    me.frame++;
+    if (me.life <= 0) {
+      sound_play(SoundData.KO)
+    }
+  }
+}
+
+
+enemy_data.carotene_2_2 = {
+  p: new vec(-100, 60), r: 32, frame: 0, life: 300, maxlife: 300, damaged: false, f: (me) => {
+    if (me.frame < 48) {
+      me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
+    } else {
+      if (me.frame % 12 == 0) {
+        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 12), "aim", player.p, "laser", 30]))
+      }
+    }
+
+    me.frame++;
+    if (me.life <= 0) {
+      bullets = []
+      enemies = []
+      next_enemies.push({ ...enemy_data["carotene_2_2"] })
+      enemy_vrs.p = me.p
+      sound_play(SoundData.KO)
     }
 
   }
@@ -89,7 +159,7 @@ function remodel(bulletArr, pro) {
       //["colourful",seed値]
       case "colourful":
         const color_frame = pro[i + 1]
-        c.push(...remodel(buls, ["colour", "hsl(" + (120 * Math.sin(2 * Math.PI * color_frame / 240) + 60) + ",100%,50%)"]))
+        c.push(...remodel(buls, ["colour", "hsl(" + (90 * Math.sin(2 * Math.PI * color_frame / 240) + 90) + ",100%,50%)"]))
         i++;
         break
 

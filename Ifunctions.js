@@ -42,7 +42,7 @@ function Itext(frame, x, y, text) {
 }
 
 //待機可能改行テキスト
-function Itext4(frame, x, y, lineSpace, textArr) {
+function Itext4(frame, x, y, line_space, textArr) {
 	let t = 0;
 	let I = 0;
 
@@ -51,9 +51,9 @@ function Itext4(frame, x, y, lineSpace, textArr) {
 
 		if (typeof obj == "string") {
 			if (frame == null) {
-				Itext(null, x, y + lineSpace * I, obj);
+				Itext(null, x, y + line_space * I, obj);
 			} else {
-				Itext(frame - t, x, y + lineSpace * I, obj);
+				Itext(frame - t, x, y + line_space * I, obj);
 				t += obj.length;
 			}
 			I++;
@@ -63,9 +63,9 @@ function Itext4(frame, x, y, lineSpace, textArr) {
 	}
 }
 
-function Itext5(frame, x, y, _fontsize, text) {
+function Itext5(frame, x, y, line_space, text) {
 	let textArr = text.split("\n");
-	Itext4(frame, x, y, _fontsize, textArr);
+	Itext4(frame, x, y, line_space, textArr);
 }
 
 function Icircle(x, y, r, c, id = "fill", size = 2) {
@@ -147,8 +147,8 @@ function Iline2(colour, size, points) {
 
 function Ifont(size, colour = "black", _font = "Arial") {
 	ctx.fillStyle = colour;
-	fontsize = size;
-	ctx.font = fontsize + "px " + _font;
+	font_size = size;
+	ctx.font = font_size + "px " + _font;
 }
 
 const vec = class {
