@@ -85,6 +85,23 @@ function Icircle(x, y, r, c, id = "fill", size = 2) {
 	}
 }
 
+function Iarc(x, y, r, start, end, c, id = "fill", size = 2) {
+	ctx.beginPath();
+	ctx.arc(x, y, r, start, end);
+
+	switch (id) {
+		case "fill":
+			ctx.fillStyle = c;
+			ctx.fill();
+			break;
+		case "stroke":
+			ctx.strokeStyle = c;
+			ctx.lineWidth = size;
+			ctx.stroke();
+			break;
+	}
+}
+
 //座標、幅、高さ、色、ID,太さ
 function Irect(x, y, width, height, c, id = "fill", size = 2) {
 	ctx.beginPath();

@@ -156,9 +156,12 @@ const Scene_Main = class extends Scene {
     bullets.forEach((b) => {
       b.f.forEach((f) => { f(b) })
 
-      if (b.type == "enemy" && b.r + player.r >= b.p.sub(player.p).length) {
-        b.life = 0
-        console.log("dead")
+      if (b.type == "enemy" && b.r + player.r + player.graze_r >= b.p.sub(player.p).length) {
+        console.log("graze")
+        if (b.r + player.r >= b.p.sub(player.p).length) {
+          b.life = 0
+          console.log("dead")
+        }
       }
     })
 
@@ -171,9 +174,8 @@ const Scene_Main = class extends Scene {
     ctx.clearRect(0, 0, width, height)
 
     Icircle(player.p.x, player.p.y, player.r, "red")
-    ctx.beginPath();
-    ctx.arc(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / 48))
-    ctx.stroke()
+    Iarc(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / 48), "white", "stroke", 2)
+    Iarc(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "yellow", "stroke", 2)
 
     //弾
     bullets.forEach((b) => {
@@ -184,7 +186,8 @@ const Scene_Main = class extends Scene {
     enemies.forEach((e) => {
       let c = e.damaged ? "red" : "white"
 
-
+      Irect(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, "white");
+      Irect(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, "white", "stroke", 2);
 
       Icircle(e.p.x, e.p.y, e.r, c, "stroke", 2)
     })
