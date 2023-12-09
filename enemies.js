@@ -13,7 +13,19 @@ function wall(p) {
 }
 
 enemy_data.carotene_0 = {
-  p: new vec(game_width / 2, 60), r: 32, life: 200, maxlife: 200, damaged: false, f: (me) => {
+  p: new vec(game_width / 2, 60), r: 32, frame: 0, life: 200, maxlife: 200, damaged: false, f: (me) => {
+
+    me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 120) + game_width / 2
+
+    if (me.frame % 8 == 0) {
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 12, "p", me.p, "v", new vec(12, 0), "ex", 36, me.p]))
+    }
+
+    me.frame++;
+    if (me.life <= 0) {
+      bullets = []
+    }
+
   }
 }
 
@@ -33,6 +45,13 @@ function remodel(bulletArr, pro) {
     let c = [];
 
     switch (pro[i]) {
+      //["colourful",seed値]
+      case "colourful":
+        const color_frame = pro[i + 1]
+        c.push(...remodel(buls, ["colour", "hsl(" + (120 * Math.sin(2 * Math.PI * color_frame / 240) + 60) + ",100%,50%)"]))
+        i++;
+        break
+
       //["aim",目標地点]
       case "aim":
         const p = pro[i + 1];

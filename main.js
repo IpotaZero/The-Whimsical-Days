@@ -29,11 +29,14 @@ const Scene = class {
   }
 }
 
-player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, inv: false, dash: 0, dash_interval: 0, direction: 0 }
+let player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, inv: false, dash: 0, dash_interval: 0, direction: 0 }
 
-bullets = []
-enemies = []
-effects = []
+let bullets = []
+let enemies = []
+let effects = []
+
+let next_bullets = []
+let next_enemies = []
 
 const Scene_Main = class extends Scene {
   constructor() {
@@ -167,6 +170,11 @@ const Scene_Main = class extends Scene {
 
     bullets = bullets.filter((b) => { return b.life > 0 })
     enemies = enemies.filter((e) => { return e.life > 0 })
+
+    bullets.push(...next_bullets)
+    enemies.push(...next_enemies)
+    next_bullets = []
+    next_enemies = []
   }
 
   draw() {
