@@ -1,6 +1,6 @@
 let SoundData = {};
 SoundData.text = false;
-SoundData.muteBGM = false;
+SoundData.muteBGM = true;
 SoundData.muteSE = false;
 
 function sound_play(sound, mode = "as se") {
@@ -235,5 +235,34 @@ function Idice(a, b) {
 	return n;
 }
 
+function Icommand(c, x, y, linespace, option) {
+	if (option[c.current_branch] != null) {
+		Itext4(c.frame * 2, x + linespace, y, linespace, option[c.current_branch])
+		Itext(c.frame, x, y + font_size * c.current_value, "→")
+
+		if (pushed.includes("ArrowDown")) { c.current_value++; sound_play(SoundData.select) }
+		if (pushed.includes("ArrowUp")) { c.current_value--; sound_play(SoundData.select) }
+
+		c.current_value = (c.current_value + option[c.current_branch].length) % option[c.current_branch].length
+
+		if (pushed.includes("ok")) {
+			c.current_branch += c.current_value
+			c.frame = 0
+			c.current_value = 0
+			sound_play(SoundData.ok)
+		}
+	}
+
+	if (pushed.includes("cancel") && c.current_branch != "") {
+		c.current_value = Number(c.current_branch.charAt(c.current_branch.length - 1))
+		c.current_branch = c.current_branch.slice(0, -1)
+		c.frame = 0
+		sound_play(SoundData.cancel)
+	}
+
+	c.frame++;
+
+	return c
+}
 
 console.log("Ifunctions.js_loaded");
