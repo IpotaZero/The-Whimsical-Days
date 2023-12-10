@@ -1,4 +1,5 @@
 body {
-  background-color: black;
+  background: linear-gradient(90deg, #000000, transparent), url("images/back.png");
+  background-size: 128px;
   text-align: center;
 }

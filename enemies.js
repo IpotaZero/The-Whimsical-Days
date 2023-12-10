@@ -35,6 +35,7 @@ enemy_data.carotene_0 = {
 
     if (me.frame % 8 == 0) {
       bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "ex", 36, me.p]))
+      sound_play(SoundData.bullet0)
     }
 
     me.frame++;
@@ -43,6 +44,7 @@ enemy_data.carotene_0 = {
       next_enemies.push({ ...enemy_data["carotene_1"] })
       enemy_vrs.p = me.p
       sound_play(SoundData.KO)
+      scene_main.continue_story()
     }
 
   }
@@ -56,11 +58,14 @@ enemy_data.carotene_1 = {
       for (let i = 0; i < 7; i++) {
         bullets.push(...remodel([bullet_model], ["r", 6, "colourful", me.frame, "p", new vec(game_width / 2 + 60 * (i - 3), me.p.y - 60), "v", new vec(0, -1), "delete", 1, "arrow", 64]))
       }
+    } else if (me.frame == 48) {
+      scene_main.continue_story()
     } else {
       me.p.x = game_width / 3 * Math.sin((me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
 
-      if (me.frame % 8 == 0) {
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 16, "p", me.p, "v", new vec(0, -6), "aim", player.p, "nway", 5, Math.PI / 24, me.p]))
+      if (me.frame % 16 == 0) {
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 24, "p", me.p, "v", new vec(0, -6), "aim", player.p, "nway", 5, Math.PI / 24, me.p]))
+        sound_play(SoundData.bullet0)
       }
     }
 
@@ -87,6 +92,7 @@ enemy_data.carotene_2_0 = {
       if (me.frame % 4 == 0) {
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, -6)]))
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, 6)]))
+        sound_play(SoundData.bullet1)
       }
     }
 
@@ -109,6 +115,7 @@ enemy_data.carotene_2_1 = {
       if (me.frame % 4 == 0) {
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, -6)]))
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, 6)]))
+        sound_play(SoundData.bullet1)
       }
     }
 
@@ -178,7 +185,63 @@ enemy_data.carotene_3 = {
     } else {
       if (me.frame % 12 == 0) {
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(0, 12), "aim", player.p, "ex", 32, me.p]))
+        sound_play(SoundData.bullet0)
       }
+    }
+
+    me.frame++;
+    if (me.life <= 0) {
+      bullets = []
+      enemies = []
+      next_enemies.push({ ...enemy_data["carotene_4"] })
+      for (let i = 0; i < 12; i++) { next_enemies.push({ ...enemy_data["carotene_4_" + i] }) }
+      enemy_vrs.p = me.p
+      sound_play(SoundData.KO)
+      sound_play(SoundData.hakkyou)
+    }
+
+  }
+}
+
+function carotene_4(num) {
+  enemy_data["carotene_4_" + num] = {
+    p: new vec(-100, 60), r: 32, frame: 0, life: 50, maxlife: 50, damaged: false, f: (me) => {
+      if (me.frame <= 60) {
+        me.p = linear_move(me.frame, 60, enemy_vrs.p, new vec(game_width / 2, game_height / 2).add(new vec(90, 0).rot(2 * Math.PI * num / 12)), x => x ** 2)
+        me.r = 16 + 16 * (60 - me.frame) / 60
+      } else {
+        me.p.x = game_width / 2
+        me.p.y = game_height / 2 - Math.sin(2 * Math.PI * (me.frame - 60) / 240) * game_height / 3
+        me.p = me.p.add(new vec(90, 0).rot(2 * Math.PI * num / 12))
+
+        bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame, "r", 6, "p", me.p, "v", new vec(0, 12), "aim", player.p]))
+        sound_play(SoundData.bullet1)
+      }
+
+      me.frame++;
+      if (me.life <= 0) {
+        sound_play(SoundData.KO)
+      }
+
+    }
+  }
+}
+
+for (let i = 0; i < 12; i++) { carotene_4(i) }
+
+enemy_data.carotene_4 = {
+  p: new vec(-100, 60), r: 32, frame: 0, life: 200, maxlife: 200, damaged: false, f: (me) => {
+    if (me.frame <= 60) {
+      me.p = linear_move(me.frame, 60, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
+    } else {
+      me.p.y = game_height / 2 - Math.sin(2 * Math.PI * (me.frame - 60) / 240) * game_height / 3
+
+      if (me.frame % 36 == 0) {
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 3, "p", me.p, "v", new vec(0, 12), "aim", player.p, "arrow", 30, "ex", 32, me.p]))
+        sound_play(SoundData.bullet0)
+      }
+
+      sound_play(SoundData.bullet1)
     }
 
     me.frame++;
@@ -215,6 +278,12 @@ function remodel(bulletArr, pro) {
       case "colourful":
         const color_frame = pro[i + 1]
         c.push(...remodel(buls, ["colour", "hsl(" + (90 * Math.sin(2 * Math.PI * color_frame / 240) + 90) + ",100%,50%)"]))
+        i++;
+        break
+
+      case "hakkyou_colourful":
+        const color_frame2 = pro[i + 1]
+        c.push(...remodel(buls, ["colour", "hsl(" + (90 * Math.sin(2 * Math.PI * color_frame2 / 240 + Math.PI / 2)) + ",100%,50%)"]))
         i++;
         break
 
