@@ -5,9 +5,9 @@ const Scene_Manager = class {
   }
 
   MoveTo(_scene) {
-    this.current_scene.End();
+    this.current_scene.end();
     this.current_scene = _scene;
-    this.current_scene.Start();
+    this.current_scene.start();
   }
 }
 
@@ -42,11 +42,13 @@ const Scene_Main = class extends Scene {
   constructor() {
     super()
     SoundData.graze = new Audio("./sounds/graze.wav")
+    SoundData.dash = new Audio("./sounds/dash.wav")
     SoundData.bullet0 = new Audio("./sounds/鈴を鳴らす.mp3")
     SoundData.bullet1 = new Audio("./sounds/きらきら輝く2.wav")
     SoundData.bullet2 = new Audio("./sounds/bullet.wav")
     SoundData.KO = new Audio("./sounds/KO.wav")
     SoundData.hakkyou = new Audio("./sounds/hakkyou!.wav")
+    SoundData.Weariness = new Audio("./sounds/Weariness.wav")
     this.dash_interval = 48
   }
 
@@ -60,6 +62,15 @@ const Scene_Main = class extends Scene {
     this.story_frame = 0
     this.story_num = 0
     this.story_images = []
+
+    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, inv: false, dash: 0, dash_interval: 0, direction: 0 }
+
+    BGM = SoundData.Weariness
+    BGM.volume = 0.4
+    BGM.currentTime = 0
+
+    sound_play(BGM, "as bgm")
+
   }
 
   end() {
@@ -73,6 +84,7 @@ const Scene_Main = class extends Scene {
 
   story() {
     let story = [
+      ["text", "Kohaku:\nくんくん...\nこっちからプログラムの気配がする\nな..."],
       ["text", "Carotene:\n別に戦わなくてもいいんだけどねー"],
       ["text", "Carotene:\n君があたしを倒すつもりなら、"],
       ["text", "Carotene:\n受けて立とうじゃないか!"],
@@ -80,6 +92,8 @@ const Scene_Main = class extends Scene {
       ["wait"],
       ["popup", "Ctrl+↑!!!"],
       ["wait"],
+      ["text", "Carotene:\nぐえー"],
+      ["end"]
     ]
 
     let element = story[this.story_num]
@@ -104,6 +118,11 @@ const Scene_Main = class extends Scene {
         this.continue_story()
         break
 
+      case "end":
+        scene_anten.next_scene = scene_title
+        scene_manager.MoveTo(scene_anten)
+        break
+
     }
 
     this.story_frame++;
@@ -116,7 +135,11 @@ const Scene_Main = class extends Scene {
     }
 
     if (pushed.includes("Escape")) {
+      this.is_paused ? sound_play(BGM, "as bgm") : BGM.pause()
+
       this.is_paused = !this.is_paused
+
+
     }
 
     if (pushed.includes("Delete") && enemies.length > 0) {
@@ -139,7 +162,7 @@ const Scene_Main = class extends Scene {
     if (pressed.includes("ArrowUp")) { player.v.y--; }
     if (pressed.includes("ArrowDown")) { player.v.y++; }
 
-    player.speed = pressed.includes("ShiftLeft") ? 6 : 12
+    player.speed = pressed.includes("ShiftLeft") ? 6 : 16
 
     if (player.dash > 0) { player.speed = 60 }
 
@@ -147,6 +170,7 @@ const Scene_Main = class extends Scene {
       player.dash_interval = this.dash_interval
       player.dash = 12
       player.inv = true
+      sound_play(SoundData.dash)
     }
 
     if (player.dash > 0) {
@@ -174,15 +198,7 @@ const Scene_Main = class extends Scene {
     if (this.frame % 3 == 0) {
       if (pressed.includes("ShiftLeft")) {
         for (let i = 0; i < 5; i++) {
-          bullets.push(
-            ...remodel([bullet_model], [
-              "app", "ball",
-              "colour", "rgba(255,255,255,0.5)",
-              "type", "friend",
-              "p", player.p.add(new vec(20 * (i - 2), 0)),
-              "v", new vec(0, -32).rot(Math.PI * player.direction),
-            ])
-          )
+          bullets.push(...remodel([bullet_model], ["app", "ball", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
         }
       } else {
         bullets.push(
@@ -199,7 +215,7 @@ const Scene_Main = class extends Scene {
 
                 e.sort((a, b) => a.p.sub(me.p).length - b.p.sub(me.p).length)
 
-                me.v = me.v.add(e[0].p.sub(me.p).nor().mlt(6))
+                me.v = me.v.add(e[0].p.sub(me.p).nor().mlt(12))
                 me.frame++;
               }
             },
@@ -298,9 +314,104 @@ const Scene_Main = class extends Scene {
   }
 }
 
-scene_main = new Scene_Main()
+const Scene_Title = class extends Scene {
+  constructor() {
+    super()
+    this.option = { "": ["PLAY", "MANUAL", "STORY"], "0": ["Stage0"] }
 
-scene_manager = new Scene_Manager(scene_main)
+    SoundData.ok = new Audio("./sounds/ok.wav")
+    SoundData.cancel = new Audio("./sounds/cancel.wav")
+    SoundData.select = new Audio("./sounds/select.wav")
+  }
+
+  start() {
+    this.frame = 0
+    this.c = { frame: 0, current_branch: "", current_value: 0 }
+  }
+
+  loop() {
+    Irect(0, 0, width, height, "#121212")
+
+    Ifont(60, "white", "serif")
+    Itext(this.frame, 20, 20 + font_size, "The Whimsical Days!")
+
+    Ifont(36, "white", "serif")
+    this.c = Icommand(this.c, 20, 200, font_size, this.option)
+
+    switch (this.c.current_branch) {
+      case "00":
+        scene_anten.next_scene = scene_main
+        scene_manager.MoveTo(scene_anten)
+        break
+      case "1":
+        Itext5(this.c.frame, 20, 200, font_size, "十字キーで移動、Shiftキーで低速、\nAで後ろを向く、\nCtrlで0.5秒ダッシュ(ダッシュ中は無敵)")
+        break
+      case "2":
+        Ifont(24, "white", "serif")
+        Itext5(this.c.frame, 20, 200, font_size, "バグを取り除くために派遣された天使である\nコハクは2つのバグを取り除き\nまた次のバグを探して夜の街をさまようのであった...")
+        break
+    }
+
+    this.frame++;
+  }
+}
+
+const Scene_preTitle = class extends Scene {
+  constructor() {
+    super()
+  }
+
+  start() {
+    this.frame = 0
+  }
+
+  loop() {
+    Irect(0, 0, width, height, "#121212")
+
+    Ifont(48, "white", "serif")
+    //中央ぞろえ
+    let text = "Push KeyZ"
+    let sub_text = text.slice(0, this.frame)
+    length = ctx.measureText(sub_text).width
+    Itext(this.frame, (width - length) / 2, height / 2, text)
+
+    if (pushed.includes("KeyZ")) {
+      scene_manager.MoveTo(scene_title)
+    }
+
+    this.frame++;
+  }
+
+}
+
+const Scene_Anten = class extends Scene {
+  start() {
+    this.frame = 0
+  }
+
+  loop() {
+    Irect(0, 0, width, height, "rgba(0,0,0," + (this.frame / 24) + ")")
+
+    this.frame++;
+
+    if (BGM != null) { BGM.volume = 0.4 * (1 - this.frame / 24) }
+
+    if (this.frame == 24) {
+      if (BGM != null) { BGM.pause() }
+
+      scene_manager.MoveTo(this.next_scene)
+    }
+  }
+}
+
+let scene_anten = new Scene_Anten()
+let scene_pretitle = new Scene_preTitle()
+let scene_title = new Scene_Title()
+let scene_main = new Scene_Main()
+
+let scene_manager = new Scene_Manager(scene_pretitle)
+
+let BGM = null
 
 function main() {
   scene_manager.current_scene.loop();
@@ -308,6 +419,8 @@ function main() {
   Irect(0, 0, width, height, "white", "stroke", 2);
 
   pushed = [];
+
+  //if (BGM != null) { BGM.volume = 0.4 }
 
 }
 

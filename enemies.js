@@ -29,7 +29,7 @@ function get_angle(v0, v1) {
 
 
 enemy_data.carotene_0 = {
-  p: new vec(game_width / 2, 60), r: 32, frame: 0, life: 200, maxlife: 200, damaged: false, f: (me) => {
+  p: new vec(game_width / 2, 60), r: 32, frame: 0, life: 135, maxlife: 135, damaged: false, f: (me) => {
 
     me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 120) + game_width / 2
 
@@ -237,20 +237,19 @@ enemy_data.carotene_4 = {
       me.p.y = game_height / 2 - Math.sin(2 * Math.PI * (me.frame - 60) / 240) * game_height / 3
 
       if (me.frame % 36 == 0) {
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 3, "p", me.p, "v", new vec(0, 12), "aim", player.p, "arrow", 30, "ex", 32, me.p]))
+        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 12), "aim", player.p, "arrow", 30, "ex", 32, me.p]))
         sound_play(SoundData.bullet0)
       }
-
-      sound_play(SoundData.bullet1)
     }
 
     me.frame++;
     if (me.life <= 0) {
       bullets = []
       enemies = []
-      next_enemies.push({ ...enemy_data["carotene_2"] })
       enemy_vrs.p = me.p
       sound_play(SoundData.KO)
+
+      scene_main.continue_story()
     }
 
   }
