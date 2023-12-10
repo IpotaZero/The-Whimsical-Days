@@ -42,7 +42,11 @@ const Scene_Main = class extends Scene {
   constructor() {
     super()
     SoundData.graze = new Audio("./sounds/graze.wav")
+    SoundData.bullet0 = new Audio("./sounds/鈴を鳴らす.mp3")
+    SoundData.bullet1 = new Audio("./sounds/きらきら輝く2.wav")
+    SoundData.bullet2 = new Audio("./sounds/bullet.wav")
     SoundData.KO = new Audio("./sounds/KO.wav")
+    SoundData.hakkyou = new Audio("./sounds/hakkyou!.wav")
     this.dash_interval = 48
   }
 
@@ -62,8 +66,21 @@ const Scene_Main = class extends Scene {
 
   }
 
+  continue_story() {
+    this.story_num++;
+    this.story_frame = 0;
+  }
+
   story() {
-    let story = [["text", "aaaaaaaaaa"], ["enemy", [{ ...enemy_data.carotene_0 }]], ["wait"]]
+    let story = [
+      ["text", "Carotene:\n別に戦わなくてもいいんだけどねー"],
+      ["text", "Carotene:\n君があたしを倒すつもりなら、"],
+      ["text", "Carotene:\n受けて立とうじゃないか!"],
+      ["enemy", [{ ...enemy_data.carotene_0 }]],
+      ["wait"],
+      ["popup", "Ctrl+↑!!!"],
+      ["wait"],
+    ]
 
     let element = story[this.story_num]
 
@@ -72,14 +89,21 @@ const Scene_Main = class extends Scene {
       case "text":
         Irect(20, game_height - 200, game_width - 40, 180, "rgba(255,255,255,0.8)")
 
-        Ifont(24, "black", "serif")
+        Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
         Itext5(this.story_frame, 30, game_height - 180, font_size, element[1])
-        if (pushed.includes("ok")) { this.story_num++; }
+        if (pushed.includes("ok")) { this.continue_story() }
+        break
+
+      case "popup":
+        Ifont(24, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+        Itext5(this.story_frame, game_width + 20, game_height - 180, font_size, element[1])
         break
 
       case "enemy":
         enemies.push(...element[1])
-        this.story_num++;
+        this.continue_story()
+        break
+
     }
 
     this.story_frame++;
@@ -117,7 +141,7 @@ const Scene_Main = class extends Scene {
 
     player.speed = pressed.includes("ShiftLeft") ? 6 : 12
 
-    if (player.dash > 0) { player.speed = 36 }
+    if (player.dash > 0) { player.speed = 60 }
 
     if (pushed.includes("ControlLeft") && player.dash_interval == 0) {
       player.dash_interval = this.dash_interval
@@ -141,7 +165,7 @@ const Scene_Main = class extends Scene {
     if (player.p.y < 0) { player.p.y = 0 }
     if (player.p.y > game_height) { player.p.y = game_height }
 
-    if (pushed.includes("KeyZ")) {
+    if (pushed.includes("KeyA")) {
       player.direction = 1 - player.direction
     }
   }
@@ -183,6 +207,7 @@ const Scene_Main = class extends Scene {
           ])
         )
       }
+
 
 
     }
@@ -229,6 +254,8 @@ const Scene_Main = class extends Scene {
   draw() {
     //描画
     ctx.clearRect(0, 0, width, height)
+
+    Irect(0, 0, game_width, game_height, "#121212")
 
     Icircle(player.p.x, player.p.y, player.r, "red")
     Iarc(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / this.dash_interval), "white", "stroke", 2)
