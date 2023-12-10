@@ -5,9 +5,9 @@ const Scene_Manager = class {
   }
 
   MoveTo(_scene) {
-    this.current_scene.End();
+    this.current_scene.end();
     this.current_scene = _scene;
-    this.current_scene.Start();
+    this.current_scene.start();
   }
 }
 
@@ -60,6 +60,9 @@ const Scene_Main = class extends Scene {
     this.story_frame = 0
     this.story_num = 0
     this.story_images = []
+
+    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, inv: false, dash: 0, dash_interval: 0, direction: 0 }
+
   }
 
   end() {
@@ -80,6 +83,8 @@ const Scene_Main = class extends Scene {
       ["wait"],
       ["popup", "Ctrl+↑!!!"],
       ["wait"],
+      ["text", "Carotene:\nぐえー"],
+      ["end"]
     ]
 
     let element = story[this.story_num]
@@ -102,6 +107,11 @@ const Scene_Main = class extends Scene {
       case "enemy":
         enemies.push(...element[1])
         this.continue_story()
+        break
+
+      case "end":
+        scene_anten.next_scene = scene_title
+        scene_manager.MoveTo(scene_anten)
         break
 
     }
@@ -298,9 +308,79 @@ const Scene_Main = class extends Scene {
   }
 }
 
-scene_main = new Scene_Main()
+const Scene_Title = class extends Scene {
+  constructor() {
+    super()
+  }
 
-scene_manager = new Scene_Manager(scene_main)
+  start() {
+    this.frame = 0
+  }
+
+  loop() {
+    Irect(0, 0, width, height, "#121212")
+
+    Ifont(60, "white", "serif")
+    Itext(this.frame, 20, 20 + font_size, "The Whimsical Days!")
+
+    if (pushed.includes("KeyZ")) {
+      scene_anten.next_scene = scene_main
+      scene_manager.MoveTo(scene_anten)
+    }
+
+    this.frame++;
+  }
+}
+
+const Scene_preTitle = class extends Scene {
+  constructor() {
+    super()
+  }
+
+  start() {
+    this.frame = 0
+  }
+
+  loop() {
+    Irect(0, 0, width, height, "#121212")
+
+    Ifont(48, "white", "serif")
+    //中央ぞろえ
+    let text = "Push KeyZ"
+    let sub_text = text.slice(0, this.frame)
+    length = ctx.measureText(sub_text).width
+    Itext(this.frame, (width - length) / 2, height / 2, text)
+
+    if (pushed.includes("KeyZ")) {
+      scene_manager.MoveTo(scene_title)
+    }
+
+    this.frame++;
+  }
+
+}
+
+const Scene_Anten = class extends Scene {
+  start() {
+    this.frame = 0
+  }
+
+  loop() {
+    Irect(0, 0, width, height, "rgba(0,0,0," + (this.frame / 24) + ")")
+    this.frame++;
+
+    if (this.frame == 24) {
+      scene_manager.MoveTo(this.next_scene)
+    }
+  }
+}
+
+let scene_anten = new Scene_Anten()
+let scene_pretitle = new Scene_preTitle()
+let scene_title = new Scene_Title()
+let scene_main = new Scene_Main()
+
+scene_manager = new Scene_Manager(scene_pretitle)
 
 function main() {
   scene_manager.current_scene.loop();

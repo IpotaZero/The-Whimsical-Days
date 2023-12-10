@@ -248,9 +248,10 @@ enemy_data.carotene_4 = {
     if (me.life <= 0) {
       bullets = []
       enemies = []
-      next_enemies.push({ ...enemy_data["carotene_2"] })
       enemy_vrs.p = me.p
       sound_play(SoundData.KO)
+
+      scene_main.continue_story()
     }
 
   }
