@@ -31,7 +31,7 @@ function Itext(frame, x, y, text) {
 			for (let i = 0; i < frame; i++) {
 				t = t + text.charAt(i);
 			}
-			if (SoundData.text) { sound_play(SoundData.textSending); }
+			if (SoundData.text) { sound_play(SoundData.text_sending); }
 		} else {
 			t = text;
 		}

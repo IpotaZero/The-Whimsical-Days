@@ -29,7 +29,7 @@ const Scene = class {
   }
 }
 
-let player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, inv: false, dash: 0, dash_interval: 0, direction: 0 }
+let player
 
 let bullets = []
 let enemies = []
@@ -48,7 +48,10 @@ const Scene_Main = class extends Scene {
     SoundData.bullet2 = new Audio("./sounds/bullet.wav")
     SoundData.KO = new Audio("./sounds/KO.wav")
     SoundData.hakkyou = new Audio("./sounds/hakkyou!.wav")
+
     SoundData.Weariness = new Audio("./sounds/Weariness.wav")
+
+    SoundData.kohaku = new Audio("./sounds/select.wav")
     this.dash_interval = 48
   }
 
@@ -63,7 +66,7 @@ const Scene_Main = class extends Scene {
     this.story_num = 0
     this.story_images = []
 
-    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, inv: false, dash: 0, dash_interval: 0, direction: 0 }
+    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
 
     BGM = SoundData.Weariness
     BGM.volume = 0.4
@@ -84,7 +87,7 @@ const Scene_Main = class extends Scene {
 
   story() {
     let story = [
-      ["text", "Kohaku:\nくんくん...\nこっちからプログラムの気配がする\nな..."],
+      ["text", "Kohaku:\nくんくん...\nこっちからプログラムの気配がする\nな...", SoundData.kohaku],
       ["text", "Carotene:\n別に戦わなくてもいいんだけどねー"],
       ["text", "Carotene:\n君があたしを倒すつもりなら、"],
       ["text", "Carotene:\n受けて立とうじゃないか!"],
@@ -98,10 +101,13 @@ const Scene_Main = class extends Scene {
 
     let element = story[this.story_num]
 
+    SoundData.text = false
 
     switch (element[0]) {
       case "text":
         Irect(20, game_height - 200, game_width - 40, 180, "rgba(255,255,255,0.8)")
+
+        if (element[2] != null) { SoundData.text = true; SoundData.text_sending = element[2] }
 
         Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
         Itext5(this.story_frame, 30, game_height - 180, font_size, element[1])
@@ -201,27 +207,7 @@ const Scene_Main = class extends Scene {
           bullets.push(...remodel([bullet_model], ["app", "ball", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
         }
       } else {
-        bullets.push(
-          ...remodel([bullet_model], [
-            "app", "ball",
-            "colour", "rgba(255,255,255,0.5)",
-            "type", "friend",
-            "p", player.p,
-            "v", new vec(0, -16).rot(Math.PI * player.direction),
-            "frame", 0,
-            "f", (me) => {
-              if (me.frame < 12 && enemies.length > 0) {
-                let e = [...enemies]
-
-                e.sort((a, b) => a.p.sub(me.p).length - b.p.sub(me.p).length)
-
-                me.v = me.v.add(e[0].p.sub(me.p).nor().mlt(12))
-                me.frame++;
-              }
-            },
-            "nway", 3, Math.PI / 12, player.p
-          ])
-        )
+        bullets.push(...remodel([bullet_model], ["app", "ball", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
       }
 
 
@@ -230,7 +216,10 @@ const Scene_Main = class extends Scene {
 
     if (pushed.includes("Enter")) { console.log(bullets) }
 
-
+    if (player.dead > 0) {
+      bullets = bullets.filter((b) => { return b.type != "enemy" });
+      player.dead--;
+    }
 
     //敵と弾
     enemies.forEach((e) => {
@@ -253,7 +242,7 @@ const Scene_Main = class extends Scene {
         sound_play(SoundData.graze)
         if (b.r + player.r >= b.p.sub(player.p).length) {
           b.life = 0
-          console.log("dead")
+          player.dead = 24
         }
       }
     })
@@ -273,9 +262,11 @@ const Scene_Main = class extends Scene {
 
     Irect(0, 0, game_width, game_height, "#121212")
 
+    ctx.globalAlpha = player.dead > 0 ? 0.4 : 1;
     Icircle(player.p.x, player.p.y, player.r, "red")
     Iarc(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / this.dash_interval), "white", "stroke", 2)
     Iarc(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "yellow", "stroke", 2)
+    ctx.globalAlpha = 1;
 
     //弾
     bullets.forEach((b) => {
