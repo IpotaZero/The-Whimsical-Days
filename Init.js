@@ -1,6 +1,8 @@
 const cvs = document.getElementById("canvas0");
 const ctx = cvs.getContext("2d", { willReadFrequently: true });
 
+const app = new PIXI.Application({ view: document.querySelector('canvas') });
+
 const width = cvs.width;
 const height = cvs.height;
 

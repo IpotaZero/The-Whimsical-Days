@@ -354,23 +354,29 @@ const Scene_preTitle = class extends Scene {
 
   start() {
     this.frame = 0
+
+    const text = new PIXI.Text("Ipota", { fontFamily: "serif", fontSize: 24, fill: 0xffffff });
+    text.x = width - 200
+    text.y = height - 200
+    app.stage.addChild(text);
   }
 
   loop() {
-    Irect(0, 0, width, height, "#121212")
 
-    Ifont(48, "white", "serif")
-    //中央ぞろえ
-    let text = "Push KeyZ"
-    let sub_text = text.slice(0, this.frame)
-    length = ctx.measureText(sub_text).width
-    Itext(this.frame, (width - length) / 2, height / 2, text)
+    // Irect(0, 0, width, height, "#121212")
 
-    if (pushed.includes("KeyZ")) {
-      scene_manager.MoveTo(scene_title)
-    }
+    // Ifont(48, "white", "serif")
+    // //中央ぞろえ
+    // let text = "Push KeyZ"
+    // let sub_text = text.slice(0, this.frame)
+    // length = ctx.measureText(sub_text).width
+    // Itext(this.frame, (width - length) / 2, height / 2, text)
 
-    this.frame++;
+    // if (pushed.includes("KeyZ")) {
+    //   scene_manager.MoveTo(scene_title)
+    // }
+
+    // this.frame++;
   }
 
 }
