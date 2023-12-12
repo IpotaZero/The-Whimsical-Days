@@ -28,7 +28,7 @@ function get_angle(v0, v1) {
 }
 
 
-enemy_data.carotene_0 = {
+enemy_data.ethanol_0 = {
   p: new vec(game_width / 2, 60), r: 32, frame: 0, life: 135, maxlife: 135, damaged: false, f: (me) => {
 
     me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 120) + game_width / 2
@@ -41,7 +41,7 @@ enemy_data.carotene_0 = {
     me.frame++;
     if (me.life <= 0) {
       bullets = []
-      next_enemies.push({ ...enemy_data["carotene_1"] })
+      next_enemies.push({ ...enemy_data["ethanol_1"] })
       enemy_vrs.p = me.p
       sound_play(SoundData.KO)
       scene_main.continue_story()
@@ -51,7 +51,7 @@ enemy_data.carotene_0 = {
 }
 
 
-enemy_data.carotene_1 = {
+enemy_data.ethanol_1 = {
   p: new vec(-100, 60), r: 32, frame: 0, life: 200, maxlife: 200, damaged: false, f: (me) => {
     if (me.frame < 48) {
       me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height - 60), x => x ** 2)
@@ -72,7 +72,7 @@ enemy_data.carotene_1 = {
     me.frame++;
     if (me.life <= 0) {
       bullets = []
-      next_enemies.push({ ...enemy_data["carotene_2"] }, { ...enemy_data["carotene_2_0"] }, { ...enemy_data["carotene_2_1"] })
+      next_enemies.push({ ...enemy_data["ethanol_2"] }, { ...enemy_data["ethanol_2_0"] }, { ...enemy_data["ethanol_2_1"] })
       enemy_vrs.p = me.p
       sound_play(SoundData.KO)
     }
@@ -81,7 +81,7 @@ enemy_data.carotene_1 = {
 }
 
 
-enemy_data.carotene_2_0 = {
+enemy_data.ethanol_2_0 = {
   p: new vec(-100, 60), r: 32, frame: 0, life: 50, maxlife: 50, damaged: false, f: (me) => {
     if (me.frame <= 48) {
       me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
@@ -104,7 +104,7 @@ enemy_data.carotene_2_0 = {
 }
 
 
-enemy_data.carotene_2_1 = {
+enemy_data.ethanol_2_1 = {
   p: new vec(-100, 60), r: 32, frame: 0, life: 50, maxlife: 50, damaged: false, f: (me) => {
     if (me.frame <= 48) {
       me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
@@ -127,7 +127,7 @@ enemy_data.carotene_2_1 = {
 }
 
 
-enemy_data.carotene_2 = {
+enemy_data.ethanol_2 = {
   p: new vec(-100, 60), r: 32, frame: 0, life: 300, maxlife: 300, damaged: false, f: (me) => {
     if (me.frame <= 48) {
       me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
@@ -141,8 +141,8 @@ enemy_data.carotene_2 = {
     if (me.life <= 0) {
       bullets = []
       enemies = []
-      next_enemies.push({ ...enemy_data["carotene_3"] })
-      for (let i = 0; i < 4; i++) { next_enemies.push({ ...enemy_data["carotene_3_" + i] }) }
+      next_enemies.push({ ...enemy_data["ethanol_3"] })
+      for (let i = 0; i < 4; i++) { next_enemies.push({ ...enemy_data["ethanol_3_" + i] }) }
       enemy_vrs.p = me.p
       sound_play(SoundData.KO)
     }
@@ -150,8 +150,8 @@ enemy_data.carotene_2 = {
   }
 }
 
-function carotene_3(num) {
-  enemy_data["carotene_3_" + num] = {
+function ethanol_3(num) {
+  enemy_data["ethanol_3_" + num] = {
     p: new vec(-100, 60), r: 16, frame: 0, life: 50, maxlife: 50, damaged: false, f: (me) => {
       if (me.frame <= 24) {
         me.p = linear_move(me.frame, 24, new vec(game_width / 2, game_height / 2), new vec(game_width / 2, game_height / 2).add(new vec(120, 0).rot(Math.PI / 2 * num)), x => x ** 2)
@@ -174,9 +174,9 @@ function carotene_3(num) {
   }
 }
 
-for (let i = 0; i < 4; i++) { carotene_3(i) }
+for (let i = 0; i < 4; i++) { ethanol_3(i) }
 
-enemy_data.carotene_3 = {
+enemy_data.ethanol_3 = {
   p: new vec(-100, 60), r: 32, frame: 0, life: 300, maxlife: 300, damaged: false, f: (me) => {
     if (me.frame <= 24) {
       me.p = linear_move(me.frame, 24, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)
@@ -193,8 +193,8 @@ enemy_data.carotene_3 = {
     if (me.life <= 0) {
       bullets = []
       enemies = []
-      next_enemies.push({ ...enemy_data["carotene_4"] })
-      for (let i = 0; i < 12; i++) { next_enemies.push({ ...enemy_data["carotene_4_" + i] }) }
+      next_enemies.push({ ...enemy_data["ethanol_4"] })
+      for (let i = 0; i < 12; i++) { next_enemies.push({ ...enemy_data["ethanol_4_" + i] }) }
       enemy_vrs.p = me.p
       sound_play(SoundData.KO)
       sound_play(SoundData.hakkyou)
@@ -203,8 +203,8 @@ enemy_data.carotene_3 = {
   }
 }
 
-function carotene_4(num) {
-  enemy_data["carotene_4_" + num] = {
+function ethanol_4(num) {
+  enemy_data["ethanol_4_" + num] = {
     p: new vec(-100, 60), r: 32, frame: 0, life: 50, maxlife: 50, damaged: false, f: (me) => {
       if (me.frame <= 60) {
         me.p = linear_move(me.frame, 60, enemy_vrs.p, new vec(game_width / 2, game_height / 2).add(new vec(90, 0).rot(2 * Math.PI * num / 12)), x => x ** 2)
@@ -227,9 +227,9 @@ function carotene_4(num) {
   }
 }
 
-for (let i = 0; i < 12; i++) { carotene_4(i) }
+for (let i = 0; i < 12; i++) { ethanol_4(i) }
 
-enemy_data.carotene_4 = {
+enemy_data.ethanol_4 = {
   p: new vec(-100, 60), r: 32, frame: 0, life: 200, maxlife: 200, damaged: false, f: (me) => {
     if (me.frame <= 60) {
       me.p = linear_move(me.frame, 60, enemy_vrs.p, new vec(game_width / 2, game_height / 2), x => x ** 2)

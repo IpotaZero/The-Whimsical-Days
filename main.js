@@ -88,14 +88,14 @@ const Scene_Main = class extends Scene {
   story() {
     let story = [
       ["text", "Kohaku:\nくんくん...\nこっちからプログラムの気配がする\nな...", SoundData.kohaku],
-      ["text", "Carotene:\n別に戦わなくてもいいんだけどねー"],
-      ["text", "Carotene:\n君があたしを倒すつもりなら、"],
-      ["text", "Carotene:\n受けて立とうじゃないか!"],
-      ["enemy", [{ ...enemy_data.carotene_0 }]],
+      ["text", "Ethanol:\n別に戦わなくてもいいんだけどねー"],
+      ["text", "Ethanol:\n君があたしを倒すつもりなら、"],
+      ["text", "Ethanol:\n受けて立とうじゃないか!"],
+      ["enemy", [{ ...enemy_data.ethanol_0 }]],
       ["wait"],
       ["popup", "Ctrl+↑!!!"],
       ["wait"],
-      ["text", "Carotene:\nぐえー"],
+      ["text", "Ethanol:\nぐえー"],
       ["end"]
     ]
 

@@ -24,7 +24,7 @@ function get_angle(v0, v1) {
 }
 
 
-enemy_data.carotene_0 = {
+enemy_data.ethanol_0 = {
   p: new vec(game_width / 2, 60), r: 32, frame: 0, life: 200, maxlife: 200, damaged: false, f: (me) => {
 
     me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 120) + game_width / 2
@@ -36,7 +36,7 @@ enemy_data.carotene_0 = {
     me.frame++;
     if (me.life <= 0) {
       bullets = []
-      next_enemies.push({ ...enemy_data["carotene_1"] })
+      next_enemies.push({ ...enemy_data["ethanol_1"] })
       enemy_vrs.p = me.p
       sound_play(SoundData.KO)
     }
