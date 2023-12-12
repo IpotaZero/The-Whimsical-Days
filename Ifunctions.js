@@ -20,6 +20,15 @@ function sound_play(sound, mode = "as se") {
 
 let ImgData = {};
 
+function pixi_text(x, y, text) {
+	const message = new PIXI.Text(text, style); // テキストとスタイルを指定して作成
+
+	message.x = x; // X座標
+	message.y = y; // Y座標
+
+	app.stage.addChild(message); // テキストをステージに追加
+}
+
 //文字送り{frame, x, y, text}
 function Itext(frame, x, y, text) {
 	let t = "";
@@ -37,8 +46,7 @@ function Itext(frame, x, y, text) {
 		}
 	}
 
-	ctx.beginPath();
-	ctx.fillText(t, x, y);
+	pixi_text(x, y, text)
 }
 
 //待機可能改行テキスト
@@ -103,18 +111,19 @@ function Iarc(x, y, r, start, end, c, id = "fill", size = 2) {
 }
 
 //座標、幅、高さ、色、ID,太さ
-function Irect(x, y, width, height, c, id = "fill", size = 2) {
-	ctx.beginPath();
+function Irect(x, y, width, height, colour, id = "fill", line_width = 2) {
+	const rectangle = new PIXI.Graphics();
+	let c = chroma(colour)
 
 	switch (id) {
 		case "fill":
-			ctx.fillStyle = c;
-			ctx.fillRect(x, y, width, height);
+			rectangle.beginFill(c.num(), c.alpha())
+				.drawRect(x, y, width, height)
+				.endFill()
 			break;
 		case "stroke":
-			ctx.strokeStyle = c;
-			ctx.lineWidth = size;
-			ctx.strokeRect(x, y, width, height);
+			rectangle.lineStyle(line_width, c.num(), c.alpha())
+				.drawRect(x, y, width, height)
 			break;
 	}
 }
@@ -146,9 +155,7 @@ function Iline2(colour, size, points) {
 }
 
 function Ifont(size, colour = "black", _font = "Arial") {
-	ctx.fillStyle = colour;
-	font_size = size;
-	ctx.font = font_size + "px " + _font;
+
 }
 
 const vec = class {
@@ -238,7 +245,7 @@ function Idice(a, b) {
 function Icommand(c, x, y, linespace, option) {
 	if (option[c.current_branch] != null) {
 		Itext4(c.frame * 2, x + linespace, y, linespace, option[c.current_branch])
-		Itext(c.frame, x, y + font_size * c.current_value, "→")
+		Itext(c.frame, x, y + style.fontSize * c.current_value, "→")
 
 		if (pushed.includes("ArrowDown")) { c.current_value++; sound_play(SoundData.select) }
 		if (pushed.includes("ArrowUp")) { c.current_value--; sound_play(SoundData.select) }

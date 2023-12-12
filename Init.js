@@ -1,8 +1,14 @@
-const cvs = document.getElementById("canvas0");
-const ctx = cvs.getContext("2d", { willReadFrequently: true });
+const width = 720
+const height = 720
 
-const width = cvs.width;
-const height = cvs.height;
+// PixiJSのアプリケーションを作成
+const app = new PIXI.Application({
+	width: width,
+	height: height,
+	backgroundColor: 0x121212,
+});
+
+document.body.appendChild(app.view)
 
 game_width = width * 3 / 5
 game_height = height
@@ -27,6 +33,19 @@ document.addEventListener("keyup", (e) => {
 	pressed = pressed.filter((f) => { return e.code != f; });
 });
 
-let font_size = 24;
+const style = {
+	fontFamily: 'serif', // フォントファミリー
+	fontSize: 36, // フォントサイズ
+	fill: 'white', // テキストの色
+	align: "left",
+
+	stroke: 'black', // ストロークの色
+	strokeThickness: 0, // ストロークの太さ
+	dropShadow: true, // ドロップシャドウの有無
+	dropShadowColor: '#000000', // ドロップシャドウの色
+	dropShadowBlur: 4, // ドロップシャドウのぼかし
+	dropShadowDistance: 4, // ドロップシャドウの距離
+}
+
 
 console.log("Init.js_loaded");

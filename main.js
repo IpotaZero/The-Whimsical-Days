@@ -110,13 +110,13 @@ const Scene_Main = class extends Scene {
         if (element[2] != null) { SoundData.text = true; SoundData.text_sending = element[2] }
 
         Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-        Itext5(this.story_frame, 30, game_height - 180, font_size, element[1])
+        Itext5(this.story_frame, 30, game_height - 180, style.fontSize, element[1])
         if (pushed.includes("ok")) { this.continue_story() }
         break
 
       case "popup":
         Ifont(24, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-        Itext5(this.story_frame, game_width + 20, game_height - 180, font_size, element[1])
+        Itext5(this.story_frame, game_width + 20, game_height - 180, style.fontSize, element[1])
         break
 
       case "enemy":
@@ -324,10 +324,10 @@ const Scene_Title = class extends Scene {
     Irect(0, 0, width, height, "#121212")
 
     Ifont(60, "white", "serif")
-    Itext(this.frame, 20, 20 + font_size, "The Whimsical Days!")
+    Itext(this.frame, 20, 20 + style.fontSize, "The Whimsical Days!")
 
     Ifont(36, "white", "serif")
-    this.c = Icommand(this.c, 20, 200, font_size, this.option)
+    this.c = Icommand(this.c, 20, 200, style.fontSize, this.option)
 
     switch (this.c.current_branch) {
       case "00":
@@ -335,11 +335,11 @@ const Scene_Title = class extends Scene {
         scene_manager.MoveTo(scene_anten)
         break
       case "1":
-        Itext5(this.c.frame, 20, 200, font_size, "十字キーで移動、Shiftキーで低速、\nAで後ろを向く、\nCtrlで0.5秒ダッシュ(ダッシュ中は無敵)")
+        Itext5(this.c.frame, 20, 200, style.fontSize, "十字キーで移動、Shiftキーで低速、\nAで後ろを向く、\nCtrlで0.5秒ダッシュ(ダッシュ中は無敵)")
         break
       case "2":
         Ifont(24, "white", "serif")
-        Itext5(this.c.frame, 20, 200, font_size, "バグを取り除くために派遣された天使である\nコハクは2つのバグを取り除き\nまた次のバグを探して夜の街をさまようのであった...")
+        Itext5(this.c.frame, 20, 200, style.fontSize, "バグを取り除くために派遣された天使である\nコハクは2つのバグを取り除き\nまた次のバグを探して夜の街をさまようのであった...")
         break
     }
 
@@ -354,17 +354,17 @@ const Scene_preTitle = class extends Scene {
 
   start() {
     this.frame = 0
+
+    app.stage.removeChildren();
+    Irect(0, 0, width, height, "#121212")
+
+    //中央ぞろえ
+    let text = "Push KeyZ"
+    style.align = "center"
+    Itext(this.frame, width / 2, height / 2, text)
   }
 
   loop() {
-    Irect(0, 0, width, height, "#121212")
-
-    Ifont(48, "white", "serif")
-    //中央ぞろえ
-    let text = "Push KeyZ"
-    let sub_text = text.slice(0, this.frame)
-    length = ctx.measureText(sub_text).width
-    Itext(this.frame, (width - length) / 2, height / 2, text)
 
     if (pushed.includes("KeyZ")) {
       scene_manager.MoveTo(scene_title)
