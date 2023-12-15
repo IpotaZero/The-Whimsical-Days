@@ -27,6 +27,51 @@ function get_angle(v0, v1) {
   return v1.x > 0 ? a : a + Math.PI;
 }
 
+enemy_data.zako_0 = {
+  p: new vec(game_width / 2, -50), r: 32, frame: 0, life: 15, maxlife: 15, damaged: false, f: (me) => {
+
+    me.p = circular_move(new vec(0, 0), me.frame, 300, 4 * 120)
+
+    if (me.frame % 24 == 0) {
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", 3, Math.PI / 12, me.p]))
+      sound_play(SoundData.bullet0)
+    }
+
+    me.frame++;
+
+    if (me.life <= 0) {
+      sound_play(SoundData.KO)
+    }
+
+    if (me.p.x < 0 || game_width < me.p.x) { me.life = 0 }
+
+  }
+}
+
+
+enemy_data.zako_1 = {
+  p: new vec(game_width / 2, -50), r: 32, frame: 0, life: 15, maxlife: 15, damaged: false, f: (me) => {
+
+    me.p = circular_move(new vec(game_width, 0), -me.frame, -300, 4 * 120)
+
+    if (me.frame % 24 == 0) {
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", 3, Math.PI / 12, me.p]))
+      sound_play(SoundData.bullet0)
+    }
+
+    me.frame++;
+
+    if (me.life <= 0) {
+      sound_play(SoundData.KO)
+    }
+
+    if (me.p.x < 0 || game_width < me.p.x) { me.life = 0 }
+
+  }
+}
+
+
+
 
 enemy_data.ethanol_0 = {
   p: new vec(game_width / 2, 60), r: 32, frame: 0, life: 80, maxlife: 80, damaged: false, f: (me) => {
