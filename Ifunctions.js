@@ -207,10 +207,14 @@ function ILoop(a = null, b, f) {
 	f(...arr);
 }
 
-let Icamera = { p: new vec(0, 0), v: new vec(0, 0) };
+let Icamera = { p: new vec(-20, -20), v: new vec(0, 0) };
 
 function IcircleC(x, y, r, c, id, size) {
 	Icircle(x - Icamera.p.x, y - Icamera.p.y, r, c, id, size);
+}
+
+function IarcC(x, y, r, start, end, c, id, size) {
+	Iarc(x - Icamera.p.x, y - Icamera.p.y, r, start, end, c, id, size);
 }
 
 function IrectC(x, y, width, height, c, id, size) {

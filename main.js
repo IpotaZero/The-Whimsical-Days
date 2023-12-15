@@ -105,12 +105,12 @@ const Scene_Main = class extends Scene {
 
     switch (element[0]) {
       case "text":
-        Irect(20, game_height - 200, game_width - 40, 180, "rgba(255,255,255,0.8)")
+        Irect(40, game_height - 180, game_width - 40, 180, "rgba(255,255,255,0.8)")
 
         if (element[2] != null) { SoundData.text = true; SoundData.text_sending = element[2] }
 
         Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-        Itext5(this.story_frame, 30, game_height - 180, font_size, element[1])
+        Itext5(this.story_frame, 45, game_height - 150, font_size, element[1])
         if (pushed.includes("ok")) { this.continue_story() }
         break
 
@@ -204,10 +204,10 @@ const Scene_Main = class extends Scene {
     if (this.frame % 3 == 0) {
       if (pressed.includes("ShiftLeft")) {
         for (let i = 0; i < 5; i++) {
-          bullets.push(...remodel([bullet_model], ["app", "ball", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
+          bullets.push(...remodel([bullet_model], ["app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
         }
       } else {
-        bullets.push(...remodel([bullet_model], ["app", "ball", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
+        bullets.push(...remodel([bullet_model], ["app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
       }
 
 
@@ -260,24 +260,32 @@ const Scene_Main = class extends Scene {
     //描画
     ctx.clearRect(0, 0, width, height)
 
-    Irect(0, 0, game_width, game_height, "#121212")
+    Irect(0, 0, width, height, "#122012")
+    Irect(20, 20, game_width, game_height, "#121212")
 
     ctx.globalAlpha = player.dead > 0 ? 0.4 : 1;
-    Icircle(player.p.x, player.p.y, player.r, "red")
-    Iarc(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / this.dash_interval), "white", "stroke", 2)
-    Iarc(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "yellow", "stroke", 2)
+    IcircleC(player.p.x, player.p.y, player.r, "red")
+    IarcC(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / this.dash_interval), "white", "stroke", 2)
+    IarcC(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "yellow", "stroke", 2)
     ctx.globalAlpha = 1;
 
     //弾
     bullets.forEach((b) => {
-      if (b.app == "donut") {
-        Icircle(b.p.x, b.p.y, b.r, b.colour, "stroke", 2)
-      } else if (b.app == "laser") {
-        let v = b.v;
-        if (v.x == 0 && v.y == 0) { v = new vec(0.01, 0); }//速度が0ベクトルだと方向が指定されなくなりますので
-        Iline(b.colour, b.r * 2 * 1.5, [[b.p.sub(v.nor().mlt(b.r)).x, b.p.sub(v.nor().mlt(b.r)).y], [b.p.add(v.nor().mlt(b.r)).x, b.p.add(v.nor().mlt(b.r)).y]]);
-      } else {
-        Icircle(b.p.x, b.p.y, b.r, b.colour)
+      switch (b.app) {
+        case "donut":
+          IcircleC(b.p.x, b.p.y, b.r, b.colour, "stroke", 2)
+          break
+        case "laser":
+          let v = b.v;
+          if (v.x == 0 && v.y == 0) { v = new vec(0.01, 0); }//速度が0ベクトルだと方向が指定されなくなりますので
+          IlineC(b.colour, b.r * 2, [[b.p.sub(v.nor().mlt(b.r)).x, b.p.sub(v.nor().mlt(b.r)).y], [b.p.add(v.nor().mlt(b.r)).x, b.p.add(v.nor().mlt(b.r)).y]]);
+          break
+        case "ball":
+          IcircleC(b.p.x, b.p.y, b.r * 1.5, chroma(b.colour).alpha(0.8).css())
+          IcircleC(b.p.x, b.p.y, b.r, "white")
+          break
+        default:
+          IcircleC(b.p.x, b.p.y, b.r, b.colour)
       }
     })
 
@@ -285,23 +293,21 @@ const Scene_Main = class extends Scene {
     enemies.forEach((e) => {
       let c = e.damaged ? "red" : "white"
 
-      Irect(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, "white");
-      Irect(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, "white", "stroke", 2);
+      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, "white");
+      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, "white", "stroke", 2);
 
-      Icircle(e.p.x, e.p.y, e.r, c, "stroke", 2)
+      IcircleC(e.p.x, e.p.y, e.r, c, "stroke", 2)
     })
 
     //エフェクト
     effects.forEach((e) => {
       if (e.effect_type == "player") {
-        Icircle(e.p.x, e.p.y, e.r, "rgba(255,0,0," + (e.effect_time / 12) + ")")
+        IcircleC(e.p.x, e.p.y, e.r, "rgba(255,0,0," + (e.effect_time / 12) + ")")
       }
       e.effect_time--;
     })
 
     effects = effects.filter((e) => { return e.effect_time > 0 })
-
-    Irect(game_width, 0, width - game_width, height, "rgba(127,127,127,1)")
   }
 }
 
@@ -339,7 +345,7 @@ const Scene_Title = class extends Scene {
         break
       case "2":
         Ifont(24, "white", "serif")
-        Itext5(this.c.frame, 20, 200, font_size, "バグを取り除くために派遣された天使である\nコハクは2つのバグを取り除き\nまた次のバグを探して夜の街をさまようのであった...")
+        Itext5(this.c.frame, 20, 200, font_size, "バグを取り除くために派遣された天使であるコハク\nコハクは2つのバグを取り除き\nまた次のバグを探して夜の街をさまようのであった...")
         break
     }
 

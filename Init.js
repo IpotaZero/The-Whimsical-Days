@@ -5,7 +5,7 @@ const width = cvs.width;
 const height = cvs.height;
 
 game_width = width * 3 / 5
-game_height = height
+game_height = height - 40
 
 //キー入力
 let pressed = [];
