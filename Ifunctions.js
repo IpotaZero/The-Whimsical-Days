@@ -1,21 +1,44 @@
 let SoundData = {};
 SoundData.text = false;
-SoundData.muteBGM = true;
-SoundData.muteSE = false;
+SoundData.mute_bgm = false;
+SoundData.mute_se = false;
 
-function sound_play(sound, mode = "as se") {
-	switch (mode) {
-		case "as se":
-			sound.currentTime = 0;
-			sound.muted = SoundData.muteSE
-			break;
-		case "as bgm":
-			sound.loop = true;
-			sound.muted = SoundData.muteBGM;
-			break;
+const Iaudio = class {
+	constructor(path, type = "se") {
+		this.audio = new Audio(path)
+		this.type = type
+	}
+	play() {
+		if (this.type == "se") {
+			this.audio.currentTime = 0
+			this.audio.muted = SoundData.mute_se
+		} else if (this.type == "bgm") {
+			this.audio.loop = true
+			this.audio.muted = SoundData.mute_bgm
+		}
+
+		this.audio.play()
 	}
 
-	sound.play();
+	pause() {
+		this.audio.pause()
+	}
+
+	reset() {
+		this.audio.currentTime = 0
+	}
+
+	set_mute(b) {
+		this.audio.muted = b
+	}
+
+	set_volume(v) {
+		this.audio.volume = v
+	}
+
+	fadeout(frame, time) {
+		this.audio.volume = 0.4 * (1 - frame / time)
+	}
 }
 
 let ImgData = {};
@@ -31,7 +54,7 @@ function Itext(frame, x, y, text) {
 			for (let i = 0; i < frame; i++) {
 				t = t + text.charAt(i);
 			}
-			if (SoundData.text) { sound_play(SoundData.text_sending); }
+			if (SoundData.text) { SoundData.text_sending.play(); }
 		} else {
 			t = text;
 		}
@@ -244,8 +267,8 @@ function Icommand(c, x, y, linespace, option) {
 		Itext4(c.frame * 2, x + linespace, y, linespace, option[c.current_branch])
 		Itext(c.frame, x, y + font_size * c.current_value, "→")
 
-		if (pushed.includes("ArrowDown")) { c.current_value++; sound_play(SoundData.select) }
-		if (pushed.includes("ArrowUp")) { c.current_value--; sound_play(SoundData.select) }
+		if (pushed.includes("ArrowDown")) { c.current_value++; SoundData.select.play() }
+		if (pushed.includes("ArrowUp")) { c.current_value--; SoundData.select.play() }
 
 		c.current_value = (c.current_value + option[c.current_branch].length) % option[c.current_branch].length
 
@@ -253,7 +276,7 @@ function Icommand(c, x, y, linespace, option) {
 			c.current_branch += c.current_value
 			c.frame = 0
 			c.current_value = 0
-			sound_play(SoundData.ok)
+			SoundData.ok.play()
 		}
 	}
 
@@ -261,7 +284,7 @@ function Icommand(c, x, y, linespace, option) {
 		c.current_value = Number(c.current_branch.charAt(c.current_branch.length - 1))
 		c.current_branch = c.current_branch.slice(0, -1)
 		c.frame = 0
-		sound_play(SoundData.cancel)
+		SoundData.cancel.play()
 	}
 
 	c.frame++;

@@ -34,13 +34,13 @@ enemy_data.zako_0 = {
 
     if (me.frame % 24 == 0) {
       bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", 3, Math.PI / 12, me.p]))
-      sound_play(SoundData.bullet0)
+      SoundData.bullet0.play()
     }
 
     me.frame++;
 
     if (me.life <= 0) {
-      sound_play(SoundData.KO)
+      SoundData.KO.play()
     }
 
     if (me.p.x < 0 || game_width < me.p.x) { me.life = 0 }
@@ -56,13 +56,13 @@ enemy_data.zako_1 = {
 
     if (me.frame % 24 == 0) {
       bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", 3, Math.PI / 12, me.p]))
-      sound_play(SoundData.bullet0)
+      SoundData.bullet0.play()
     }
 
     me.frame++;
 
     if (me.life <= 0) {
-      sound_play(SoundData.KO)
+      SoundData.KO.play()
     }
 
     if (me.p.x < 0 || game_width < me.p.x) { me.life = 0 }
@@ -71,6 +71,35 @@ enemy_data.zako_1 = {
 }
 
 
+enemy_data.zako_2 = {
+  p: new vec(game_width / 2, -50), r: 32, frame: 0, life: 100, maxlife: 100, damaged: false, f: (me) => {
+
+    if (me.frame <= 24) {
+      me.p = linear_move(me.frame, 24, new vec(game_width / 2, -50), new vec(game_width / 2, 40), x => x)
+    } else {
+      if (me.frame % 12 == 0) {
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "aim", player.p, "ex", 31, me.p]))
+        SoundData.bullet0.play()
+      }
+
+      if (me.frame > 144) {
+        me.p = linear_move(me.frame - 144, 144, new vec(game_width / 2, 40), new vec(game_width / 2, game_height + 120), x => x)
+      }
+    }
+
+    me.frame++;
+
+    if (me.p.y > game_height) { me.life = 0 }
+
+    if (me.life <= 0) {
+      SoundData.KO.play()
+      scene_main.continue_story()
+    }
+
+
+
+  }
+}
 
 
 enemy_data.ethanol_0 = {
@@ -78,9 +107,9 @@ enemy_data.ethanol_0 = {
 
     me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 120) + game_width / 2
 
-    if (me.frame % 8 == 0) {
+    if (me.frame % 6 == 0) {
       bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "ex", 36, me.p]))
-      sound_play(SoundData.bullet0)
+      SoundData.bullet0.play()
     }
 
     me.frame++;
@@ -88,7 +117,7 @@ enemy_data.ethanol_0 = {
       bullets = []
       next_enemies.push({ ...enemy_data["ethanol_1"] })
       enemy_vrs.p = me.p
-      sound_play(SoundData.KO)
+      SoundData.KO.play()
       scene_main.continue_story()
     }
 
@@ -110,7 +139,7 @@ enemy_data.ethanol_1 = {
 
       if (me.frame % 16 == 0) {
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 24, "p", me.p, "v", new vec(0, -6), "aim", player.p, "nway", 5, Math.PI / 24, me.p]))
-        sound_play(SoundData.bullet0)
+        SoundData.bullet0.play()
       }
     }
 
@@ -119,7 +148,7 @@ enemy_data.ethanol_1 = {
       bullets = []
       next_enemies.push({ ...enemy_data["ethanol_2"] }, { ...enemy_data["ethanol_2_0"] }, { ...enemy_data["ethanol_2_1"] })
       enemy_vrs.p = me.p
-      sound_play(SoundData.KO)
+      SoundData.KO.play()
     }
 
   }
@@ -137,13 +166,13 @@ enemy_data.ethanol_2_0 = {
       if (me.frame % 4 == 0) {
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, -6)]))
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, 6)]))
-        sound_play(SoundData.bullet1)
+        SoundData.bullet1.play()
       }
     }
 
     me.frame++;
     if (me.life <= 0) {
-      sound_play(SoundData.KO)
+      SoundData.KO.play()
     }
   }
 }
@@ -160,13 +189,13 @@ enemy_data.ethanol_2_1 = {
       if (me.frame % 4 == 0) {
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, -6)]))
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, 6)]))
-        sound_play(SoundData.bullet1)
+        SoundData.bullet1.play()
       }
     }
 
     me.frame++;
     if (me.life <= 0) {
-      sound_play(SoundData.KO)
+      SoundData.KO.play()
     }
   }
 }
@@ -189,7 +218,7 @@ enemy_data.ethanol_2 = {
       next_enemies.push({ ...enemy_data["ethanol_3"] })
       for (let i = 0; i < 4; i++) { next_enemies.push({ ...enemy_data["ethanol_3_" + i] }) }
       enemy_vrs.p = me.p
-      sound_play(SoundData.KO)
+      SoundData.KO.play()
     }
 
   }
@@ -212,7 +241,7 @@ function ethanol_3(num) {
 
       me.frame++;
       if (me.life <= 0) {
-        sound_play(SoundData.KO)
+        SoundData.KO.play()
       }
 
     }
@@ -230,7 +259,7 @@ enemy_data.ethanol_3 = {
     } else {
       if (me.frame % 12 == 0) {
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(0, 12), "aim", player.p, "ex", 32, me.p]))
-        sound_play(SoundData.bullet0)
+        SoundData.bullet0.play()
       }
     }
 
@@ -241,8 +270,8 @@ enemy_data.ethanol_3 = {
       next_enemies.push({ ...enemy_data["ethanol_4"] })
       for (let i = 0; i < 12; i++) { next_enemies.push({ ...enemy_data["ethanol_4_" + i] }) }
       enemy_vrs.p = me.p
-      sound_play(SoundData.KO)
-      sound_play(SoundData.hakkyou)
+      SoundData.KO.play()
+      SoundData.hakkyou.play()
     }
 
   }
@@ -260,12 +289,12 @@ function ethanol_4(num) {
         me.p = me.p.add(new vec(90, 0).rot(2 * Math.PI * num / 12))
 
         bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame, "r", 6, "p", me.p, "v", new vec(0, 12), "aim", player.p]))
-        sound_play(SoundData.bullet1)
+        SoundData.bullet1.play()
       }
 
       me.frame++;
       if (me.life <= 0) {
-        sound_play(SoundData.KO)
+        SoundData.KO.play()
       }
 
     }
@@ -283,7 +312,7 @@ enemy_data.ethanol_4 = {
 
       if (me.frame % 36 == 0) {
         bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 12), "aim", player.p, "arrow", 30, "ex", 32, me.p]))
-        sound_play(SoundData.bullet0)
+        SoundData.bullet0.play()
       }
     }
 
@@ -292,7 +321,7 @@ enemy_data.ethanol_4 = {
       bullets = []
       enemies = []
       enemy_vrs.p = me.p
-      sound_play(SoundData.KO)
+      SoundData.KO.play()
 
       scene_main.continue_story()
     }

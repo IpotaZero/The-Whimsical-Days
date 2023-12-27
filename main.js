@@ -41,17 +41,17 @@ let next_enemies = []
 const Scene_Main = class extends Scene {
   constructor() {
     super()
-    SoundData.graze = new Audio("./sounds/graze.wav")
-    SoundData.dash = new Audio("./sounds/dash.wav")
-    SoundData.bullet0 = new Audio("./sounds/鈴を鳴らす.mp3")
-    SoundData.bullet1 = new Audio("./sounds/きらきら輝く2.wav")
-    SoundData.bullet2 = new Audio("./sounds/bullet.wav")
-    SoundData.KO = new Audio("./sounds/KO.wav")
-    SoundData.hakkyou = new Audio("./sounds/hakkyou!.wav")
+    SoundData.graze = new Iaudio("./sounds/graze.wav")
+    SoundData.dash = new Iaudio("./sounds/dash.wav")
+    SoundData.bullet0 = new Iaudio("./sounds/鈴を鳴らす.mp3")
+    SoundData.bullet1 = new Iaudio("./sounds/きらきら輝く2.wav")
+    SoundData.bullet2 = new Iaudio("./sounds/bullet.wav")
+    SoundData.KO = new Iaudio("./sounds/KO.wav")
+    SoundData.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
 
-    SoundData.Weariness = new Audio("./sounds/Weariness.wav")
+    SoundData.Weariness = new Iaudio("./sounds/Weariness.wav", "bgm")
 
-    SoundData.kohaku = new Audio("./sounds/select.wav")
+    SoundData.kohaku = new Iaudio("./sounds/select.wav")
     this.dash_interval = 48
   }
 
@@ -65,15 +65,10 @@ const Scene_Main = class extends Scene {
     this.story_frame = 0
     this.story_num = 0
     this.story_images = []
+    this.story_interval = 0
+    this.chapter = story[0]
 
     player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
-
-    BGM = SoundData.Weariness
-    BGM.volume = 0.4
-    BGM.currentTime = 0
-
-    sound_play(BGM, "as bgm")
-
   }
 
   end() {
@@ -86,51 +81,56 @@ const Scene_Main = class extends Scene {
   }
 
   story() {
-    let story = [
-      ["text", "Kohaku:\nくんくん...\nこっちからプログラムの気配がする\nな...", SoundData.kohaku],
-      ["text", "Ethanol:\n別に戦わなくてもいいんだけどねー"],
-      ["text", "Ethanol:\n君があたしを倒すつもりなら、"],
-      ["text", "Ethanol:\n受けて立とうじゃないか!"],
-      ["enemy", [{ ...enemy_data.ethanol_0 }]],
-      ["wait"],
-      ["popup", "Ctrl+↑!!!"],
-      ["wait"],
-      ["text", "Ethanol:\nぐえー"],
-      ["end"]
-    ]
+    if (this.story_interval == 0) {
+      let element = this.chapter[this.story_num]
 
-    let element = story[this.story_num]
+      SoundData.text = false
 
-    SoundData.text = false
+      switch (element.type) {
+        case "text":
+          Irect(40, game_height - 180, game_width - 40, 180, "rgba(255,255,255,0.8)")
 
-    switch (element[0]) {
-      case "text":
-        Irect(40, game_height - 180, game_width - 40, 180, "rgba(255,255,255,0.8)")
+          if (element.voice != null) { SoundData.text = true; SoundData.text_sending = element.voice }
 
-        if (element[2] != null) { SoundData.text = true; SoundData.text_sending = element[2] }
+          Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+          Itext5(this.story_frame, 45, game_height - 150, font_size, element.text)
+          if (pushed.includes("ok")) { this.continue_story() }
+          break
 
-        Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-        Itext5(this.story_frame, 45, game_height - 150, font_size, element[1])
-        if (pushed.includes("ok")) { this.continue_story() }
-        break
+        case "popup":
+          Ifont(24, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+          Itext5(this.story_frame, game_width + 20, game_height - 180, font_size, element.text)
+          break
 
-      case "popup":
-        Ifont(24, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-        Itext5(this.story_frame, game_width + 20, game_height - 180, font_size, element[1])
-        break
+        case "bgm":
+          if (BGM != null) { BGM.pause() }
+          BGM = element.bgm
+          BGM.reset()
+          BGM.set_volume(0.4)
+          BGM.play()
+          this.continue_story()
+          break
 
-      case "enemy":
-        enemies.push(...element[1])
-        this.continue_story()
-        break
+        case "enemy":
+          while (element.type == "enemy") {
+            enemies.push({ ...element.enemy })
+            this.continue_story()
+            element = this.chapter[this.story_num]
+          }
+          break
 
-      case "end":
-        scene_anten.next_scene = scene_title
-        scene_manager.MoveTo(scene_anten)
-        break
+        case "sleep":
+          this.story_interval = element.interval
+          this.continue_story()
+          break
 
+        case "end":
+          scene_anten.next_scene = scene_title
+          scene_manager.MoveTo(scene_anten)
+          break
+      }
     }
-
+    this.story_interval = Math.max(0, this.story_interval - 1)
     this.story_frame++;
   }
 
@@ -141,7 +141,7 @@ const Scene_Main = class extends Scene {
     }
 
     if (pushed.includes("Escape")) {
-      this.is_paused ? sound_play(BGM, "as bgm") : BGM.pause()
+      this.is_paused ? BGM.play() : BGM.pause()
 
       this.is_paused = !this.is_paused
 
@@ -176,7 +176,7 @@ const Scene_Main = class extends Scene {
       player.dash_interval = this.dash_interval
       player.dash = 12
       player.inv = true
-      sound_play(SoundData.dash)
+      SoundData.dash.play()
     }
 
     if (player.dash > 0) {
@@ -239,7 +239,7 @@ const Scene_Main = class extends Scene {
       b.f.forEach((f) => { f(b) })
 
       if (b.type == "enemy" && !player.inv && b.r + player.r + player.graze_r >= b.p.sub(player.p).length) {
-        sound_play(SoundData.graze)
+        SoundData.graze.play()
         if (b.r + player.r >= b.p.sub(player.p).length) {
           b.life = 0
           player.dead = 24
@@ -308,6 +308,8 @@ const Scene_Main = class extends Scene {
     })
 
     effects = effects.filter((e) => { return e.effect_time > 0 })
+
+    Itext(null, 0, 100, "" + this.story_interval)
   }
 }
 
@@ -316,9 +318,9 @@ const Scene_Title = class extends Scene {
     super()
     this.option = { "": ["PLAY", "MANUAL", "STORY"], "0": ["Stage0"] }
 
-    SoundData.ok = new Audio("./sounds/ok.wav")
-    SoundData.cancel = new Audio("./sounds/cancel.wav")
-    SoundData.select = new Audio("./sounds/select.wav")
+    SoundData.ok = new Iaudio("./sounds/ok.wav")
+    SoundData.cancel = new Iaudio("./sounds/cancel.wav")
+    SoundData.select = new Iaudio("./sounds/select.wav")
   }
 
   start() {
@@ -391,7 +393,7 @@ const Scene_Anten = class extends Scene {
 
     this.frame++;
 
-    if (BGM != null) { BGM.volume = 0.4 * (1 - this.frame / 24) }
+    if (BGM != null) { BGM.fadeout(this.frame, 24) }
 
     if (this.frame == 24) {
       if (BGM != null) { BGM.pause() }
@@ -416,8 +418,6 @@ function main() {
   Irect(0, 0, width, height, "white", "stroke", 2);
 
   pushed = [];
-
-  //if (BGM != null) { BGM.volume = 0.4 }
 
 }
 

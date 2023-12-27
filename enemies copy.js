@@ -38,7 +38,7 @@ enemy_data.ethanol_0 = {
       bullets = []
       next_enemies.push({ ...enemy_data["ethanol_1"] })
       enemy_vrs.p = me.p
-      sound_play(SoundData.KO)
+      SoundData.KO.play()
     }
 
   }
