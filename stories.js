@@ -34,11 +34,14 @@ const on_road = function (events) {
 }
 
 SoundData.Intoxicarion = new Iaudio("sounds/Intoxication.wav", "bgm")
-SoundData.Drunkenness = new Iaudio("sounds/h13.wav", "bgm")
+SoundData.Drunkenness = new Iaudio("sounds/Drunkenness.wav")
+
+ImgData.Ethanol = new Iimg("images/Ethanol.png", 250, 50, 960, 1920, 0.4)
 
 const story = [
   [
     { type: "text", text: "Kohaku:\nくんくん...\nこっちからプログラムの気配がする\nな...", voice: SoundData.kohaku },
+
     { type: "bgm", bgm: SoundData.Drunkenness },
     ...on_road([
       { time: 0, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
@@ -47,11 +50,15 @@ const story = [
     { type: "sleep", interval: 96 },
     { type: "enemy", enemy: enemy_data.zako_2 },
     { type: "wait" },
+
+    { type: "image", image: ImgData.Ethanol },
+
     { type: "text", text: "Ethanol:\nやあ" },
-    { type: "text", text: "Ethanol:\nさっきからあたしを追っかけてるみたいだね" },
+    { type: "text", text: "Ethanol:\nさっきからあたしを\n追っかけてるみたいだね" },
     { type: "text", text: "Ethanol:\n別に戦わなくてもいいんだけどねー" },
     { type: "text", text: "Ethanol:\n君があたしを倒すつもりなら、" },
     { type: "text", text: "Ethanol:\n受けて立とうじゃないか!" },
+    { type: "delete_image" },
     { type: "bgm", bgm: SoundData.Intoxicarion },
     { type: "enemy", enemy: enemy_data.ethanol_0 },
     { type: "wait" },

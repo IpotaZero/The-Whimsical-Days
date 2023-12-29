@@ -95,9 +95,6 @@ enemy_data.zako_2 = {
       SoundData.KO.play()
       scene_main.continue_story()
     }
-
-
-
   }
 }
 

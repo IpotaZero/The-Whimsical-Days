@@ -41,6 +41,27 @@ const Iaudio = class {
 	}
 }
 
+const Iimg = class {
+	constructor(path, x, y, width, height, ratio) {
+		this.image = new Image()
+		this.image.src = path
+		this.width = width
+		this.height = height
+		this.ratio = ratio
+		this.alpha = 1
+
+		this.x = x
+		this.y = y
+	}
+
+	draw() {
+		let a = ctx.globalAlpha
+		ctx.globalAlpha = this.alpha
+		ctx.drawImage(this.image, this.x, this.y, this.width * this.ratio, this.height * this.ratio)
+		ctx.globalAlpha = a
+	}
+}
+
 let ImgData = {};
 
 //文字送り{frame, x, y, text}

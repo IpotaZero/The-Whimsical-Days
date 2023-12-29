@@ -49,8 +49,6 @@ const Scene_Main = class extends Scene {
     SoundData.KO = new Iaudio("./sounds/KO.wav")
     SoundData.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
 
-    SoundData.Weariness = new Iaudio("./sounds/Weariness.wav", "bgm")
-
     SoundData.kohaku = new Iaudio("./sounds/select.wav")
     this.dash_interval = 48
   }
@@ -67,8 +65,11 @@ const Scene_Main = class extends Scene {
     this.story_images = []
     this.story_interval = 0
     this.chapter = story[0]
+    this.story_image = []
 
-    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
+    this.s = 0
+
+    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, life: 8, graze: 0, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
   }
 
   end() {
@@ -102,6 +103,24 @@ const Scene_Main = class extends Scene {
           Itext5(this.story_frame, game_width + 20, game_height - 180, font_size, element.text)
           break
 
+        case "image":
+          element.image.alpha = 0
+          this.story_image.push(element.image)
+          this.continue_story()
+          break
+
+        case "delete_image":
+          this.story_image = []
+          this.continue_story()
+          break
+
+        case "se":
+          element.bgm.reset()
+          element.bgm.set_volume(0.4)
+          element.bgm.play()
+          this.continue_story()
+          break
+
         case "bgm":
           if (BGM != null) { BGM.pause() }
           BGM = element.bgm
@@ -130,6 +149,8 @@ const Scene_Main = class extends Scene {
           break
       }
     }
+
+    this.story_image.forEach((i) => { i.alpha += 1 / 24; i.draw() })
     this.story_interval = Math.max(0, this.story_interval - 1)
     this.story_frame++;
   }
@@ -209,15 +230,12 @@ const Scene_Main = class extends Scene {
       } else {
         bullets.push(...remodel([bullet_model], ["app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
       }
-
-
-
     }
 
     if (pushed.includes("Enter")) { console.log(bullets) }
 
     if (player.dead > 0) {
-      bullets = bullets.filter((b) => { return b.type != "enemy" });
+      bullets = []
       player.dead--;
     }
 
@@ -239,10 +257,12 @@ const Scene_Main = class extends Scene {
       b.f.forEach((f) => { f(b) })
 
       if (b.type == "enemy" && !player.inv && b.r + player.r + player.graze_r >= b.p.sub(player.p).length) {
+        player.graze++;
         SoundData.graze.play()
         if (b.r + player.r >= b.p.sub(player.p).length) {
           b.life = 0
           player.dead = 24
+          player.life--;
         }
       }
     })
@@ -254,6 +274,11 @@ const Scene_Main = class extends Scene {
     enemies.push(...next_enemies)
     next_bullets = []
     next_enemies = []
+
+    if (player.life <= 0) {
+      scene_anten.next_scene = scene_title
+      scene_manager.MoveTo(scene_anten)
+    }
   }
 
   draw() {
@@ -309,7 +334,26 @@ const Scene_Main = class extends Scene {
 
     effects = effects.filter((e) => { return e.effect_time > 0 })
 
-    Itext(null, 0, 100, "" + this.story_interval)
+    let background_colour = "pink"
+
+    Irect(0, 0, 20, height, background_colour)
+    Irect(20 + game_width, 0, width - game_width - 20, height, background_colour)
+    Irect(20, 0, game_width, 20, background_colour)
+    Irect(20, 20 + game_height, game_width, 20, background_colour)
+
+    Ifont(20, "white", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+    Itext4(null, game_width + 40, height - 100, font_size, ["lives: " + "☆".repeat(player.life), "graze: " + player.graze])
+
+    if (pressed.includes("MetaLeft") && pressed.includes("ShiftLeft")) {
+      this.s = 24
+    }
+
+    if (this.s > 0) {
+      Itext(null, game_width + 40, height - 20, "おや、スクショかい？")
+      this.s--;
+    }
+
+    //Itext(null, 0, 100, "" + this.story_interval)
   }
 }
 
@@ -343,11 +387,11 @@ const Scene_Title = class extends Scene {
         scene_manager.MoveTo(scene_anten)
         break
       case "1":
-        Itext5(this.c.frame, 20, 200, font_size, "十字キーで移動、Shiftキーで低速、\nAで後ろを向く、\nCtrlで0.5秒ダッシュ(ダッシュ中は無敵)")
+        Itext5(this.c.frame, 20, 200, font_size, "十字キーで移動、Shiftキーで低速、\nAで後ろを向く、\nCtrlで0.5秒ダッシュ(ダッシュ中は無敵)[X]")
         break
       case "2":
         Ifont(24, "white", "serif")
-        Itext5(this.c.frame, 20, 200, font_size, "バグを取り除くために派遣された天使であるコハク\nコハクは2つのバグを取り除き\nまた次のバグを探して夜の街をさまようのであった...")
+        Itext5(this.c.frame, 20, 200, font_size, "警視庁公安部対天使科のコハクは今夜も天使の気配を感じて\n夜のトーキョーを飛翔するのであった...[X]")
         break
     }
 
