@@ -34,9 +34,9 @@ const on_road = function (events) {
 }
 
 SoundData.Intoxicarion = new Iaudio("sounds/Intoxication.wav", "bgm")
-SoundData.Drunkenness = new Iaudio("sounds/Drunkenness.wav")
+SoundData.Drunkenness = new Iaudio("sounds/Drunkenness.wav", "bgm")
 
-ImgData.Ethanol = new Iimg("images/Ethanol.png", 250, 50, 960, 1920, 0.4)
+ImgData.Ethanol = new Iimg("images/Ethanol.apng", 250, 50, 960, 1920, 0.4, 1)
 
 const story = [
   [
@@ -52,7 +52,6 @@ const story = [
     { type: "wait" },
 
     { type: "image", image: ImgData.Ethanol },
-
     { type: "text", text: "Ethanol:\nやあ" },
     { type: "text", text: "Ethanol:\nさっきからあたしを\n追っかけてるみたいだね" },
     { type: "text", text: "Ethanol:\n別に戦わなくてもいいんだけどねー" },

@@ -42,13 +42,23 @@ const Iaudio = class {
 }
 
 const Iimg = class {
-	constructor(path, x, y, width, height, ratio) {
-		this.image = new Image()
-		this.image.src = path
+	constructor(path, x, y, width, height, ratio, alpha = 1) {
+		let p = path.split(".")
+		if (p[p.length - 1] == "apng") {
+			this.type = "anime"
+			this.image = []
+			APNG.parseURL(path).then((apngObject) => { apngObject.frames.forEach((e) => { this.image.push(e.img) }) })
+			this.frame = 0
+		} else {
+			this.type = "not_anime"
+			this.image = new Image()
+			this.image.src = path
+		}
+
 		this.width = width
 		this.height = height
 		this.ratio = ratio
-		this.alpha = 1
+		this.alpha = alpha
 
 		this.x = x
 		this.y = y
@@ -57,8 +67,16 @@ const Iimg = class {
 	draw() {
 		let a = ctx.globalAlpha
 		ctx.globalAlpha = this.alpha
-		ctx.drawImage(this.image, this.x, this.y, this.width * this.ratio, this.height * this.ratio)
+
+		if (this.type == "anime") {
+			ctx.drawImage(this.image[this.frame], this.x, this.y, this.width * this.ratio, this.height * this.ratio)
+			this.frame = (this.frame + 1) % (this.image.length - 1)
+		} else {
+			ctx.drawImage(this.image, this.x, this.y, this.width * this.ratio, this.height * this.ratio)
+		}
+
 		ctx.globalAlpha = a
+
 	}
 }
 
