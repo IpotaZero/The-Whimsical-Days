@@ -77,7 +77,7 @@ const story = [
     { type: "enemy", enemy: enemy_data.ethanol_0 },
     { type: "wait" },
     { type: "popup", text: "Ctrl+↑!!!" },
-    { type: "sleep", interval: 24 },
+    { type: "sleep", interval: 72 },
     { type: "popup", text: "" },
     { type: "wait" },
     { type: "text", text: "Ethanol:\nぐえー" },

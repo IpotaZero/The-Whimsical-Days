@@ -74,7 +74,7 @@ const Scene_Main = class extends Scene {
 
     this.s = 0
 
-    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, life: 8, graze: 0, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
+    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, life: 1, graze: 0, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
   }
 
   end() {
@@ -181,11 +181,10 @@ const Scene_Main = class extends Scene {
     }
 
     if (pushed.includes("Escape")) {
-      this.is_paused ? BGM.play() : BGM.pause()
-
+      if (BGM != null) { this.is_paused ? BGM.play() : BGM.pause() }
       this.is_paused = !this.is_paused
 
-
+      this.frame = 0
     }
 
     if (pushed.includes("Delete") && enemies.length > 0) {
@@ -194,7 +193,10 @@ const Scene_Main = class extends Scene {
 
     this.draw()
 
-    if (!this.is_paused) {
+    if (this.is_paused) {
+      Ifont(48, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+      Itext(this.frame, 180, height / 2 + 24, "Pause")
+    } else {
       this.story()
     }
 
@@ -297,8 +299,7 @@ const Scene_Main = class extends Scene {
     next_enemies = []
 
     if (player.life <= 0) {
-      scene_anten.next_scene = scene_title
-      scene_manager.MoveTo(scene_anten)
+      scene_manager.MoveTo(scene_gameover)
     }
   }
 
@@ -306,8 +307,9 @@ const Scene_Main = class extends Scene {
     //描画
     ctx.clearRect(0, 0, width, height)
 
-    Irect(0, 0, width, height, "#122012")
     Irect(20, 20, game_width, game_height, "#121212")
+
+    ctx.globalCompositeOperation = "source-over"
 
     ctx.globalAlpha = player.dead > 0 ? 0.4 : 1;
     IcircleC(player.p.x, player.p.y, player.r, "red")
@@ -475,7 +477,43 @@ const Scene_Anten = class extends Scene {
   }
 }
 
+const Scene_Gameover = class extends Scene {
+  constructor() {
+    super()
+    Sound_Data.gameover = new Iaudio("./sounds/gameover.wav")
+  }
+  start() {
+    this.frame = 0
+  }
+
+  loop() {
+    if (this.frame < 24) {
+      Irect(0, 0, width, height, "rgba(0,0,0," + (this.frame / 240) + ")")
+      if (BGM != null) { BGM.fadeout(this.frame, 24) }
+    } else if (this.frame == 24) {
+      Sound_Data.gameover.play()
+      if (BGM != null) { BGM.pause() }
+    } else {
+      Ifont(60, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+
+      let text = "GAMEOVER [Z]"
+      let sub_text = text.slice(0, this.frame)
+      length = ctx.measureText(sub_text).width
+      Itext((this.frame - 24) / 16, (width - length) / 2, height / 2, text)
+
+      if (pushed.includes("ok")) {
+        scene_anten.next_scene = scene_title
+        scene_manager.MoveTo(scene_anten)
+      }
+    }
+
+    this.frame++;
+  }
+
+}
+
 let scene_anten = new Scene_Anten()
+let scene_gameover = new Scene_Gameover()
 let scene_pretitle = new Scene_preTitle()
 let scene_title = new Scene_Title()
 let scene_main = new Scene_Main()

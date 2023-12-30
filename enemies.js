@@ -115,6 +115,8 @@ enemy_data.ethanol_0 = {
       next_enemies.push({ ...enemy_data["ethanol_1"] })
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
+      scene_main.continue_story()
+
     }
 
   }
@@ -128,8 +130,6 @@ enemy_data.ethanol_1 = {
       for (let i = 0; i < 7; i++) {
         bullets.push(...remodel([bullet_model], ["r", 6, "colourful", me.frame, "p", new vec(game_width / 2 + 60 * (i - 3), me.p.y - 60), "v", new vec(0, -1), "delete", 1, "arrow", 64]))
       }
-    } else if (me.frame == 48) {
-      scene_main.continue_story()
     } else {
       me.p.x = game_width / 3 * Math.sin((me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
 
