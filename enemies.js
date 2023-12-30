@@ -122,7 +122,7 @@ enemy_data.ethanol_0 = {
 
 
 enemy_data.ethanol_1 = {
-  p: new vec(-100, 60), r: 32, frame: 0, life: 200, maxlife: 200, damaged: false, f: (me) => {
+  p: new vec(-100, 60), r: 32, frame: 0, life: 300, maxlife: 300, damaged: false, f: (me) => {
     if (me.frame < 48) {
       me.p = linear_move(me.frame, 48, enemy_vrs.p, new vec(game_width / 2, game_height - 60), x => x ** 2)
       for (let i = 0; i < 7; i++) {

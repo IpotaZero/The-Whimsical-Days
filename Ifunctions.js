@@ -42,7 +42,7 @@ const Iaudio = class {
 }
 
 const Iimg = class {
-	constructor(path, x, y, width, height, ratio, alpha = 1) {
+	constructor(path, x, y, width, height, ratio = 1, alpha = 1) {
 		let p = path.split(".")
 		if (p[p.length - 1] == "apng") {
 			this.type = "anime"

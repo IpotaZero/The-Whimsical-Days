@@ -41,6 +41,8 @@ let next_enemies = []
 const Scene_Main = class extends Scene {
   constructor() {
     super()
+    Image_Data.background = new Iimg("./images/ba.png", 0, 0, width, height)
+
     Sound_Data.graze = new Iaudio("./sounds/graze.wav")
     Sound_Data.dash = new Iaudio("./sounds/dash.wav")
     Sound_Data.bullet0 = new Iaudio("./sounds/鈴を鳴らす.mp3")
@@ -86,6 +88,7 @@ const Scene_Main = class extends Scene {
 
   story() {
     let element = this.chapter[this.story_num]
+    let ok = ""
 
     if (this.story_interval == 0) {
       while (!["end", "wait", "sleep", "ok"].includes(element.type)) {
@@ -136,7 +139,9 @@ const Scene_Main = class extends Scene {
         break
 
       case "ok":
+        ok = this.frame % 24 < 12 ? "[Z]" : ""
         if (pushed.includes("ok")) { this.continue_story() }
+
         break
 
       case "sleep":
@@ -152,7 +157,7 @@ const Scene_Main = class extends Scene {
     }
 
     if (this.story_popup != "") {
-      Ifont(24, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+      Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
       Itext5(this.story_frame, game_width + 20, game_height - 180, font_size, this.story_popup)
     }
 
@@ -162,7 +167,7 @@ const Scene_Main = class extends Scene {
       if (element.voice != null) { Sound_Data.text = true; Sound_Data.text_sending = element.voice }
 
       Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-      Itext5(this.story_frame, 45, game_height - 150, font_size, this.story_text)
+      Itext5(this.story_frame, 45, game_height - 150, font_size, this.story_text + ok)
     }
 
     this.story_image.forEach((i) => { i.alpha += 1 / 24; i.draw() })
@@ -357,8 +362,13 @@ const Scene_Main = class extends Scene {
     Irect(20, 0, game_width, 20, background_colour)
     Irect(20, 20 + game_height, game_width, 20, background_colour)
 
-    Ifont(20, "white", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext4(null, game_width + 40, height - 100, font_size, ["lives: " + "☆".repeat(player.life), "graze: " + player.graze])
+    Image_Data.background.draw()
+
+    Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+    Itext4(null, game_width + 40, height - 100, font_size, ["lives: ", "graze: " + player.graze])
+
+    Ifont(20, "lightgreen", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+    Itext(null, game_width + 40 + 70, height - 100, "★".repeat(player.life))
 
     if (pressed.includes("MetaLeft") && pressed.includes("ShiftLeft")) {
       this.s = 24
@@ -368,10 +378,10 @@ const Scene_Main = class extends Scene {
       Itext(null, game_width + 40, height - 20, "おや、スクショかい？")
       this.s--;
     }
-    Ifont(24, "white")
-    Itext(null, 0, 100, "" + this.story_interval)
-    Itext(null, 0, 150, "" + this.story_num)
-    Itext(null, 0, 200, this.chapter[this.story_num].type)
+    // Ifont(24, "white")
+    // Itext(null, 0, 100, "" + this.story_interval)
+    // Itext(null, 0, 150, "" + this.story_num)
+    // Itext(null, 0, 200, this.chapter[this.story_num].type)
   }
 }
 
