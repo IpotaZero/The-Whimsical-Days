@@ -74,7 +74,7 @@ const Scene_Main = class extends Scene {
 
     this.s = 0
 
-    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, life: 1, graze: 0, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
+    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, life: 8, graze: 0, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
   }
 
   end() {
@@ -481,14 +481,17 @@ const Scene_Gameover = class extends Scene {
   constructor() {
     super()
     Sound_Data.gameover = new Iaudio("./sounds/gameover.wav")
+    Sound_Data.uhm = new Iaudio("./sounds/⤵.wav")
+    Sound_Data.uhm.set_volume(0.4)
   }
   start() {
     this.frame = 0
+    Sound_Data.uhm.play()
   }
 
   loop() {
     if (this.frame < 24) {
-      Irect(0, 0, width, height, "rgba(0,0,0," + (this.frame / 240) + ")")
+      Irect(0, 0, width, height, "rgba(0,0,0," + (this.frame / 180) + ")")
       if (BGM != null) { BGM.fadeout(this.frame, 24) }
     } else if (this.frame == 24) {
       Sound_Data.gameover.play()
@@ -496,9 +499,8 @@ const Scene_Gameover = class extends Scene {
     } else {
       Ifont(60, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
 
-      let text = "GAMEOVER [Z]"
-      let sub_text = text.slice(0, this.frame)
-      length = ctx.measureText(sub_text).width
+      let text = "GAMEOVER! [Z]"
+      length = ctx.measureText(text).width
       Itext((this.frame - 24) / 16, (width - length) / 2, height / 2, text)
 
       if (pushed.includes("ok")) {
