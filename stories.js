@@ -33,16 +33,18 @@ const on_road = function (events) {
   return res
 }
 
-SoundData.Intoxicarion = new Iaudio("sounds/Intoxication.wav", "bgm")
-SoundData.Drunkenness = new Iaudio("sounds/Drunkenness.wav", "bgm")
+Sound_Data.Intoxicarion = new Iaudio("sounds/Intoxication.wav", "bgm")
+Sound_Data.Drunkenness = new Iaudio("sounds/Drunkenness.wav", "bgm")
 
-ImgData.Ethanol = new Iimg("images/Ethanol.apng", 250, 50, 960, 1920, 0.4, 1)
+Image_Data.Ethanol = new Iimg("images/Ethanol.apng", 250, 50, 960, 1920, 0.4, 1)
 
 const story = [
   [
-    { type: "text", text: "Kohaku:\nくんくん...\nこっちからプログラムの気配がする\nな...", voice: SoundData.kohaku },
+    { type: "bgm", bgm: Sound_Data.Drunkenness },
+    { type: "text", text: "Kohaku:\nくんくん...\nこっちからプログラムの気配がする\nな...", voice: Sound_Data.kohaku },
+    { type: "sleep", interval: 48 },
+    { type: "text", text: "" },
 
-    { type: "bgm", bgm: SoundData.Drunkenness },
     ...on_road([
       { time: 0, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
       { time: 48, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
@@ -51,17 +53,26 @@ const story = [
     { type: "enemy", enemy: enemy_data.zako_2 },
     { type: "wait" },
 
-    { type: "image", image: ImgData.Ethanol },
+    { type: "image", image: Image_Data.Ethanol },
     { type: "text", text: "Ethanol:\nやあ" },
+    { type: "ok" },
     { type: "text", text: "Ethanol:\nさっきからあたしを\n追っかけてるみたいだね" },
+    { type: "ok" },
     { type: "text", text: "Ethanol:\n別に戦わなくてもいいんだけどねー" },
+    { type: "ok" },
     { type: "text", text: "Ethanol:\n君があたしを倒すつもりなら、" },
+    { type: "ok" },
     { type: "text", text: "Ethanol:\n受けて立とうじゃないか!" },
+    { type: "ok" },
+    { type: "text", text: "" },
     { type: "delete_image" },
-    { type: "bgm", bgm: SoundData.Intoxicarion },
+
+    { type: "bgm", bgm: Sound_Data.Intoxicarion },
     { type: "enemy", enemy: enemy_data.ethanol_0 },
     { type: "wait" },
     { type: "popup", text: "Ctrl+↑!!!" },
+    { type: "sleep", interval: 24 },
+    { type: "popup", text: "" },
     { type: "wait" },
     { type: "text", text: "Ethanol:\nぐえー" },
     { type: "end" }

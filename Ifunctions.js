@@ -1,7 +1,7 @@
-let SoundData = {};
-SoundData.text = false;
-SoundData.mute_bgm = false;
-SoundData.mute_se = false;
+let Sound_Data = {};
+Sound_Data.text = false;
+Sound_Data.mute_bgm = false;
+Sound_Data.mute_se = false;
 
 const Iaudio = class {
 	constructor(path, type = "se") {
@@ -11,10 +11,10 @@ const Iaudio = class {
 	play() {
 		if (this.type == "se") {
 			this.audio.currentTime = 0
-			this.audio.muted = SoundData.mute_se
+			this.audio.muted = Sound_Data.mute_se
 		} else if (this.type == "bgm") {
 			this.audio.loop = true
-			this.audio.muted = SoundData.mute_bgm
+			this.audio.muted = Sound_Data.mute_bgm
 		}
 
 		this.audio.play()
@@ -80,7 +80,7 @@ const Iimg = class {
 	}
 }
 
-let ImgData = {};
+let Image_Data = {};
 
 //文字送り{frame, x, y, text}
 function Itext(frame, x, y, text) {
@@ -93,7 +93,7 @@ function Itext(frame, x, y, text) {
 			for (let i = 0; i < frame; i++) {
 				t = t + text.charAt(i);
 			}
-			if (SoundData.text) { SoundData.text_sending.play(); }
+			if (Sound_Data.text) { Sound_Data.text_sending.play(); }
 		} else {
 			t = text;
 		}
@@ -306,8 +306,8 @@ function Icommand(c, x, y, linespace, option) {
 		Itext4(c.frame * 2, x + linespace, y, linespace, option[c.current_branch])
 		Itext(c.frame, x, y + font_size * c.current_value, "→")
 
-		if (pushed.includes("ArrowDown")) { c.current_value++; SoundData.select.play() }
-		if (pushed.includes("ArrowUp")) { c.current_value--; SoundData.select.play() }
+		if (pushed.includes("ArrowDown")) { c.current_value++; Sound_Data.select.play() }
+		if (pushed.includes("ArrowUp")) { c.current_value--; Sound_Data.select.play() }
 
 		c.current_value = (c.current_value + option[c.current_branch].length) % option[c.current_branch].length
 
@@ -315,7 +315,7 @@ function Icommand(c, x, y, linespace, option) {
 			c.current_branch += c.current_value
 			c.frame = 0
 			c.current_value = 0
-			SoundData.ok.play()
+			Sound_Data.ok.play()
 		}
 	}
 
@@ -323,7 +323,7 @@ function Icommand(c, x, y, linespace, option) {
 		c.current_value = Number(c.current_branch.charAt(c.current_branch.length - 1))
 		c.current_branch = c.current_branch.slice(0, -1)
 		c.frame = 0
-		SoundData.cancel.play()
+		Sound_Data.cancel.play()
 	}
 
 	c.frame++;

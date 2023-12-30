@@ -41,15 +41,15 @@ let next_enemies = []
 const Scene_Main = class extends Scene {
   constructor() {
     super()
-    SoundData.graze = new Iaudio("./sounds/graze.wav")
-    SoundData.dash = new Iaudio("./sounds/dash.wav")
-    SoundData.bullet0 = new Iaudio("./sounds/鈴を鳴らす.mp3")
-    SoundData.bullet1 = new Iaudio("./sounds/きらきら輝く2.wav")
-    SoundData.bullet2 = new Iaudio("./sounds/bullet.wav")
-    SoundData.KO = new Iaudio("./sounds/KO.wav")
-    SoundData.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
+    Sound_Data.graze = new Iaudio("./sounds/graze.wav")
+    Sound_Data.dash = new Iaudio("./sounds/dash.wav")
+    Sound_Data.bullet0 = new Iaudio("./sounds/鈴を鳴らす.mp3")
+    Sound_Data.bullet1 = new Iaudio("./sounds/きらきら輝く2.wav")
+    Sound_Data.bullet2 = new Iaudio("./sounds/bullet.wav")
+    Sound_Data.KO = new Iaudio("./sounds/KO.wav")
+    Sound_Data.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
 
-    SoundData.kohaku = new Iaudio("./sounds/select.wav")
+    Sound_Data.kohaku = new Iaudio("./sounds/select.wav")
     this.dash_interval = 48
   }
 
@@ -65,7 +65,10 @@ const Scene_Main = class extends Scene {
     this.story_images = []
     this.story_interval = 0
     this.chapter = story[0]
+
     this.story_image = []
+    this.story_text = ""
+    this.story_popup = ""
 
     this.s = 0
 
@@ -82,76 +85,87 @@ const Scene_Main = class extends Scene {
   }
 
   story() {
+    let element = this.chapter[this.story_num]
+
     if (this.story_interval == 0) {
-      let element = this.chapter[this.story_num]
+      while (!["end", "wait", "sleep", "ok"].includes(element.type)) {
+        switch (element.type) {
+          case "text":
+            this.story_text = element.text
+            break
 
-      SoundData.text = false
+          case "popup":
+            this.story_popup = element.text
+            break
 
-      switch (element.type) {
-        case "text":
-          Irect(40, game_height - 180, game_width - 40, 180, "rgba(255,255,255,0.8)")
+          case "image":
+            element.image.alpha = 0
+            this.story_image.push(element.image)
+            break
 
-          if (element.voice != null) { SoundData.text = true; SoundData.text_sending = element.voice }
+          case "delete_image":
+            this.story_image = []
+            break
 
-          Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-          Itext5(this.story_frame, 45, game_height - 150, font_size, element.text)
-          if (pushed.includes("ok")) { this.continue_story() }
-          break
+          case "se":
+            element.bgm.reset()
+            element.bgm.set_volume(0.4)
+            element.bgm.play()
+            break
 
-        case "popup":
-          Ifont(24, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-          Itext5(this.story_frame, game_width + 20, game_height - 180, font_size, element.text)
-          break
+          case "bgm":
+            if (BGM != null) { BGM.pause() }
+            BGM = element.bgm
+            BGM.reset()
+            BGM.set_volume(0.4)
+            BGM.play()
+            break
 
-        case "image":
-          element.image.alpha = 0
-          this.story_image.push(element.image)
-          this.continue_story()
-          break
-
-        case "delete_image":
-          this.story_image = []
-          this.continue_story()
-          break
-
-        case "se":
-          element.bgm.reset()
-          element.bgm.set_volume(0.4)
-          element.bgm.play()
-          this.continue_story()
-          break
-
-        case "bgm":
-          if (BGM != null) { BGM.pause() }
-          BGM = element.bgm
-          BGM.reset()
-          BGM.set_volume(0.4)
-          BGM.play()
-          this.continue_story()
-          break
-
-        case "enemy":
-          while (element.type == "enemy") {
+          case "enemy":
             enemies.push({ ...element.enemy })
-            this.continue_story()
-            element = this.chapter[this.story_num]
-          }
-          break
+            break
+        }
+        this.continue_story()
+        element = this.chapter[this.story_num]
 
-        case "sleep":
-          this.story_interval = element.interval
-          this.continue_story()
-          break
-
-        case "end":
-          scene_anten.next_scene = scene_title
-          scene_manager.MoveTo(scene_anten)
-          break
       }
     }
 
+    switch (element.type) {
+      case "wait":
+        break
+
+      case "ok":
+        if (pushed.includes("ok")) { this.continue_story() }
+        break
+
+      case "sleep":
+        if (this.story_interval == 0) { this.story_interval = element.interval }
+        this.story_interval = Math.max(0, this.story_interval - 1)
+        if (this.story_interval == 0) { this.continue_story() }
+        break
+
+      case "end":
+        scene_anten.next_scene = scene_title
+        scene_manager.MoveTo(scene_anten)
+        break
+    }
+
+    if (this.story_popup != "") {
+      Ifont(24, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+      Itext5(this.story_frame, game_width + 20, game_height - 180, font_size, this.story_popup)
+    }
+
+    if (this.story_text != "") {
+      Irect(40, game_height - 180, game_width - 40, 180, "rgba(255,255,255,0.8)")
+
+      if (element.voice != null) { Sound_Data.text = true; Sound_Data.text_sending = element.voice }
+
+      Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+      Itext5(this.story_frame, 45, game_height - 150, font_size, this.story_text)
+    }
+
     this.story_image.forEach((i) => { i.alpha += 1 / 24; i.draw() })
-    this.story_interval = Math.max(0, this.story_interval - 1)
     this.story_frame++;
   }
 
@@ -175,7 +189,9 @@ const Scene_Main = class extends Scene {
 
     this.draw()
 
-    this.story()
+    if (!this.is_paused) {
+      this.story()
+    }
 
     this.frame++;
   }
@@ -197,7 +213,7 @@ const Scene_Main = class extends Scene {
       player.dash_interval = this.dash_interval
       player.dash = 12
       player.inv = true
-      SoundData.dash.play()
+      Sound_Data.dash.play()
     }
 
     if (player.dash > 0) {
@@ -258,7 +274,7 @@ const Scene_Main = class extends Scene {
 
       if (b.type == "enemy" && !player.inv && b.r + player.r + player.graze_r >= b.p.sub(player.p).length) {
         player.graze++;
-        SoundData.graze.play()
+        Sound_Data.graze.play()
         if (b.r + player.r >= b.p.sub(player.p).length) {
           b.life = 0
           player.dead = 24
@@ -352,8 +368,10 @@ const Scene_Main = class extends Scene {
       Itext(null, game_width + 40, height - 20, "おや、スクショかい？")
       this.s--;
     }
-
-    //Itext(null, 0, 100, "" + this.story_interval)
+    Ifont(24, "white")
+    Itext(null, 0, 100, "" + this.story_interval)
+    Itext(null, 0, 150, "" + this.story_num)
+    Itext(null, 0, 200, this.chapter[this.story_num].type)
   }
 }
 
@@ -362,9 +380,9 @@ const Scene_Title = class extends Scene {
     super()
     this.option = { "": ["PLAY", "MANUAL", "STORY"], "0": ["Stage0"] }
 
-    SoundData.ok = new Iaudio("./sounds/ok.wav")
-    SoundData.cancel = new Iaudio("./sounds/cancel.wav")
-    SoundData.select = new Iaudio("./sounds/select.wav")
+    Sound_Data.ok = new Iaudio("./sounds/ok.wav")
+    Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
+    Sound_Data.select = new Iaudio("./sounds/select.wav")
   }
 
   start() {
@@ -391,7 +409,7 @@ const Scene_Title = class extends Scene {
         break
       case "2":
         Ifont(24, "white", "serif")
-        Itext5(this.c.frame, 20, 200, font_size, "警視庁公安部対天使科のコハクは今夜も天使の気配を感じて\n夜のトーキョーを飛翔するのであった...[X]")
+        Itext5(this.c.frame, 20, 200, font_size, "警視庁公安部対天使科のコハクは今夜も天使の気配を感じて\n夜の東京を飛翔するのであった...[X]")
         break
     }
 
