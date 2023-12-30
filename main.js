@@ -272,7 +272,7 @@ const Scene_Main = class extends Scene {
     bullets.forEach((b) => {
       b.f.forEach((f) => { f(b) })
 
-      if (b.type == "enemy" && !player.inv && b.r + player.r + player.graze_r >= b.p.sub(player.p).length) {
+      if (b.type == "enemy" && !player.inv && player.dead == 0 && b.r + player.r + player.graze_r >= b.p.sub(player.p).length) {
         player.graze++;
         Sound_Data.graze.play()
         if (b.r + player.r >= b.p.sub(player.p).length) {

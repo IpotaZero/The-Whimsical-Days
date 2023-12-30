@@ -40,8 +40,10 @@ Image_Data.Ethanol = new Iimg("images/Ethanol.apng", 250, 50, 960, 1920, 0.4, 1)
 
 const story = [
   [
-    { type: "bgm", bgm: Sound_Data.Drunkenness },
     { type: "text", text: "Kohaku:\nくんくん...\nこっちからプログラムの気配がする\nな...", voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "text", text: "" },
+    { type: "bgm", bgm: Sound_Data.Drunkenness },
     { type: "sleep", interval: 48 },
     { type: "text", text: "" },
 
@@ -75,6 +77,7 @@ const story = [
     { type: "popup", text: "" },
     { type: "wait" },
     { type: "text", text: "Ethanol:\nぐえー" },
+    { type: "ok" },
     { type: "end" }
   ]
 ]
