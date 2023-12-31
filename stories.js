@@ -35,6 +35,9 @@ const on_road = function (events) {
 
 Sound_Data.Intoxicarion = new Iaudio("sounds/Intoxication.wav", "bgm")
 Sound_Data.Drunkenness = new Iaudio("sounds/Drunkenness.wav", "bgm")
+Sound_Data.kohaku = new Iaudio("./sounds/select.wav")
+Sound_Data.Ethanol = new Iaudio("./sounds/select.wav")
+
 
 Image_Data.Ethanol = new Iimg("images/Ethanol.apng", 250, 50, 960, 1920, 0.4, 1)
 
@@ -56,19 +59,19 @@ const story = [
     { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
-    { type: "text", text: "Ethanol:\nどーも" },
+    { type: "text", text: "Ethanol:\nどーも", voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Kohaku:\nどーも..." },
+    { type: "text", text: "Kohaku:\nどーも...", voice: Sound_Data.kohaku },
     { type: "ok" },
-    { type: "text", text: "Ethanol:\nさっきからあたしを\n追っかけてるみたいだね" },
+    { type: "text", text: "Ethanol:\nさっきからあたしを\n追っかけてるみたいだね", voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Kohaku:\n...そうだね" },
+    { type: "text", text: "Kohaku:\n...そうだね", voice: Sound_Data.kohaku },
     { type: "ok" },
-    { type: "text", text: "Ethanol:\n別に戦わなくてもいいんだけどね\n" },
+    { type: "text", text: "Ethanol:\n別に戦わなくても\nいいんだけどね\n", voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:\n君があたしを倒すつもりなら、\n" },
+    { type: "text", text: "Ethanol:\n君があたしを倒すつもりなら、\n", voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:\n受けて立とうじゃないか!" },
+    { type: "text", text: "Ethanol:\n受けて立とうじゃないか!", voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "delete_image" },
@@ -80,8 +83,11 @@ const story = [
     { type: "sleep", interval: 72 },
     { type: "popup", text: "" },
     { type: "wait" },
-    { type: "text", text: "Ethanol:\nぐえー" },
+
+    { type: "image", image: Image_Data.Ethanol },
+    { type: "text", text: "Ethanol:\nぐえー", voice: Sound_Data.Ethanol },
     { type: "ok" },
+    { type: "text", text: "" },
     { type: "end" }
   ]
 ]

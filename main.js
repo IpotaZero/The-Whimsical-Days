@@ -50,8 +50,6 @@ const Scene_Main = class extends Scene {
     Sound_Data.bullet2 = new Iaudio("./sounds/bullet.wav")
     Sound_Data.KO = new Iaudio("./sounds/KO.wav")
     Sound_Data.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
-
-    Sound_Data.kohaku = new Iaudio("./sounds/select.wav")
     this.dash_interval = 48
   }
 
@@ -74,7 +72,9 @@ const Scene_Main = class extends Scene {
 
     this.s = 0
 
-    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 8, speed: 12, life: 8, graze: 0, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
+    this.c = { frame: 0, current_branch: "", current_value: 0 }
+
+    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, life: 8, graze: 0, attack: 1, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
   }
 
   end() {
@@ -95,6 +95,7 @@ const Scene_Main = class extends Scene {
         switch (element.type) {
           case "text":
             this.story_text = element.text
+            if (element.voice == null) { Sound_Data.text = false } else { Sound_Data.text = true; Sound_Data.text_sending = element.voice }
             break
 
           case "popup":
@@ -164,8 +165,6 @@ const Scene_Main = class extends Scene {
     if (this.story_text != "") {
       Irect(40, game_height - 180, game_width - 40, 180, "rgba(255,255,255,0.8)")
 
-      if (element.voice != null) { Sound_Data.text = true; Sound_Data.text_sending = element.voice }
-
       Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
       Itext5(this.story_frame, 45, game_height - 150, font_size, this.story_text + ok)
     }
@@ -181,6 +180,8 @@ const Scene_Main = class extends Scene {
     }
 
     if (pushed.includes("Escape")) {
+      Sound_Data.cancel.play()
+
       if (BGM != null) { this.is_paused ? BGM.play() : BGM.pause() }
       this.is_paused = !this.is_paused
 
@@ -194,8 +195,23 @@ const Scene_Main = class extends Scene {
     this.draw()
 
     if (this.is_paused) {
+      Irect(0, 0, width, height, "rgba(0,0,0,0.5)")
       Ifont(48, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
       Itext(this.frame, 180, height / 2 + 24, "Pause")
+
+      Ifont(24, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+      this.c = Icommand(this.c, 40, 530, font_size, { "": ["Back to Game", "Back to Title"] })
+
+      switch (this.c.current_branch) {
+        case "0":
+          this.is_paused = false
+          break
+        case "1":
+          scene_anten.next_scene = scene_title
+          scene_manager.MoveTo(scene_anten)
+          break
+      }
+
     } else {
       this.story()
     }
@@ -269,12 +285,13 @@ const Scene_Main = class extends Scene {
       bullets.forEach((b) => {
         if (b.type == "friend" && b.r + e.r >= b.p.sub(e.p).length) {
           b.life = 0
-          e.life--;
+          e.life -= player.attack;
           e.damaged = true
         }
       })
       e.f(e)
     })
+
 
     bullets.forEach((b) => {
       b.f.forEach((f) => { f(b) })
@@ -417,7 +434,7 @@ const Scene_Title = class extends Scene {
         scene_manager.MoveTo(scene_anten)
         break
       case "1":
-        Itext5(this.c.frame, 20, 200, font_size, "十字キーで移動、Shiftキーで低速、\nAで後ろを向く、\nCtrlで0.5秒ダッシュ(ダッシュ中は無敵)[X]")
+        Itext5(this.c.frame, 20, 200, font_size, "十字キーで移動、Shiftキーで低速、\nAで後ろを向く、\nCtrlで0.5秒ダッシュ(ダッシュ中は無敵)\n赤い点が当たり判定、白い円がかすり判定\n[X]")
         break
       case "2":
         Ifont(24, "white", "serif")
@@ -487,21 +504,22 @@ const Scene_Gameover = class extends Scene {
   start() {
     this.frame = 0
     Sound_Data.uhm.play()
+    Sound_Data.text = false
   }
 
   loop() {
     if (this.frame < 24) {
       Irect(0, 0, width, height, "rgba(0,0,0," + (this.frame / 180) + ")")
       if (BGM != null) { BGM.fadeout(this.frame, 24) }
-    } else if (this.frame == 24) {
+    } else if (this.frame == 36) {
       Sound_Data.gameover.play()
       if (BGM != null) { BGM.pause() }
-    } else {
+    } else if (this.frame > 36) {
       Ifont(60, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
 
       let text = "GAMEOVER! [Z]"
       length = ctx.measureText(text).width
-      Itext((this.frame - 24) / 16, (width - length) / 2, height / 2, text)
+      Itext((this.frame - 36) / 15, (width - length) / 2, height / 2, text)
 
       if (pushed.includes("ok")) {
         scene_anten.next_scene = scene_title
