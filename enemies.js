@@ -28,7 +28,7 @@ function get_angle(v0, v1) {
 }
 
 enemy_data.zako_0 = {
-  p: new vec(game_width / 2, -50), r: 32, frame: 0, life: 15, maxlife: 15, damaged: false, f: (me) => {
+  p: new vec(game_width / 2, -50), r: 16, frame: 0, life: 15, maxlife: 15, damaged: false, f: (me) => {
 
     me.p = circular_move(new vec(0, 0), me.frame, 300, 4 * 120)
 
@@ -50,7 +50,7 @@ enemy_data.zako_0 = {
 
 
 enemy_data.zako_1 = {
-  p: new vec(game_width / 2, -50), r: 32, frame: 0, life: 15, maxlife: 15, damaged: false, f: (me) => {
+  p: new vec(game_width / 2, -50), r: 16, frame: 0, life: 15, maxlife: 15, damaged: false, f: (me) => {
 
     me.p = circular_move(new vec(game_width, 0), -me.frame, -300, 4 * 120)
 
@@ -93,10 +93,50 @@ enemy_data.zako_2 = {
 
     if (me.life <= 0) {
       Sound_Data.KO.play()
-      scene_main.continue_story()
     }
   }
 }
+
+for (let i = 0; i < 4; i++) {
+  enemy_data["zako_3_" + (2 * i)] = {
+    p: new vec(game_width, game_height / 8 * i + 20), r: 16, frame: 0, life: 15, maxlife: 15, damaged: false, f: (me) => {
+
+      me.p.x -= 4;
+
+      if (me.frame % 24 == 0) {
+        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(6, 0), "aim", player.p, "arrow", 20]))
+      }
+
+      me.frame++;
+
+      if (me.life <= 0) {
+        Sound_Data.KO.play()
+      }
+
+      if (me.p.x < 0) { me.life = 0 }
+    }
+  }
+
+  enemy_data["zako_3_" + (2 * i + 1)] = {
+    p: new vec(0, game_height / 8 * (i + 0.5) + 20), r: 16, frame: 0, life: 15, maxlife: 15, damaged: false, f: (me) => {
+
+      me.p.x += 4;
+
+      if (me.frame % 24 == 0) {
+        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(6, 0), "aim", player.p, "arrow", 20]))
+      }
+
+      me.frame++;
+
+      if (me.life <= 0) {
+        Sound_Data.KO.play()
+      }
+
+      if (me.p.x > game_width) { me.life = 0 }
+    }
+  }
+}
+
 
 
 enemy_data.ethanol_0 = {

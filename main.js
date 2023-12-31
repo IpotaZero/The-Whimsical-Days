@@ -41,7 +41,7 @@ let next_enemies = []
 const Scene_Main = class extends Scene {
   constructor() {
     super()
-    Image_Data.background = new Iimg("./images/ba.png", 0, 0, width, height)
+    Image_Data.background = new Iimage("./images/ba.png", 0, 0, width, height)
 
     Sound_Data.graze = new Iaudio("./sounds/graze.wav")
     Sound_Data.dash = new Iaudio("./sounds/dash.wav")
@@ -174,6 +174,8 @@ const Scene_Main = class extends Scene {
   }
 
   loop() {
+    cvs.focus()
+
     if (!this.is_paused) {
       this.control_player()
       this.danmaku()
@@ -397,10 +399,11 @@ const Scene_Main = class extends Scene {
       Itext(null, game_width + 40, height - 20, "おや、スクショかい？")
       this.s--;
     }
-    // Ifont(24, "white")
-    // Itext(null, 0, 100, "" + this.story_interval)
-    // Itext(null, 0, 150, "" + this.story_num)
-    // Itext(null, 0, 200, this.chapter[this.story_num].type)
+
+    Ifont(24, "white")
+    Itext(null, 0, 100, "" + this.story_interval)
+    Itext(null, 0, 150, "" + this.story_num)
+    Itext(null, 0, 200, this.chapter[this.story_num].type)
   }
 }
 
@@ -417,6 +420,7 @@ const Scene_Title = class extends Scene {
   start() {
     this.frame = 0
     this.c = { frame: 0, current_branch: "", current_value: 0 }
+    Sound_Data.text = false
   }
 
   loop() {

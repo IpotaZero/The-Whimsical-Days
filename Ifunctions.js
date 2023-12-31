@@ -41,7 +41,7 @@ const Iaudio = class {
 	}
 }
 
-const Iimg = class {
+const Iimage = class {
 	constructor(path, x, y, width, height, ratio = 1, alpha = 1) {
 		let p = path.split(".")
 		if (p[p.length - 1] == "apng") {
@@ -195,6 +195,7 @@ function Iline(colour, size, arr) {
 	ctx.stroke();
 }
 
+//座標をベクトルで指定する
 function Iline2(colour, size, points) {
 	ctx.strokeStyle = colour;
 	ctx.lineWidth = size;
@@ -329,6 +330,17 @@ function Icommand(c, x, y, linespace, option) {
 	c.frame++;
 
 	return c
+}
+
+//generatorを展開する
+const Igenerator = (generator) => {
+	let list = []
+
+	for (let i of generator()) {
+		list.push(i)
+	}
+
+	return list
 }
 
 console.log("Ifunctions.js_loaded");

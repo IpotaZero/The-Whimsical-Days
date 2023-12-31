@@ -1,17 +1,27 @@
-const on_road = function (events) {
+const translate = function (events) {
   let transleted = []
 
   events.forEach((e) => {
     switch (e.type) {
+      //まったく同じ敵を間隔をあけて出す
       case "formation":
         for (let i = 0; i < e.number; i++) {
           transleted.push({ time: e.time + i * e.interval, value: { type: "enemy", enemy: e.enemy } })
         }
         break
+
+      //同時に複数の敵を出す
       case "enemies":
-        e.enemies.forEach((e) => {
-          transleted.push(e)
+        e.enemies.forEach((en) => {
+          transleted.push(en)
         })
+        break
+
+      //配列に入った敵を間隔をあけて出す
+      case "continuous":
+        for (let i = 0; i < e.enemies.length; i++) {
+          transleted.push({ time: e.time + i * e.interval, value: { type: "enemy", enemy: e.enemies[i] } })
+        }
         break
     }
   })
@@ -39,7 +49,7 @@ Sound_Data.kohaku = new Iaudio("./sounds/select.wav")
 Sound_Data.Ethanol = new Iaudio("./sounds/select.wav")
 
 
-Image_Data.Ethanol = new Iimg("images/Ethanol.apng", 250, 50, 960, 1920, 0.4, 1)
+Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 50, 960, 1920, 0.4, 1)
 
 const story = [
   [
@@ -50,12 +60,19 @@ const story = [
     { type: "sleep", interval: 48 },
     { type: "text", text: "" },
 
-    ...on_road([
+    ...translate([
       { time: 0, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
       { time: 48, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
     ]),
     { type: "sleep", interval: 96 },
     { type: "enemy", enemy: enemy_data.zako_2 },
+    { type: "sleep", interval: 48 },
+    ...translate([
+      { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_3_" + i] } }) },
+    ]),
+    { type: "sleep", interval: 144 },
+
+
     { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
@@ -85,7 +102,7 @@ const story = [
     { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
-    { type: "text", text: "Ethanol:\nぐえー", voice: Sound_Data.Ethanol },
+    { type: "text", text: "Ethanol:\n苦しくて投げ出したいのは\nきっとアセトアルデヒド!", voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "end" }
