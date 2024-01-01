@@ -475,6 +475,19 @@ const Scene_preTitle = class extends Scene {
     this.frame = 0
   }
 
+  end() {
+    //bodyにボタンを追加
+    const buttons = { "brighten": "Brighten:ON", "mute_bgm": "Mute_bgm", "mute_se": "Mute_se" };
+    const keys = Object.keys(buttons)
+    $(function () {
+      for (let key of keys) {
+        $("body").append("<input type='button' id=" + key + " value=" + buttons[key] + " onclick='button(id);'></input>");
+      }
+      //ボタンの数をcss側に伝えます
+      $("body").css("--button_num", keys.length)
+    });
+  }
+
   loop() {
     Irect(0, 0, width, height, "#121212")
 
@@ -562,13 +575,30 @@ let scene_manager = new Scene_Manager(scene_pretitle)
 
 let BGM = null
 
-function main() {
+const main = () => {
   scene_manager.current_scene.loop();
 
   Irect(0, 0, width, height, "white", "stroke", 2);
 
   pushed = [];
 
+}
+
+const button = (id) => {
+  console.log(id)
+  switch (id) {
+    case "brighten":
+      scene_main.brighten = !scene_main.brighten
+      $("#brighten").val("Brighten:" + (scene_main.brighten ? "ON" : "OFF"))
+      break
+    case "mute_bgm":
+      Sound_Data.mute_bgm = !Sound_Data.mute_bgm
+      if (BGM != null && Sound_Data.mute_bgm) { BGM.pause() }
+      break
+    case "mute_se":
+      Sound_Data.mute_se = !Sound_Data.mute_se
+      break
+  }
 }
 
 //24fpsで実行

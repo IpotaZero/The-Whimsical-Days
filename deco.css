@@ -2,4 +2,25 @@ body {
   background: linear-gradient(90deg, #000000, transparent), url("images/back.png");
   background-size: 128px;
   text-align: center;
+  --button_num: 4
+}
+
+input[type="button"] {
+  /* input要素のうちtype属性値がbuttonのものに対して装飾 */
+  color: white;
+
+  background-color: black;
+  border: 1px solid white;
+
+  font-family: serif;
+
+  width: calc(720px/var(--button_num));
+}
+
+input[type="button"]:hover {
+  /* マウスが載ったとき */
+  color: black;
+
+  background-color: white;
+  border: 1px solid black;
 }
