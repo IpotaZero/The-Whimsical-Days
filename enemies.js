@@ -292,6 +292,7 @@ enemy_data.ethanol_2 = new Enemy(null, 32, 300)
   .addf((me) => {
     if (me.frame > 48 && me.frame % 12 == 0) {
       bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 12), "aim", player.p, "arrow", 30]))
+      bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 12), "aim", player.p, "do", (me) => { me.v.y *= -1 }, "arrow", 30]))
     }
 
     me.frame++;
@@ -361,7 +362,7 @@ for (let i = 0; i < 12; i++) {
       if (me.frame > 60) {
         me.p.x = game_width / 2
         me.p.y = game_height / 2 - Math.sin(2 * Math.PI * (me.frame - 60) / 240) * game_height / 3
-        me.p = me.p.add(new vec(90, 0).rot(2 * Math.PI * i / 12 + me.frame / 36))
+        me.p = me.p.add(new vec(90, 0).rot(2 * Math.PI * i / 12 + (me.frame - 60) / 36))
 
         bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame, "r", 6, "p", me.p, "v", new vec(0, 12), "aim", player.p]))
         Sound_Data.bullet1.play()
@@ -419,7 +420,7 @@ function remodel(bulletArr, pro) {
       //["colourful",seed値]
       case "colourful":
         const color_frame = pro[i + 1]
-        c.push(...remodel(buls, ["colour", "hsl(" + (90 * Math.sin(2 * Math.PI * color_frame / 240) + 90) + ",100%,50%)"]))
+        c.push(...remodel(buls, ["colour", "hsl(" + Math.floor(90 * Math.sin(2 * Math.PI * color_frame / 240) + 90) + ",100%,50%)"]))
         i++;
         break
 
@@ -561,13 +562,8 @@ function remodel(bulletArr, pro) {
         c.push(...remodel(buls, ["f", (me) => { if (me.p.x + me.r < 0 || gamewidth < me.p.x - me.r) { me.v.x *= -1; } if (me.p.y + me.r < 0 || gameheight < me.p.y - me.r) { me.v.y *= -1; } }]));
         break;
 
-      //["shift",対象,数値やベクトル]指定の分ずらす(使いどころはないかも)
-      case "shift":
-        switch (pro[i + 2].constructor.name) {
-          case "vec": buls.forEach((b) => { b[pro[i + 1]] = b[pro[i + 1]].add(pro[i + 2]); c.push(b); }); break;
-          case "number": buls.forEach((b) => { b[pro[i + 1]] += pro[i + 2]; c.push(b); }); break;
-        }
-        i += 2; break;
+      //わざわざコマンドにするほどでもないことをして
+      case "do": buls.forEach((b) => { pro[i + 1](b); c.push(b) }); i++; break;
 
       //[対象,数値やベクトルや関数]代入(基本操作)
       case "f": buls.forEach((b) => { b["f"].push(pro[i + 1]); c.push(b); }); i++; break;

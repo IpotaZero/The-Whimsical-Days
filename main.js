@@ -53,6 +53,8 @@ const Scene_Main = class extends Scene {
     this.dash_interval = 48
 
     this.brighten = true
+
+    this.colours = {}
   }
 
   start() {
@@ -201,12 +203,11 @@ const Scene_Main = class extends Scene {
     this.draw()
 
     if (this.is_paused) {
-      Irect(0, 0, width, height, "rgba(0,0,0,0.5)")
-      Ifont(48, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-      Itext(this.frame, 180, height / 2 + 24, "Pause")
+      Ifont(48, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+      Itext(this.frame, game_width + 80, height / 2 + 24, "Pause")
 
-      Ifont(24, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-      this.c = Icommand(this.c, 40, 530, font_size, { "": ["Back to Game", "Back to Title"] })
+      Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+      this.c = Icommand(this.c, game_width + 40, 530, font_size, { "": ["Back to Game", "Back to Title"] })
 
       switch (this.c.current_branch) {
         case "0":
@@ -337,22 +338,27 @@ const Scene_Main = class extends Scene {
     IcircleC(player.p.x, player.p.y, player.r, "red")
     IarcC(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / this.dash_interval), "white", "stroke", 2)
     if (this.brighten) {
-      IcircleC(player.p.x, player.p.y, player.r + player.graze_r, "rgba(255,255,255,0.1)", "stroke", 8)
-      IcircleC(player.p.x, player.p.y, player.r, "rgba(255,0,0,0.1)", "stroke", 8)
+      IcircleC(player.p.x, player.p.y, player.r + player.graze_r, "rgba(255,255,255,0.2)", "stroke", 8)
+      IcircleC(player.p.x, player.p.y, player.r, "rgba(255,0,0,0.2)", "stroke", 8)
     }
     IarcC(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "yellow", "stroke", 2)
     ctx.globalAlpha = 1;
 
     //弾
     bullets.forEach((b) => {
+      let bullet_colour = b.colour
+
       if (this.brighten) {
         if (!["none", "ball", "laser"].includes(b.app)) {
           IcircleC(b.p.x, b.p.y, b.r, chroma(b.colour).alpha(0.1).css(), "stroke", 12)
           IcircleC(b.p.x, b.p.y, b.r, b.colour, "stroke", 3)
         }
+
+        this.colours[b.colour] ??= chroma(b.colour).brighten(2).saturate(1).css()
+
+        bullet_colour = this.colours[b.colour]
       }
 
-      let bullet_colour = this.brighten ? chroma(b.colour).brighten(2).css() : b.colour
 
       switch (b.app) {
         case "donut":
@@ -593,7 +599,9 @@ const button = (id) => {
       break
     case "mute_bgm":
       Sound_Data.mute_bgm = !Sound_Data.mute_bgm
-      if (BGM != null && Sound_Data.mute_bgm) { BGM.pause() }
+      if (BGM != null) {
+        BGM.mute()
+      }
       break
     case "mute_se":
       Sound_Data.mute_se = !Sound_Data.mute_se

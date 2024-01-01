@@ -28,8 +28,8 @@ const Iaudio = class {
 		this.audio.currentTime = 0
 	}
 
-	set_mute(b) {
-		this.audio.muted = b
+	mute() {
+		this.audio.muted = !this.audio.muted
 	}
 
 	set_volume(v) {
