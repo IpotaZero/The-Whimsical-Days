@@ -1,3 +1,4 @@
+//ぜったいじかんでしていする
 const translate = function (events) {
   let transleted = []
 
@@ -13,7 +14,7 @@ const translate = function (events) {
       //同時に複数の敵を出す
       case "enemies":
         e.enemies.forEach((en) => {
-          transleted.push(en)
+          transleted.push({ time: e.time, value: { type: "enemy", enemy: en } })
         })
         break
 
@@ -22,6 +23,10 @@ const translate = function (events) {
         for (let i = 0; i < e.enemies.length; i++) {
           transleted.push({ time: e.time + i * e.interval, value: { type: "enemy", enemy: e.enemies[i] } })
         }
+        break
+
+      case "do":
+        transleted.push({ time: e.time, value: e.value })
         break
     }
   })
@@ -60,20 +65,16 @@ const story = [
     { type: "sleep", interval: 48 },
     { type: "text", text: "" },
 
-    ...translate([
-      { time: 0, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
-      { time: 48, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
-    ]),
-    { type: "sleep", interval: 96 },
-    { type: "enemy", enemy: enemy_data.zako_2 },
-    { type: "sleep", interval: 48 },
-    ...translate([
-      { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_3_" + i] } }) },
-    ]),
-    { type: "sleep", interval: 144 },
+    // ...translate([
+    //   { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
 
+    //   { time: 350, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
+    //   { time: 422, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
+    //   { time: 580, type: "enemies", enemies: [enemy_data.zako_2] },
+    //   { time: 580, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_3_" + i] } }) },
+    // ]),
 
-    { type: "wait" },
+    // { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
     { type: "text", text: "Ethanol:\nどーも", voice: Sound_Data.Ethanol },
@@ -81,8 +82,6 @@ const story = [
     { type: "text", text: "Kohaku:\nどーも...", voice: Sound_Data.kohaku },
     { type: "ok" },
     { type: "text", text: "Ethanol:\nさっきからあたしを\n追っかけてるみたいだね", voice: Sound_Data.Ethanol },
-    { type: "ok" },
-    { type: "text", text: "Kohaku:\n...そうだね", voice: Sound_Data.kohaku },
     { type: "ok" },
     { type: "text", text: "Ethanol:\n別に戦わなくても\nいいんだけどね\n", voice: Sound_Data.Ethanol },
     { type: "ok" },
@@ -102,7 +101,7 @@ const story = [
     { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
-    { type: "text", text: "Ethanol:\n苦しくて投げ出したいのは\nきっとアセトアルデヒド!", voice: Sound_Data.Ethanol },
+    { type: "text", text: "Ethanol:\n苦しくて、投げ出したいのは\nきっとアセトアルデヒド", voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "end" }

@@ -291,7 +291,7 @@ const Scene_Main = class extends Scene {
           e.damaged = true
         }
       })
-      e.f(e)
+      e.f.forEach((f) => { f(e) })
     })
 
 
@@ -400,10 +400,10 @@ const Scene_Main = class extends Scene {
       this.s--;
     }
 
-    Ifont(24, "white")
-    Itext(null, 0, 100, "" + this.story_interval)
-    Itext(null, 0, 150, "" + this.story_num)
-    Itext(null, 0, 200, this.chapter[this.story_num].type)
+    Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+    Itext(null, game_width + 40, 100, "" + this.story_interval)
+    Itext(null, game_width + 40, 150, "" + this.story_num)
+    Itext(null, game_width + 40, 200, this.chapter[this.story_num].type)
   }
 }
 
