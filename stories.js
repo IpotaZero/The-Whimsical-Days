@@ -65,6 +65,8 @@ const story = [
     { type: "sleep", interval: 48 },
     { type: "text", text: "" },
 
+    //{ type: "enemy", enemy: enemy_data.zako_5_0 },
+
     // ...translate([
     //   { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
 
@@ -74,7 +76,7 @@ const story = [
     //   { time: 580, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_3_" + i] } }) },
     // ]),
 
-    // { type: "wait" },
+    //{ type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
     { type: "text", text: "Ethanol:\nどーも", voice: Sound_Data.Ethanol },
@@ -101,6 +103,8 @@ const story = [
     { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
+    { type: "text", text: "Ethanol:\nぐわーッ", voice: Sound_Data.Ethanol },
+    { type: "ok" },
     { type: "text", text: "Ethanol:\n苦しくて、投げ出したいのは\nきっとアセトアルデヒド", voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "" },

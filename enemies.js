@@ -100,13 +100,11 @@ enemy_data.zako_1 = new Enemy(null, 16, 15)
   .export()
 
 enemy_data.zako_2 = new Enemy(null, 32, 100)
-  .move(new vec(game_width / 2, -100), new vec(game_width / 2, game_height / 6), 0, 24, x => 1 - (x - 1) ** 2)
+  .move(null, new vec(game_width / 2, game_height / 6), 0, 24, x => 1 - (x - 1) ** 2)
   .addf((me) => {
-    if (me.frame > 24) {
-      if (me.frame % 12 == 0) {
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", 7, Math.PI / 16, me.p]))
-        Sound_Data.bullet0.play()
-      }
+    if (me.frame > 24 && me.frame % 12 == 0) {
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", 7, Math.PI / 16, me.p]))
+      Sound_Data.bullet0.play()
     }
 
     me.frame++;
@@ -199,20 +197,17 @@ for (let i = 0; i < 8; i++) {
     .export()
 }
 
-enemy_data.zako_5_0 = new Enemy(null, 16, 10)
+enemy_data.zako_5_0 = new Enemy(null, 16, 100)
+  .move(null, new vec(game_width / 2, game_height / 6), 0, 24, x => 1 - (x - 1) ** 2)
   .addf((me) => {
-    me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 120) + game_width / 2
+    me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 240) + game_width / 2
 
-    if (me.frame % 6 == 0) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "ex", 36, me.p]))
-      Sound_Data.bullet0.play()
-    }
+    bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 6, "p", me.p, "v", new vec(12, 0), "ex", 36, me.p]))
+    Sound_Data.bullet0.play()
 
     me.frame++;
     if (me.life <= 0) {
       bullets = []
-      next_enemies.push({ ...enemy_data["ethanol_1"] })
-      enemy_vrs.p = me.p
       Sound_Data.KO.play()
       scene_main.continue_story()
 
@@ -430,7 +425,7 @@ function remodel(bulletArr, pro) {
 
       case "hakkyou_colourful":
         const color_frame2 = pro[i + 1]
-        c.push(...remodel(buls, ["colour", "hsl(" + (90 * Math.sin(2 * Math.PI * color_frame2 / 240 + Math.PI / 2)) + ",100%,50%)"]))
+        c.push(...remodel(buls, ["colour", "hsl(" + Math.floor(90 * Math.sin(2 * Math.PI * color_frame2 / 240 + Math.PI / 2)) + ",100%,50%)"]))
         i++;
         break
 

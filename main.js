@@ -51,6 +51,8 @@ const Scene_Main = class extends Scene {
     Sound_Data.KO = new Iaudio("./sounds/KO.wav")
     Sound_Data.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
     this.dash_interval = 48
+
+    this.brighten = true
   }
 
   start() {
@@ -190,6 +192,8 @@ const Scene_Main = class extends Scene {
       this.frame = 0
     }
 
+    if (pushed.includes("KeyB")) { this.brighten = !this.brighten }
+
     if (pushed.includes("Delete") && enemies.length > 0) {
       enemies[0].life = 0
     }
@@ -326,34 +330,44 @@ const Scene_Main = class extends Scene {
     //描画
     ctx.clearRect(0, 0, width, height)
 
-    Irect(20, 20, game_width, game_height, "#121212")
-
-    ctx.globalCompositeOperation = "source-over"
+    Irect(0, 0, width, height, "#121212")
 
     //player
     ctx.globalAlpha = player.dead > 0 ? 0.4 : 1;
     IcircleC(player.p.x, player.p.y, player.r, "red")
     IarcC(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / this.dash_interval), "white", "stroke", 2)
+    if (this.brighten) {
+      IcircleC(player.p.x, player.p.y, player.r + player.graze_r, "rgba(255,255,255,0.1)", "stroke", 8)
+      IcircleC(player.p.x, player.p.y, player.r, "rgba(255,0,0,0.1)", "stroke", 8)
+    }
     IarcC(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "yellow", "stroke", 2)
     ctx.globalAlpha = 1;
 
     //弾
     bullets.forEach((b) => {
+      if (this.brighten) {
+        if (!["none", "ball", "laser"].includes(b.app)) {
+          IcircleC(b.p.x, b.p.y, b.r, chroma(b.colour).alpha(0.1).css(), "stroke", 12)
+          IcircleC(b.p.x, b.p.y, b.r, b.colour, "stroke", 3)
+        }
+      }
+
+      let bullet_colour = this.brighten ? chroma(b.colour).brighten(2).css() : b.colour
+
       switch (b.app) {
         case "donut":
-          IcircleC(b.p.x, b.p.y, b.r, b.colour, "stroke", 2)
+          IcircleC(b.p.x, b.p.y, b.r, bullet_colour, "stroke", 2)
           break
         case "laser":
           let v = b.v;
           if (v.x == 0 && v.y == 0) { v = new vec(0.01, 0); }//速度が0ベクトルだと方向が指定されなくなりますので
-          IlineC(b.colour, b.r * 2, [[b.p.sub(v.nor().mlt(b.r)).x, b.p.sub(v.nor().mlt(b.r)).y], [b.p.add(v.nor().mlt(b.r)).x, b.p.add(v.nor().mlt(b.r)).y]]);
+          IlineC(bullet_colour, 2 * b.r, [[b.p.sub(v.nor().mlt(b.r)).x, b.p.sub(v.nor().mlt(b.r)).y], [b.p.add(v.nor().mlt(b.r)).x, b.p.add(v.nor().mlt(b.r)).y]]);
           break
         case "ball":
-          IcircleC(b.p.x, b.p.y, b.r * 1.5, chroma(b.colour).alpha(0.8).css())
-          IcircleC(b.p.x, b.p.y, b.r, "white")
+          IcircleC(b.p.x, b.p.y, b.r, bullet_colour)
           break
         default:
-          IcircleC(b.p.x, b.p.y, b.r, b.colour)
+          IcircleC(b.p.x, b.p.y, b.r, bullet_colour)
       }
     })
 
@@ -364,6 +378,7 @@ const Scene_Main = class extends Scene {
       IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, "white");
       IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, "white", "stroke", 2);
 
+      if (this.brighten) { IcircleC(e.p.x, e.p.y, e.r, chroma(c).alpha(0.1).css(), "stroke", 12) }
       IcircleC(e.p.x, e.p.y, e.r, c, "stroke", 2)
     })
 
@@ -404,6 +419,7 @@ const Scene_Main = class extends Scene {
     Itext(null, game_width + 40, 100, "" + this.story_interval)
     Itext(null, game_width + 40, 150, "" + this.story_num)
     Itext(null, game_width + 40, 200, this.chapter[this.story_num].type)
+    Itext(null, game_width + 40, 250, "bullets: " + bullets.length)
   }
 }
 
@@ -521,7 +537,7 @@ const Scene_Gameover = class extends Scene {
     } else if (this.frame > 36) {
       Ifont(60, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
 
-      let text = "GAMEOVER! [Z]"
+      let text = "GAMEOVER!"
       length = ctx.measureText(text).width
       Itext((this.frame - 36) / 15, (width - length) / 2, height / 2, text)
 
