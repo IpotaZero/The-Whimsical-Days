@@ -330,6 +330,7 @@ const Scene_Main = class extends Scene {
 
     ctx.globalCompositeOperation = "source-over"
 
+    //player
     ctx.globalAlpha = player.dead > 0 ? 0.4 : 1;
     IcircleC(player.p.x, player.p.y, player.r, "red")
     IarcC(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / this.dash_interval), "white", "stroke", 2)
@@ -376,12 +377,11 @@ const Scene_Main = class extends Scene {
 
     effects = effects.filter((e) => { return e.effect_time > 0 })
 
-    let background_colour = "pink"
-
-    Irect(0, 0, 20, height, background_colour)
-    Irect(20 + game_width, 0, width - game_width - 20, height, background_colour)
-    Irect(20, 0, game_width, 20, background_colour)
-    Irect(20, 20 + game_height, game_width, 20, background_colour)
+    // let background_colour = "pink"
+    // Irect(0, 0, 20, height, background_colour)
+    // Irect(20 + game_width, 0, width - game_width - 20, height, background_colour)
+    // Irect(20, 0, game_width, 20, background_colour)
+    // Irect(20, 20 + game_height, game_width, 20, background_colour)
 
     Image_Data.background.draw()
 

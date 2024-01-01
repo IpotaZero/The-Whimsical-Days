@@ -242,7 +242,7 @@ enemy_data.ethanol_0 = new Enemy(new vec(0, game_height / 6), 32, 80)
   })
   .export()
 
-enemy_data.ethanol_1 = new Enemy(null, 32, 300)
+enemy_data.ethanol_1 = new Enemy(null, 32, 200)
   .move(null, new vec(game_width / 2, game_height * 5 / 6), 0, 48, x => x ** 2)
   .addf((me) => {
     if (me.frame < 48) {
@@ -266,52 +266,31 @@ enemy_data.ethanol_1 = new Enemy(null, 32, 300)
       Sound_Data.KO.play()
     }
 
-  }
-  )
-  .export()
-
-enemy_data.ethanol_2_0 = new Enemy(null, 32, 50)
-  .move(null, new vec(game_width / 2, game_height / 2), 0, 48, x => x ** 2)
-  .scale(32, 16, 0, 48, x => x)
-  .addf((me) => {
-    if (me.frame > 48) {
-      me.p.x = game_width / 3 * Math.sin((me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
-
-      if (me.frame % 4 == 0) {
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, -6)]))
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, 6)]))
-        Sound_Data.bullet1.play()
-      }
-    }
-
-    me.frame++;
-    if (me.life <= 0) {
-      Sound_Data.KO.play()
-    }
   })
   .export()
 
-enemy_data.ethanol_2_1 = new Enemy(null, 32, 50)
-  .move(null, new vec(game_width / 2, game_height / 2), 0, 48, x => x ** 2)
-  .scale(32, 16, 0, 48, x => x)
-  .addf((me) => {
-    if (me.frame > 48) {
-      me.p.x = game_width / 3 * Math.sin(-(me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
+for (let i = 0; i < 2; i++) {
+  enemy_data["ethanol_2_" + i] = new Enemy(null, 32, 50)
+    .move(null, new vec(game_width / 2, game_height / 2), 0, 48, x => x ** 2)
+    .scale(32, 16, 0, 48, x => x)
+    .addf((me) => {
+      if (me.frame > 48) {
+        me.p.x = game_width / 3 * Math.sin((2 * i - 1) * (me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
 
-      if (me.frame % 4 == 0) {
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, -6)]))
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, 6)]))
-        Sound_Data.bullet1.play()
+        if (me.frame % 4 == 0) {
+          bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, -6)]))
+          bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, 6)]))
+          Sound_Data.bullet1.play()
+        }
       }
-    }
 
-    me.frame++;
-    if (me.life <= 0) {
-      Sound_Data.KO.play()
-    }
-  })
-  .export()
-
+      me.frame++;
+      if (me.life <= 0) {
+        Sound_Data.KO.play()
+      }
+    })
+    .export()
+}
 
 enemy_data.ethanol_2 = new Enemy(null, 32, 300)
   .move(null, new vec(game_width / 2, game_height / 2), 0, 48, x => x ** 2)
