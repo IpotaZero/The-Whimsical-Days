@@ -41,6 +41,7 @@ const Scene_Main = class extends Scene {
   constructor() {
     super()
     Image_Data.background = new Iimage("./images/ba.png", 0, 0, width, height)
+    Image_Data.battle_bg = new Iimage("./images/battle_bg_repaet.png", 0, 0, 720, 720, 2, 0.1)
 
     Sound_Data.graze = new Iaudio("./sounds/graze.wav")
     Sound_Data.dash = new Iaudio("./sounds/dash.wav")
@@ -336,6 +337,9 @@ const Scene_Main = class extends Scene {
     ctx.globalCompositeOperation = "screen"
 
     Irect(0, 0, width, height, "#121212")
+
+    Image_Data.battle_bg.move(-2, -2, 64, 64)
+    Image_Data.battle_bg.draw()
 
     //player
     ctx.globalAlpha = player.dead > 0 ? 0.4 : 1;

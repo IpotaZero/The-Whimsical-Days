@@ -55,10 +55,16 @@ function circular_move(center, frame, radius, cycle, rad = 0) {
   return center.add(new vec(Math.cos(frame * Math.PI * 2 / cycle + rad), Math.sin(frame * Math.PI * 2 / cycle + rad)).mlt(radius));
 }
 
-
 function get_angle(v0, v1) {
   let a = Math.atan(v1.y / v1.x) - Math.atan(v0.y / v0.x);
   return v1.x > 0 ? a : a + Math.PI;
+}
+
+function explosion(pos) {
+  for (let i = 0; i < 16; i++) {
+    let c = chroma("hsl(" + Math.floor(90 * Math.sin(2 * Math.PI * Math.random()) + 90) + ",100%,50%)").css()
+    bullets.push(...remodel([bullet_model], ["type", "effect", "colour", c, "r", 12 * Math.random() + 1, "life", 48, "p", pos, "v", new vec(6 * Math.random(), 0).rot(Math.random() * 6), "f", (me) => { me.life--; me.colour = chroma(c).alpha(me.life / 72).css() }]))
+  }
 }
 
 enemy_data.zako_0 = new Enemy(null, 16, 15)
@@ -73,6 +79,7 @@ enemy_data.zako_0 = new Enemy(null, 16, 15)
 
     if (me.life <= 0) {
       Sound_Data.KO.play()
+      explosion(me.p)
     }
 
     if (me.p.x < 0 || game_width < me.p.x) { me.life = 0 }
@@ -94,6 +101,7 @@ enemy_data.zako_1 = new Enemy(null, 16, 15)
 
     if (me.life <= 0) {
       Sound_Data.KO.play()
+      explosion(me.p)
     }
 
     if (me.p.x < 0 || game_width < me.p.x) { me.life = 0 }
@@ -115,6 +123,7 @@ enemy_data.zako_2 = new Enemy(null, 32, 100)
 
     if (me.life <= 0) {
       Sound_Data.KO.play()
+      explosion(me.p)
     }
   })
   .move(new vec(game_width / 2, game_height / 6), new vec(game_width / 2, game_height + 100), 144, 288, x => x ** 2)
@@ -124,7 +133,7 @@ enemy_data.zako_2 = new Enemy(null, 32, 100)
 for (let i = 0; i < 4; i++) {
   enemy_data["zako_3_" + (2 * i)] = new Enemy(new vec(game_width, game_height / 8 * i + 20), 16, 15)
     .addf((me) => {
-      me.p.x -= 4;
+      me.p = me.p.add(new vec(-4, 0));
 
       if (me.frame % 24 == 0) {
         bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(6, 0), "aim", player.p, "arrow", 20]))
@@ -134,6 +143,7 @@ for (let i = 0; i < 4; i++) {
 
       if (me.life <= 0) {
         Sound_Data.KO.play()
+        explosion(me.p)
       }
 
       if (me.p.x < 0) { me.life = 0 }
@@ -143,7 +153,7 @@ for (let i = 0; i < 4; i++) {
 
   enemy_data["zako_3_" + (2 * i + 1)] = new Enemy(new vec(0, game_height / 8 * (i + 0.5) + 20), 16, 15)
     .addf((me) => {
-      me.p.x += 4;
+      me.p = me.p.add(new vec(4, 0));
 
       if (me.frame % 24 == 0) {
         bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(6, 0), "aim", player.p, "arrow", 20]))
@@ -153,6 +163,7 @@ for (let i = 0; i < 4; i++) {
 
       if (me.life <= 0) {
         Sound_Data.KO.play()
+        explosion(me.p)
       }
 
       if (me.p.x > game_width) { me.life = 0 }
@@ -176,6 +187,7 @@ for (let i = 0; i < 8; i++) {
 
       if (me.life <= 0) {
         Sound_Data.KO.play()
+        explosion(me.p)
       }
 
       if (me.p.y > game_height) { me.life = 0 }
@@ -214,6 +226,7 @@ enemy_data.zako_5_0 = new Enemy(null, 16, 100)
     me.frame++;
     if (me.life <= 0) {
       bullets = []
+      explosion(me.p)
       Sound_Data.KO.play()
       scene_main.continue_story()
 
@@ -235,6 +248,7 @@ enemy_data.ethanol_0 = new Enemy(new vec(0, game_height / 6), 32, 80)
 
     if (me.life <= 0) {
       bullets = []
+      explosion(me.p)
       next_enemies.push({ ...enemy_data["ethanol_1"] })
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
@@ -263,6 +277,7 @@ enemy_data.ethanol_1 = new Enemy(null, 32, 200)
     me.frame++;
     if (me.life <= 0) {
       bullets = []
+      explosion(me.p)
       next_enemies.push({ ...enemy_data["ethanol_2"] }, { ...enemy_data["ethanol_2_0"] }, { ...enemy_data["ethanol_2_1"] })
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
@@ -289,6 +304,7 @@ for (let i = 0; i < 2; i++) {
       me.frame++;
       if (me.life <= 0) {
         Sound_Data.KO.play()
+        explosion(me.p)
       }
     })
     .export()
@@ -308,6 +324,7 @@ enemy_data.ethanol_2 = new Enemy(null, 32, 300)
     if (me.life <= 0) {
       bullets = []
       enemies = []
+      explosion(me.p)
       next_enemies.push({ ...enemy_data["ethanol_3"] })
       for (let i = 0; i < 4; i++) { next_enemies.push({ ...enemy_data["ethanol_3_" + i] }) }
       enemy_vrs.p = me.p
@@ -334,6 +351,7 @@ for (let i = 0; i < 4; i++) {
       me.frame++;
       if (me.life <= 0) {
         Sound_Data.KO.play()
+        explosion(me.p)
       }
 
     })
@@ -355,6 +373,7 @@ enemy_data.ethanol_3 = new Enemy(null, 32, 300)
     if (me.life <= 0) {
       bullets = []
       enemies = []
+      explosion(me.p)
       next_enemies.push({ ...enemy_data["ethanol_4"] })
       for (let i = 0; i < 12; i++) { next_enemies.push({ ...enemy_data["ethanol_4_" + i] }) }
       enemy_vrs.p = me.p
@@ -382,6 +401,7 @@ for (let i = 0; i < 12; i++) {
       me.frame++;
       if (me.life <= 0) {
         Sound_Data.KO.play()
+        explosion(me.p)
       }
 
     })
@@ -405,6 +425,7 @@ enemy_data.ethanol_4 = new Enemy(null, 32, 200)
     if (me.life <= 0) {
       bullets = []
       enemies = []
+      explosion(me.p)
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
 

@@ -42,7 +42,7 @@ const Iaudio = class {
 }
 
 const Iimage = class {
-	constructor(path, x, y, width, height, ratio = 1, alpha = 1) {
+	constructor(path, x, y, width, height, ratio = 1, alpha = 1, rotate = 0) {
 		let p = path.split(".")
 		if (p[p.length - 1] == "apng") {
 			this.type = "anime"
@@ -59,24 +59,44 @@ const Iimage = class {
 		this.height = height
 		this.ratio = ratio
 		this.alpha = alpha
+		this.rotate = rotate
 
 		this.x = x
 		this.y = y
 	}
 
 	draw() {
+		// コンテキストを保存する
+		// ctx.save();
+		// // 回転の中心に原点を移動する
+		// ctx.translate(this.x, this.y);
+		// // canvasを回転する
+		// ctx.rotate(this.rotate);
+
 		let a = ctx.globalAlpha
 		ctx.globalAlpha = this.alpha
 
 		if (this.type == "anime") {
-			ctx.drawImage(this.image[this.frame], this.x, this.y, this.width * this.ratio, this.height * this.ratio)
+			// 画像サイズの半分だけずらして画像を描画する
+			ctx.drawImage(this.image[this.frame], this.x, this.y, this.width * this.ratio, this.height * this.ratio);
 			this.frame = (this.frame + 1) % (this.image.length - 1)
 		} else {
-			ctx.drawImage(this.image, this.x, this.y, this.width * this.ratio, this.height * this.ratio)
+			ctx.drawImage(this.image, this.x, this.y, this.width * this.ratio, this.height * this.ratio);
 		}
 
 		ctx.globalAlpha = a
 
+		// // コンテキストを元に戻す
+		// ctx.restore();
+
+	}
+
+	move(x, y, loop_x, loop_y) {
+		this.x += x
+		this.y += y
+
+		this.x %= (loop_x - this.ratio - 1)
+		this.y %= (loop_y - this.ratio - 1)
 	}
 }
 
