@@ -33,7 +33,6 @@ let player
 
 let bullets = []
 let enemies = []
-let effects = []
 
 let next_bullets = []
 let next_enemies = []
@@ -130,7 +129,7 @@ const Scene_Main = class extends Scene {
             break
 
           case "enemy":
-            enemies.push(element.enemy.export())
+            enemies.push({ ...element.enemy })
             break
         }
         this.continue_story()
@@ -250,7 +249,8 @@ const Scene_Main = class extends Scene {
 
     if (player.dash > 0) {
       player.dash--;
-      effects.push({ ...player, "effect_time": 12, "effect_type": "player" })
+      bullets.push({ type: "effect", app: "none", colour: "red", life: 12, p: player.p, r: player.r, f: [(me) => { me.life--; me.colour = "rgba(255,0,0," + (me.life / 12) + ")" }] })
+      bullets.push({ type: "effect", app: "donut", colour: "white", life: 12, p: player.p, r: player.r + player.graze_r, f: [(me) => { me.life--; me.colour = "rgba(255,255,255," + (me.life / 12) + ")" }] })
     } else {
       player.inv = false
     }
@@ -273,10 +273,10 @@ const Scene_Main = class extends Scene {
     if (this.frame % 3 == 0) {
       if (pressed.includes("ShiftLeft")) {
         for (let i = 0; i < 5; i++) {
-          bullets.push(...remodel([bullet_model], ["app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
+          bullets.push(...remodel([bullet_model], ["r", 3, "app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
         }
       } else {
-        bullets.push(...remodel([bullet_model], ["app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
+        bullets.push(...remodel([bullet_model], ["r", 3, "app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
       }
     }
 
@@ -333,6 +333,8 @@ const Scene_Main = class extends Scene {
     //描画
     ctx.clearRect(0, 0, width, height)
 
+    ctx.globalCompositeOperation = "screen"
+
     Irect(0, 0, width, height, "#121212")
 
     //player
@@ -346,34 +348,38 @@ const Scene_Main = class extends Scene {
     IarcC(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "yellow", "stroke", 2)
     ctx.globalAlpha = 1;
 
+    let laser_count = 0
+
     //弾
     bullets.forEach((b) => {
-      let bullet_colour = b.colour
-
-      if (this.brighten) {
-        this.colours[b.colour] ??= chroma(b.colour).brighten(1).css()
-        bullet_colour = this.colours[b.colour]
-
-        if (!["none", "ball", "laser"].includes(b.app)) {
-          IcircleC(b.p.x, b.p.y, b.r, chroma(this.colours[b.colour]).alpha(0.1).css(), "stroke", 12)
-          IcircleC(b.p.x, b.p.y, b.r, b.colour, "stroke", 3)
-        }
-      }
-
       switch (b.app) {
         case "donut":
-          IcircleC(b.p.x, b.p.y, b.r, bullet_colour, "stroke", 2)
+          IcircleC(b.p.x, b.p.y, b.r, b.colour, "stroke", 2)
           break
         case "laser":
           let v = b.v;
           if (v.x == 0 && v.y == 0) { v = new vec(0.01, 0); }//速度が0ベクトルだと方向が指定されなくなりますので
-          IlineC(bullet_colour, 2 * b.r, [[b.p.sub(v.nor().mlt(b.r)).x, b.p.sub(v.nor().mlt(b.r)).y], [b.p.add(v.nor().mlt(b.r)).x, b.p.add(v.nor().mlt(b.r)).y]]);
+          IlineC(b.colour, 2 * b.r, [[b.p.sub(v.nor().mlt(b.r)).x, b.p.sub(v.nor().mlt(b.r)).y], [b.p.add(v.nor().mlt(b.r)).x, b.p.add(v.nor().mlt(b.r)).y]]);
           break
         case "ball":
-          IcircleC(b.p.x, b.p.y, b.r, bullet_colour)
+          IcircleC(b.p.x, b.p.y, b.r, b.colour)
           break
         default:
-          IcircleC(b.p.x, b.p.y, b.r, bullet_colour)
+          IcircleC(b.p.x, b.p.y, b.r, b.colour)
+      }
+
+      if (this.brighten) {
+        this.colours[b.colour] ??= chroma(b.colour).brighten(2).css()
+
+        if (!["none", "ball", "laser"].includes(b.app)) {
+          IcircleC(b.p.x, b.p.y, b.r - 1, this.colours[b.colour], "stroke", 2)
+          IcircleC(b.p.x, b.p.y, b.r, chroma(b.colour).alpha(0.1).css(), "stroke", 12)
+        } else if (b.app == "laser") {
+          if (laser_count % 4 == 0) {
+            IcircleC(b.p.x, b.p.y, b.r * 2, chroma(b.colour).alpha(0.1).css(), "stroke", 18)
+          }
+          laser_count++;
+        }
       }
     })
 
@@ -388,21 +394,13 @@ const Scene_Main = class extends Scene {
       IcircleC(e.p.x, e.p.y, e.r, c, "stroke", 2)
     })
 
-    //エフェクト
-    effects.forEach((e) => {
-      if (e.effect_type == "player") {
-        IcircleC(e.p.x, e.p.y, e.r, "rgba(255,0,0," + (e.effect_time / 12) + ")")
-      }
-      e.effect_time--;
-    })
-
-    effects = effects.filter((e) => { return e.effect_time > 0 })
-
     // let background_colour = "pink"
     // Irect(0, 0, 20, height, background_colour)
     // Irect(20 + game_width, 0, width - game_width - 20, height, background_colour)
     // Irect(20, 0, game_width, 20, background_colour)
     // Irect(20, 20 + game_height, game_width, 20, background_colour)
+
+    ctx.globalCompositeOperation = "source-over"
 
     Image_Data.background.draw()
 
@@ -426,6 +424,7 @@ const Scene_Main = class extends Scene {
     Itext(null, game_width + 40, 150, "" + this.story_num)
     Itext(null, game_width + 40, 200, this.chapter[this.story_num].type)
     Itext(null, game_width + 40, 250, "bullets: " + bullets.length)
+    Itext(null, game_width + 40, 300, "enemies: " + enemies.length)
   }
 }
 
@@ -460,7 +459,7 @@ const Scene_Title = class extends Scene {
         scene_manager.MoveTo(scene_anten)
         break
       case "1":
-        Itext5(this.c.frame, 20, 200, font_size, "十字キーで移動、Shiftキーで低速、\nAで後ろを向く、\nCtrlで0.5秒ダッシュ(ダッシュ中は無敵)\n赤い点が当たり判定、白い円がかすり判定\n[X]")
+        Itext5(this.c.frame, 20, 200, font_size, "・十字キーで移動\n・Shiftキーで低速\n・Aで後ろを向く\n・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵)\n・赤い点が当たり判定\n・白い円がかすり判定\n・Escでポーズ\n[X]")
         break
       case "2":
         Ifont(24, "white", "serif")
