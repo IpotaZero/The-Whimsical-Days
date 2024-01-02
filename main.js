@@ -69,6 +69,7 @@ const Scene_Main = class extends Scene {
     this.story_images = []
     this.story_interval = 0
     this.chapter = story[0]
+    this.boss = false
 
     this.story_image = []
     this.story_text = ""
@@ -131,6 +132,10 @@ const Scene_Main = class extends Scene {
 
           case "enemy":
             enemies.push({ ...element.enemy })
+            break
+
+          case "do":
+            element.f()
             break
         }
         this.continue_story()
@@ -338,8 +343,10 @@ const Scene_Main = class extends Scene {
 
     Irect(0, 0, width, height, "#121212")
 
-    Image_Data.battle_bg.move(-2, -2, 64, 64)
-    Image_Data.battle_bg.draw()
+    if (this.boss) {
+      Image_Data.battle_bg.move(-2, -2, 64, 64)
+      Image_Data.battle_bg.draw()
+    }
 
     //player
     ctx.globalAlpha = player.dead > 0 ? 0.4 : 1;

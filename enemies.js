@@ -248,7 +248,6 @@ enemy_data.ethanol_0 = new Enemy(new vec(0, game_height / 6), 32, 80)
 
     if (me.life <= 0) {
       bullets = []
-      explosion(me.p)
       next_enemies.push({ ...enemy_data["ethanol_1"] })
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
@@ -277,7 +276,6 @@ enemy_data.ethanol_1 = new Enemy(null, 32, 200)
     me.frame++;
     if (me.life <= 0) {
       bullets = []
-      explosion(me.p)
       next_enemies.push({ ...enemy_data["ethanol_2"] }, { ...enemy_data["ethanol_2_0"] }, { ...enemy_data["ethanol_2_1"] })
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
@@ -324,7 +322,6 @@ enemy_data.ethanol_2 = new Enemy(null, 32, 300)
     if (me.life <= 0) {
       bullets = []
       enemies = []
-      explosion(me.p)
       next_enemies.push({ ...enemy_data["ethanol_3"] })
       for (let i = 0; i < 4; i++) { next_enemies.push({ ...enemy_data["ethanol_3_" + i] }) }
       enemy_vrs.p = me.p
@@ -373,7 +370,6 @@ enemy_data.ethanol_3 = new Enemy(null, 32, 300)
     if (me.life <= 0) {
       bullets = []
       enemies = []
-      explosion(me.p)
       next_enemies.push({ ...enemy_data["ethanol_4"] })
       for (let i = 0; i < 12; i++) { next_enemies.push({ ...enemy_data["ethanol_4_" + i] }) }
       enemy_vrs.p = me.p
@@ -425,7 +421,7 @@ enemy_data.ethanol_4 = new Enemy(null, 32, 200)
     if (me.life <= 0) {
       bullets = []
       enemies = []
-      explosion(me.p)
+      for (let i = 0; i < 4; i++) { explosion(me.p) }
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
 
