@@ -130,7 +130,7 @@ const Scene_Main = class extends Scene {
             break
 
           case "enemy":
-            enemies.push({ ...element.enemy })
+            enemies.push(element.enemy.export())
             break
         }
         this.continue_story()
@@ -212,6 +212,8 @@ const Scene_Main = class extends Scene {
       switch (this.c.current_branch) {
         case "0":
           this.is_paused = false
+          if (BGM != null) { BGM.play() }
+
           break
         case "1":
           scene_anten.next_scene = scene_title
@@ -290,7 +292,7 @@ const Scene_Main = class extends Scene {
       e.damaged = false
 
       bullets.forEach((b) => {
-        if (b.type == "friend" && b.r + e.r >= b.p.sub(e.p).length) {
+        if (b.type == "friend" && b.r + e.r >= b.p.sub(e.p).length()) {
           b.life = 0
           e.life -= player.attack;
           e.damaged = true
@@ -303,10 +305,10 @@ const Scene_Main = class extends Scene {
     bullets.forEach((b) => {
       b.f.forEach((f) => { f(b) })
 
-      if (b.type == "enemy" && !player.inv && player.dead == 0 && b.r + player.r + player.graze_r >= b.p.sub(player.p).length) {
+      if (b.type == "enemy" && !player.inv && player.dead == 0 && b.r + player.r + player.graze_r >= b.p.sub(player.p).length()) {
         player.graze++;
         Sound_Data.graze.play()
-        if (b.r + player.r >= b.p.sub(player.p).length) {
+        if (b.r + player.r >= b.p.sub(player.p).length()) {
           b.life = 0
           player.dead = 24
           player.life--;
@@ -349,16 +351,14 @@ const Scene_Main = class extends Scene {
       let bullet_colour = b.colour
 
       if (this.brighten) {
+        this.colours[b.colour] ??= chroma(b.colour).brighten(1).css()
+        bullet_colour = this.colours[b.colour]
+
         if (!["none", "ball", "laser"].includes(b.app)) {
-          IcircleC(b.p.x, b.p.y, b.r, chroma(b.colour).alpha(0.1).css(), "stroke", 12)
+          IcircleC(b.p.x, b.p.y, b.r, chroma(this.colours[b.colour]).alpha(0.1).css(), "stroke", 12)
           IcircleC(b.p.x, b.p.y, b.r, b.colour, "stroke", 3)
         }
-
-        this.colours[b.colour] ??= chroma(b.colour).brighten(2).saturate(1).css()
-
-        bullet_colour = this.colours[b.colour]
       }
-
 
       switch (b.app) {
         case "donut":

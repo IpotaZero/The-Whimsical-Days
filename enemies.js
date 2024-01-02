@@ -77,7 +77,7 @@ enemy_data.zako_0 = new Enemy(null, 16, 15)
 
     if (me.p.x < 0 || game_width < me.p.x) { me.life = 0 }
   })
-  .export()
+
 
 
 enemy_data.zako_1 = new Enemy(null, 16, 15)
@@ -97,7 +97,7 @@ enemy_data.zako_1 = new Enemy(null, 16, 15)
 
     if (me.p.x < 0 || game_width < me.p.x) { me.life = 0 }
   })
-  .export()
+
 
 enemy_data.zako_2 = new Enemy(null, 32, 100)
   .move(null, new vec(game_width / 2, game_height / 6), 0, 24, x => 1 - (x - 1) ** 2)
@@ -116,7 +116,7 @@ enemy_data.zako_2 = new Enemy(null, 32, 100)
     }
   })
   .move(new vec(game_width / 2, game_height / 6), new vec(game_width / 2, game_height + 100), 144, 288, x => x ** 2)
-  .export()
+
 
 for (let i = 0; i < 4; i++) {
   enemy_data["zako_3_" + (2 * i)] = new Enemy(new vec(game_width, game_height / 8 * i + 20), 16, 15)
@@ -135,7 +135,7 @@ for (let i = 0; i < 4; i++) {
 
       if (me.p.x < 0) { me.life = 0 }
     })
-    .export()
+
 
   enemy_data["zako_3_" + (2 * i + 1)] = new Enemy(new vec(0, game_height / 8 * (i + 0.5) + 20), 16, 15)
     .addf((me) => {
@@ -154,7 +154,7 @@ for (let i = 0; i < 4; i++) {
       if (me.p.x > game_width) { me.life = 0 }
 
     })
-    .export()
+
 }
 
 for (let i = 0; i < 8; i++) {
@@ -175,7 +175,6 @@ for (let i = 0; i < 8; i++) {
 
       if (me.p.y > game_height) { me.life = 0 }
     })
-    .export()
 
   enemy_data["zako_4_" + (i * 2 + 1)] = new Enemy(new vec(game_width / 4 * (i + 0.5), game_height), 16, 10)
     .addf((me) => {
@@ -194,7 +193,6 @@ for (let i = 0; i < 8; i++) {
 
       if (me.p.y < 0) { me.life = 0 }
     })
-    .export()
 }
 
 enemy_data.zako_5_0 = new Enemy(null, 16, 100)
@@ -213,7 +211,7 @@ enemy_data.zako_5_0 = new Enemy(null, 16, 100)
 
     }
   })
-  .export()
+
 
 enemy_data.ethanol_0 = new Enemy(new vec(0, game_height / 6), 32, 80)
   .addf((me) => {
@@ -235,7 +233,7 @@ enemy_data.ethanol_0 = new Enemy(new vec(0, game_height / 6), 32, 80)
     }
 
   })
-  .export()
+
 
 enemy_data.ethanol_1 = new Enemy(null, 32, 200)
   .move(null, new vec(game_width / 2, game_height * 5 / 6), 0, 48, x => x ** 2)
@@ -262,7 +260,7 @@ enemy_data.ethanol_1 = new Enemy(null, 32, 200)
     }
 
   })
-  .export()
+
 
 for (let i = 0; i < 2; i++) {
   enemy_data["ethanol_2_" + i] = new Enemy(null, 32, 50)
@@ -284,7 +282,7 @@ for (let i = 0; i < 2; i++) {
         Sound_Data.KO.play()
       }
     })
-    .export()
+
 }
 
 enemy_data.ethanol_2 = new Enemy(null, 32, 300)
@@ -306,7 +304,7 @@ enemy_data.ethanol_2 = new Enemy(null, 32, 300)
       Sound_Data.KO.play()
     }
   })
-  .export()
+
 
 for (let i = 0; i < 4; i++) {
   enemy_data["ethanol_3_" + i] = new Enemy(null, 16, 50)
@@ -328,7 +326,7 @@ for (let i = 0; i < 4; i++) {
       }
 
     })
-    .export()
+
 }
 
 enemy_data.ethanol_3 = new Enemy(null, 32, 300)
@@ -352,7 +350,7 @@ enemy_data.ethanol_3 = new Enemy(null, 32, 300)
       Sound_Data.hakkyou.play()
     }
   })
-  .export()
+
 
 for (let i = 0; i < 12; i++) {
   enemy_data["ethanol_4_" + i] = new Enemy(null, 32, 50)
@@ -374,7 +372,7 @@ for (let i = 0; i < 12; i++) {
       }
 
     })
-    .export()
+
 }
 
 enemy_data.ethanol_4 = new Enemy(null, 32, 200)
@@ -399,7 +397,7 @@ enemy_data.ethanol_4 = new Enemy(null, 32, 200)
       scene_main.continue_story()
     }
   })
-  .export()
+
 
 
 function remodel(bulletArr, pro) {
@@ -433,7 +431,7 @@ function remodel(bulletArr, pro) {
       //["aim",目標地点]
       case "aim":
         const p = pro[i + 1];
-        buls.forEach((b) => { c.push(...remodel([b], ["v", p.sub(b.p).nor().mlt(b.v.length)])); });
+        buls.forEach((b) => { c.push(...remodel([b], ["v", p.sub(b.p).nor().mlt(b.v.length())])); });
         i++; break;
 
       //["rot",rad]速度ベクトルの回転
@@ -484,7 +482,7 @@ function remodel(bulletArr, pro) {
         const d = pro[i + 1];
         const points = pro[i + 2];
         for (let j = 0; j < points.length - 1; j++) {
-          let l = points[j + 1].sub(points[j]).length;
+          let l = points[j + 1].sub(points[j]).length();
           for (k = 0; k * d < l; k++) {
             c.push(...remodel(buls, ["p", points[j].add(points[j + 1].sub(points[j]).mlt(k * d / l))]));
           }
@@ -505,7 +503,7 @@ function remodel(bulletArr, pro) {
           bul.push(...remodel([b], ["v", new vec(1, 0), "laser", larrow]));
           bul.push(...remodel([b], ["p", b.p.add(new vec(1, 0).nor().mlt(larrow)), "v", new vec(-1, -1), "laser", larrow / 2]));
           bul.push(...remodel([b], ["p", b.p.add(new vec(1, 0).nor().mlt(larrow)), "v", new vec(-1, 1), "laser", larrow / 2]));
-          c.push(...remodel(bul, ["v", new vec(b.v.length, 0), "rev", get_angle(new vec(1, 0), b.v), b.p]));
+          c.push(...remodel(bul, ["v", new vec(b.v.length(), 0), "rev", get_angle(new vec(1, 0), b.v), b.p]));
         });
         i++; break;
 
@@ -554,7 +552,7 @@ function remodel(bulletArr, pro) {
       case "accel":
         const accel = pro[i + 1];
         const maxSpeed = pro[i + 2];
-        c.push(...remodel(buls, ["f", (me) => { if (me.v.length <= maxSpeed) { me.v = me.v.add(accel); } }]));
+        c.push(...remodel(buls, ["f", (me) => { if (me.v.length() <= maxSpeed) { me.v = me.v.add(accel); } }]));
         i += 2; break;
 
       //["bound"]壁で跳ね返るようにする

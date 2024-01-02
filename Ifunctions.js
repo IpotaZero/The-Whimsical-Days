@@ -218,31 +218,16 @@ const vec = class {
 	constructor(_x, _y) {
 		this.x = _x;
 		this.y = _y;
-		this.length = Math.sqrt(_x ** 2 + _y ** 2);
 	}
+	length() { return Math.sqrt(this.x ** 2 + this.y ** 2); }
 
 	add(v) { return new vec(this.x + v.x, this.y + v.y); }
 	sub(v) { return new vec(this.x - v.x, this.y - v.y); }
 	mlt(m) { return new vec(this.x * m, this.y * m); }
-	nor() { if (this.length == 0) { return this; } else { return new vec(this.x / this.length, this.y / this.length); } }
+	nor() { if (this.length() == 0) { return this; } else { return new vec(this.x / this.length(), this.y / this.length()); } }
 	rot(rad) { return new vec(this.x * Math.cos(rad) - this.y * Math.sin(rad), this.x * Math.sin(rad) + this.y * Math.cos(rad)); }
 	new() { return new vec(this.x, this.y); }
 	dot(v) { return this.x * v.x + this.y * v.y; }
-}
-
-
-const vec3 = class {
-	constructor(_x, _y, _z) {
-		this.x = _x;
-		this.y = _y;
-		this.z = _z;
-		this.length = Math.sqrt(_x ** 2 + _y ** 2 + _z ** 2);
-		this.lengthH = Math.sqrt(_x ** 2 + _z ** 2);
-	}
-
-	add(v) { return new vec3(this.x + v.x, this.y + v.y, this.z + v.z); }
-	sub(v) { return new vec3(this.x - v.x, this.y - v.y, this.z - v.z); }
-	mlt(m) { return new vec3(this.x * m, this.y * m, this.z * m); }
 }
 
 //多重for文(f:関数, a:初期値, b:終了値)

@@ -67,16 +67,15 @@ const story = [
 
     //{ type: "enemy", enemy: enemy_data.zako_5_0 },
 
-    // ...translate([
-    //   { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
+    ...translate([
+      { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
+      { time: 350, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
+      { time: 422, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
+      { time: 580, type: "enemies", enemies: [enemy_data.zako_2] },
+      { time: 580, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_3_" + i] } }) },
+    ]),
 
-    //   { time: 350, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
-    //   { time: 422, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
-    //   { time: 580, type: "enemies", enemies: [enemy_data.zako_2] },
-    //   { time: 580, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_3_" + i] } }) },
-    // ]),
-
-    //{ type: "wait" },
+    { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
     { type: "text", text: "Ethanol:\nどーも", voice: Sound_Data.Ethanol },
