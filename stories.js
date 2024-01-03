@@ -54,7 +54,7 @@ Sound_Data.kohaku = new Iaudio("./sounds/select.wav")
 Sound_Data.Ethanol = new Iaudio("./sounds/select.wav")
 
 
-Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 50, 960, 1920, 0.4, 1)
+Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 50, 960, 1920, { ratio: 0.4, alpha: 1 })
 
 const story = [
   [
@@ -68,16 +68,20 @@ const story = [
     ...translate([
       { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
       { time: 265, type: "do", value: { type: "text", text: "第3話: 酩酊" } },
-      { time: 350, type: "do", value: { type: "text", text: "" } },
+      { time: 335, type: "do", value: { type: "text", text: "" } },
       { time: 350, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
       { time: 422, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
       { time: 580, type: "enemies", enemies: [enemy_data.zako_2] },
       { time: 580, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_3_" + i] } }) },
+      { time: 790, type: "enemies", enemies: Igenerator(function* () { for (let i = 0; i < 3; i++) { yield enemy_data["zako_5_" + i] } }) },
+      { time: 1065, type: "enemies", enemies: [enemy_data.zako_7] },
     ]),
 
-    { type: "wait" },
+    { type: "sleep", interval: 697 },
 
-    { type: "do", f: () => { scene_main.boss = true } },
+    // { type: "wait" },
+
+    { type: "do", f: () => { BGM.end(); enemies.forEach((e) => { e.life = 0 }); scene_main.boss = true } },
     { type: "image", image: Image_Data.Ethanol },
     { type: "text", text: "Ethanol:\nどーも", voice: Sound_Data.Ethanol },
     { type: "ok" },
@@ -103,6 +107,7 @@ const story = [
     { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
+    { type: "do", f: () => { scene_main.boss = false } },
     { type: "text", text: "Ethanol:\nぐわーッ", voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "Kohaku:\nさあ、ハイクを詠むんだな!", voice: Sound_Data.Ethanol },

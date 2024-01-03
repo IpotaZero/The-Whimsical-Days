@@ -41,7 +41,7 @@ const Scene_Main = class extends Scene {
   constructor() {
     super()
     Image_Data.background = new Iimage("./images/ba.png", 0, 0, width, height)
-    Image_Data.battle_bg = new Iimage("./images/battle_bg_repaet.png", 0, 0, 720, 720, 2, 0.1)
+    Image_Data.battle_bg = new Iimage("./images/battle_bg.png", -width + 20 + game_width / 2, -height + 20 + game_height / 2, width * 2, height * 2, { alpha: 0.1, center_x: width, center_y: height, repeat_x: 32, repeat_y: 32 })
 
     Sound_Data.graze = new Iaudio("./sounds/graze.wav")
     Sound_Data.dash = new Iaudio("./sounds/dash.wav")
@@ -347,7 +347,8 @@ const Scene_Main = class extends Scene {
     Irect(0, 0, width, height, "#121212")
 
     if (this.boss) {
-      Image_Data.battle_bg.move(-2, -2, 64, 64)
+      //Image_Data.battle_bg.move(-2, -2, 64, 64)
+      Image_Data.battle_bg.rotate += Math.PI / 360;
       Image_Data.battle_bg.draw()
     }
 

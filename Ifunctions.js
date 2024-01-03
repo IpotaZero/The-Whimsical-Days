@@ -7,8 +7,12 @@ const Iaudio = class {
 	constructor(path, type = "se") {
 		this.audio = new Audio(path)
 		this.type = type
+
+		this.ended = false
 	}
 	play() {
+		if (this.ended) { return }
+
 		if (this.type == "se") {
 			this.audio.currentTime = 0
 			this.audio.muted = Sound_Data.mute_se
@@ -26,6 +30,7 @@ const Iaudio = class {
 
 	reset() {
 		this.audio.currentTime = 0
+		this.ended = false
 	}
 
 	mute() {
@@ -39,24 +44,27 @@ const Iaudio = class {
 	fadeout(frame, time) {
 		this.audio.volume = 0.4 * (1 - frame / time)
 	}
+
+	end() {
+		this.audio.loop = false
+		this.ended = !this.ended
+	}
 }
 
 const Iimage = class {
-	constructor(path, x = 0, y = 0, width = null, height = null, ratio = 1, alpha = 1, rotate = 0, center_x = 0, center_y = 0) {
+	constructor(path, x = 0, y = 0, width, height, { ratio = 1, alpha = 1, rotate = 0, center_x = 0, center_y = 0, repeat_x = 1, repeat_y = 1 } = {}) {
 		let p = path.split(".")
 		if (p[p.length - 1] == "apng") {
 			this.type = "anime"
 			this.image = []
 			APNG.parseURL(path).then((apngObject) => { apngObject.frames.forEach((e) => { this.image.push(e.img) }) })
 			this.frame = 0
-			width ??= this.image[0].width
-			height ??= this.image[0].height
+
 		} else {
 			this.type = "not_anime"
 			this.image = new Image()
 			this.image.src = path
-			width ??= this.image.width
-			height ??= this.image.height
+
 		}
 
 		this.width = width
@@ -68,33 +76,40 @@ const Iimage = class {
 		this.center_x = center_x
 		this.center_y = center_y
 
+		this.repeat_x = repeat_x
+		this.repeat_y = repeat_y
+
 		this.x = x
 		this.y = y
 	}
 
 	draw() {
 		// コンテキストを保存する
-		// ctx.save();
+		ctx.save();
 		// // 回転の中心に原点を移動する
-		// ctx.translate(this.x, this.y);
+		ctx.translate(this.center_x * this.ratio + this.x, this.center_y * this.ratio + this.y);
 		// // canvasを回転する
-		// ctx.rotate(this.rotate);
+		ctx.rotate(this.rotate);
 
-		let a = ctx.globalAlpha
 		ctx.globalAlpha = this.alpha
 
+		const w = this.width * this.ratio / this.repeat_x
+		const h = this.height * this.ratio / this.repeat_y
+
+		ILoop([0, 0], [this.repeat_x - 1, this.repeat_y - 1], (a, b) => {
+			if (this.type == "anime") {
+				ctx.drawImage(this.image[this.frame], - this.center_x + w * a, - this.center_y + h * b, w, h)
+			} else {
+				ctx.drawImage(this.image, - this.center_x * this.ratio + w * a, - this.center_y * this.ratio + h * b, w, h)
+			}
+		})
+
 		if (this.type == "anime") {
-			// 画像サイズの半分だけずらして画像を描画する
-			ctx.drawImage(this.image[this.frame], this.x, this.y, this.width * this.ratio, this.height * this.ratio);
 			this.frame = (this.frame + 1) % (this.image.length - 1)
-		} else {
-			ctx.drawImage(this.image, this.x, this.y, this.width * this.ratio, this.height * this.ratio);
 		}
 
-		ctx.globalAlpha = a
-
 		// // コンテキストを元に戻す
-		// ctx.restore();
+		ctx.restore();
 
 	}
 
@@ -259,12 +274,7 @@ const vec = class {
 
 //多重for文(f:関数, a:初期値, b:終了値)
 function ILoop(a = null, b, f) {
-	if (a == null) {
-		a = [];
-		for (let i = 0; i < b.length; i++) {
-			a.push(0);
-		}
-	}
+	a ??= Igenerator(function* () { for (let i = 0; i < b.length; i++) { yield 0 } })
 
 	//aをコピー
 	let arr = [...a];
@@ -279,6 +289,7 @@ function ILoop(a = null, b, f) {
 			}
 		}
 	}
+
 	f(...arr);
 }
 
@@ -345,7 +356,7 @@ function Icommand(c, x, y, linespace, option) {
 }
 
 //generatorを展開する
-const Igenerator = (generator) => {
+function Igenerator(generator) {
 	let list = []
 
 	for (let i of generator()) {
