@@ -42,24 +42,31 @@ const Iaudio = class {
 }
 
 const Iimage = class {
-	constructor(path, x, y, width, height, ratio = 1, alpha = 1, rotate = 0) {
+	constructor(path, x = 0, y = 0, width = null, height = null, ratio = 1, alpha = 1, rotate = 0, center_x = 0, center_y = 0) {
 		let p = path.split(".")
 		if (p[p.length - 1] == "apng") {
 			this.type = "anime"
 			this.image = []
 			APNG.parseURL(path).then((apngObject) => { apngObject.frames.forEach((e) => { this.image.push(e.img) }) })
 			this.frame = 0
+			width ??= this.image[0].width
+			height ??= this.image[0].height
 		} else {
 			this.type = "not_anime"
 			this.image = new Image()
 			this.image.src = path
+			width ??= this.image.width
+			height ??= this.image.height
 		}
 
 		this.width = width
 		this.height = height
 		this.ratio = ratio
 		this.alpha = alpha
+
 		this.rotate = rotate
+		this.center_x = center_x
+		this.center_y = center_y
 
 		this.x = x
 		this.y = y

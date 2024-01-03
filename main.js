@@ -50,6 +50,8 @@ const Scene_Main = class extends Scene {
     Sound_Data.bullet2 = new Iaudio("./sounds/bullet.wav")
     Sound_Data.KO = new Iaudio("./sounds/KO.wav")
     Sound_Data.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
+    Sound_Data.u = new Iaudio("./sounds/u.wav")
+
     this.dash_interval = 48
 
     this.brighten = true
@@ -318,6 +320,7 @@ const Scene_Main = class extends Scene {
           b.life = 0
           player.dead = 24
           player.life--;
+          Sound_Data.u.play()
         }
       }
     })
@@ -442,7 +445,7 @@ const Scene_Main = class extends Scene {
 const Scene_Title = class extends Scene {
   constructor() {
     super()
-    this.option = { "": ["PLAY", "MANUAL", "STORY"], "0": ["Stage0"] }
+    this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"] }
 
     Sound_Data.ok = new Iaudio("./sounds/ok.wav")
     Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
@@ -475,6 +478,10 @@ const Scene_Title = class extends Scene {
       case "2":
         Ifont(24, "white", "serif")
         Itext5(this.c.frame, 20, 200, font_size, "警視庁公安部対天使科のコハクは今夜も天使の気配を感じて\n夜の東京を飛翔するのであった...[X]")
+        break
+
+      case "3":
+        Itext5(this.c.frame, 20, 200, font_size, "制作: お躁式ラケッツ!\n使用素材: 効果音ラボ")
         break
     }
 
