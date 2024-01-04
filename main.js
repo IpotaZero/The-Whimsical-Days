@@ -37,6 +37,8 @@ let enemies = []
 let next_bullets = []
 let next_enemies = []
 
+let difficulty = 0
+
 const Scene_Main = class extends Scene {
   constructor() {
     super()
@@ -57,11 +59,14 @@ const Scene_Main = class extends Scene {
     this.brighten = true
 
     this.colours = {}
+
+    this.chapter_num = 0
   }
 
   start() {
     bullets = []
     enemies = []
+    enemy_vrs.p = new vec(game_width / 2, -100)
 
     this.frame = 0
     this.is_paused = false
@@ -70,7 +75,7 @@ const Scene_Main = class extends Scene {
     this.story_num = 0
     this.story_images = []
     this.story_interval = 0
-    this.chapter = story[0]
+    this.chapter = story[this.chapter_num]
     this.boss = false
 
     this.story_image = []
@@ -119,9 +124,10 @@ const Scene_Main = class extends Scene {
             break
 
           case "se":
-            element.bgm.reset()
-            element.bgm.set_volume(0.4)
-            element.bgm.play()
+            console.log(element)
+            element.se.reset()
+            element.se.set_volume(0.4)
+            element.se.play()
             break
 
           case "bgm":
@@ -420,7 +426,7 @@ const Scene_Main = class extends Scene {
     Image_Data.background.draw()
 
     Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext4(null, game_width + 40, height - 100, font_size, ["lives: ", "graze: " + player.graze])
+    Itext4(null, game_width + 40, height - 100, font_size, ["lives: ", "graze: " + player.graze, ["Easy", "Normal", "Hard", "Insanity"][difficulty]])
 
     Ifont(20, "lightgreen", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
     Itext(null, game_width + 40 + 70, height - 100, "★".repeat(player.life))
@@ -446,7 +452,17 @@ const Scene_Main = class extends Scene {
 const Scene_Title = class extends Scene {
   constructor() {
     super()
-    this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"] }
+    this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insanity"] }
+    this.function = {
+      "0": (c) => {
+        scene_main.chapter = c.current_value
+      },
+      "0.": (c) => {
+        difficulty = c.current_value
+        scene_anten.next_scene = scene_main
+        scene_manager.MoveTo(scene_anten)
+      }
+    }
 
     Sound_Data.ok = new Iaudio("./sounds/ok.wav")
     Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
@@ -466,13 +482,9 @@ const Scene_Title = class extends Scene {
     Itext(this.frame, 20, 20 + font_size, "The Whimsical Days!")
 
     Ifont(36, "white", "serif")
-    this.c = Icommand(this.c, 20, 200, font_size, this.option)
+    this.c = Icommand(this.c, 20, 200, font_size, this.option, this.function)
 
     switch (this.c.current_branch) {
-      case "00":
-        scene_anten.next_scene = scene_main
-        scene_manager.MoveTo(scene_anten)
-        break
       case "1":
         Itext5(this.c.frame, 20, 200, font_size, "・十字キーで移動\n・Shiftキーで低速\n・Aで後ろを向く\n・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵)\n・赤い点が当たり判定\n・白い円がかすり判定\n・Escでポーズ\n[X]")
         break
@@ -482,7 +494,10 @@ const Scene_Title = class extends Scene {
         break
 
       case "3":
-        Itext5(this.c.frame, 20, 200, font_size, "制作: お躁式ラケッツ!\n使用素材: 効果音ラボ")
+        Ifont(24, "white", "serif")
+        let a = "制作: お躁式ラケッツ!\n効果音: 効果音ラボ\n背景、キャラクター: "
+        Itext5(this.c.frame, 20, 200, font_size, a)
+        Ilink(this.c.frame - a.length, 20 + ctx.measureText("背景、キャラクター: ").width, 248, "https://www.craiyon.com")
         break
     }
 
@@ -555,8 +570,6 @@ const Scene_Gameover = class extends Scene {
   constructor() {
     super()
     Sound_Data.gameover = new Iaudio("./sounds/gameover.wav")
-    Sound_Data.uhm = new Iaudio("./sounds/⤵.wav")
-    Sound_Data.uhm.set_volume(0.4)
   }
   start() {
     this.frame = 0

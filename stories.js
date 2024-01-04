@@ -53,6 +53,9 @@ Sound_Data.Drunkenness = new Iaudio("sounds/Drunkenness.wav", "bgm")
 Sound_Data.kohaku = new Iaudio("./sounds/select.wav")
 Sound_Data.Ethanol = new Iaudio("./sounds/select.wav")
 
+Sound_Data.uhm = new Iaudio("./sounds/⤵.wav")
+Sound_Data.uhm.set_volume(0.4)
+
 
 Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 50, 960, 1920, { ratio: 0.4, alpha: 1 })
 
@@ -65,21 +68,19 @@ const story = [
     { type: "sleep", interval: 48 },
     { type: "text", text: "" },
 
-    ...translate([
-      { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
-      { time: 265, type: "do", value: { type: "text", text: "第3話: 酩酊" } },
-      { time: 335, type: "do", value: { type: "text", text: "" } },
-      { time: 350, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
-      { time: 422, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
-      { time: 580, type: "enemies", enemies: [enemy_data.zako_2] },
-      { time: 580, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_3_" + i] } }) },
-      { time: 790, type: "enemies", enemies: Igenerator(function* () { for (let i = 0; i < 3; i++) { yield enemy_data["zako_5_" + i] } }) },
-      { time: 1065, type: "enemies", enemies: [enemy_data.zako_7] },
-    ]),
+    // ...translate([
+    //   { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
+    //   { time: 265, type: "do", value: { type: "text", text: "第3話: 酩酊" } },
+    //   { time: 335, type: "do", value: { type: "text", text: "" } },
+    //   { time: 350, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
+    //   { time: 422, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
+    //   { time: 580, type: "enemies", enemies: [enemy_data.zako_2] },
+    //   { time: 580, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_3_" + i] } }) },
+    //   { time: 790, type: "enemies", enemies: Igenerator(function* () { for (let i = 0; i < 3; i++) { yield enemy_data["zako_5_" + i] } }) },
+    //   { time: 1065, type: "enemies", enemies: [enemy_data.zako_7] },
+    // ]),
 
-    { type: "sleep", interval: 697 },
-
-    // { type: "wait" },
+    // { type: "sleep", interval: 697 },
 
     { type: "do", f: () => { BGM.end(); enemies.forEach((e) => { e.life = 0 }); scene_main.boss = true } },
     { type: "image", image: Image_Data.Ethanol },
@@ -98,12 +99,20 @@ const story = [
     { type: "text", text: "" },
     { type: "delete_image" },
 
-    { type: "bgm", bgm: Sound_Data.Intoxicarion },
     { type: "enemy", enemy: enemy_data.ethanol_0 },
+    { type: "bgm", bgm: Sound_Data.Intoxicarion },
     { type: "wait" },
     { type: "popup", text: "Ctrl+↑!!!" },
     { type: "sleep", interval: 72 },
     { type: "popup", text: "" },
+    { type: "wait" },
+
+    { type: "image", image: Image_Data.Ethanol },
+    { type: "text", text: "Ethanol:\nうううッー!", voice: Sound_Data.Ethanol },
+    { type: "text", text: "Ethanol:\nまだッあたしはッ負けてない!", voice: Sound_Data.Ethanol },
+    { type: "text", text: "" },
+    { type: "delete_image" },
+    { type: "enemy", enemy: enemy_data.ethanol_5 },
     { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },

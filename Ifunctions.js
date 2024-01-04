@@ -1,7 +1,7 @@
 let Sound_Data = {};
 Sound_Data.text = false;
-Sound_Data.mute_bgm = false;
-Sound_Data.mute_se = false;
+Sound_Data.mute_bgm = true;
+Sound_Data.mute_se = true;
 
 const Iaudio = class {
 	constructor(path, type = "se") {
@@ -31,6 +31,7 @@ const Iaudio = class {
 	reset() {
 		this.audio.currentTime = 0
 		this.ended = false
+		if (this.type == "bgm") { this.audio.loop = true }
 	}
 
 	mute() {
@@ -123,6 +124,24 @@ const Iimage = class {
 }
 
 let Image_Data = {};
+
+
+function Ilink(frame, x, y, link) {
+	let a = ctx.measureText(link)
+
+	ctx.save()
+
+	if (x <= mouse.p.x && mouse.p.x <= x + a.width && y - font_size <= mouse.p.y && mouse.p.y <= y) {
+		ctx.fillStyle = "#8080ff"
+		Iline2("#8080ff", 1, [new vec(x, y + 2), new vec(x + a.width, y + 2)])
+		if (mouse.clicked) {
+			window.open(link);
+		}
+	}
+	Itext(frame, x, y, link)
+
+	ctx.restore()
+}
 
 //文字送り{frame, x, y, text}
 function Itext(frame, x, y, text) {
@@ -325,18 +344,26 @@ function Idice(a, b) {
 	return n;
 }
 
-function Icommand(c, x, y, linespace, option) {
-	if (option[c.current_branch] != null) {
-		Itext4(c.frame * 2, x + linespace, y, linespace, option[c.current_branch])
+function Icommand(c, x, y, linespace, option, f) {
+	let o = Iget(option, c.current_branch)
+
+	if (o != null) {
+		Itext4(c.frame * 2, x + linespace, y, linespace, o)
 		Itext(c.frame, x, y + font_size * c.current_value, "→")
 
 		if (pushed.includes("ArrowDown")) { c.current_value++; Sound_Data.select.play() }
 		if (pushed.includes("ArrowUp")) { c.current_value--; Sound_Data.select.play() }
 
-		c.current_value = (c.current_value + option[c.current_branch].length) % option[c.current_branch].length
+		//loop
+		c.current_value = (c.current_value + o.length) % o.length
 
 		if (pushed.includes("ok")) {
+			//押したときなんかなります
+			let fun = Iget(f, c.current_branch)
+			if (fun != null) { fun(c) }
+
 			c.current_branch += c.current_value
+
 			c.frame = 0
 			c.current_value = 0
 			Sound_Data.ok.play()
@@ -353,6 +380,18 @@ function Icommand(c, x, y, linespace, option) {
 	c.frame++;
 
 	return c
+}
+
+function Iget(obj, key) {
+	for (let dictKey in obj) {
+		// 正規表現を使用して部分一致を判定
+		let regex = new RegExp("^" + dictKey + "$");
+		if (key.match(regex)) {
+			return obj[dictKey]; // 部分一致するキーが見つかった場合、その値を返す
+		}
+	}
+	return undefined; // 部分一致するキーが見つからない場合は undefined を返す
+
 }
 
 //generatorを展開する
