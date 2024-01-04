@@ -461,7 +461,7 @@ enemy_data.ethanol_4 = new Enemy(null, 32, 200)
 
       if (difficulty != 3) {
         for (let i = 0; i < 4; i++) { explosion(me.p) }
-        scene_main.story_num += 6
+        scene_main.story_num += 8
       }
 
       scene_main.continue_story()
@@ -471,14 +471,20 @@ enemy_data.ethanol_4 = new Enemy(null, 32, 200)
   .export()
 
 enemy_data.ethanol_5 = {
-  p: null, r: 32, life: 200, maxlife: 200, damaged: false, angle: 0, frame: 0, f: [
+  p: new vec(0, 0), r: 32, life: 600, maxlife: 600, damaged: false, angle: 0, frame: 0, f: [
     (me) => {
       if (me.frame <= 24) {
         me.p = linear_move(me.frame, 24, null, new vec(game_width / 2, game_height / 2), x => x ** 2)
       } else {
-        me.angle += 3;
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(0, 12).rot(me.angle * Math.PI / 180), "ex", 16, me.p]))
-        Sound_Data.bullet1.play()
+        if (me.frame % 2 == 0) {
+          me.angle += 6;
+          bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame, "p", me.p, "v", new vec(0, 6).rot(me.angle * Math.PI / 180), "ex", 9, me.p]))
+          Sound_Data.bullet1.play()
+        } else if (me.life < 300) {
+          me.angle += 6;
+          bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame - 120, "p", me.p, "v", new vec(0, 6).rot(-me.angle * Math.PI / 180), "ex", 9, me.p]))
+          Sound_Data.bullet1.play()
+        }
       }
 
       me.frame++;

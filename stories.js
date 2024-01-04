@@ -109,7 +109,9 @@ const story = [
 
     { type: "image", image: Image_Data.Ethanol },
     { type: "text", text: "Ethanol:\nうううッー!", voice: Sound_Data.Ethanol },
+    { type: "ok" },
     { type: "text", text: "Ethanol:\nまだッあたしはッ負けてない!", voice: Sound_Data.Ethanol },
+    { type: "ok" },
     { type: "text", text: "" },
     { type: "delete_image" },
     { type: "enemy", enemy: enemy_data.ethanol_5 },

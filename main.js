@@ -426,7 +426,7 @@ const Scene_Main = class extends Scene {
     Image_Data.background.draw()
 
     Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext4(null, game_width + 40, height - 100, font_size, ["lives: ", "graze: " + player.graze, ["Easy", "Normal", "Hard", "Insanity"][difficulty]])
+    Itext4(null, game_width + 40, height - 100, font_size, ["lives: ", "graze: " + player.graze, ["Easy", "Normal", "Hard", "Insane"][difficulty]])
 
     Ifont(20, "lightgreen", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
     Itext(null, game_width + 40 + 70, height - 100, "★".repeat(player.life))
@@ -452,7 +452,7 @@ const Scene_Main = class extends Scene {
 const Scene_Title = class extends Scene {
   constructor() {
     super()
-    this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insanity"] }
+    this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane"] }
     this.function = {
       "0": (c) => {
         scene_main.chapter = c.current_value
