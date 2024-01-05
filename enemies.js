@@ -225,7 +225,7 @@ for (let i = 0; i < 3; i++) {
   enemy_data["zako_5_" + i] = new Enemy(null, 16, 30)
     .move(null, new vec(game_width / 2 + 120 * (i - 1), game_height / 6), 0, 24)
     .addf((me) => {
-      if (me.frame > 24 && me.frame % [6, 6, 3, 3][difficulty] == 0) {
+      if (24 < me.frame && me.frame < 200 && me.frame % [6, 6, 3, 3][difficulty] == 0) {
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", [3, 5, 7, 9][difficulty], Math.PI / 12, me.p]))
         Sound_Data.bullet1.play()
       }
@@ -249,8 +249,8 @@ enemy_data.zako_7 = new Enemy(null, 32, 300)
     Sound_Data.bullet1.play()
 
     if (me.frame % 12 == 0) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 12, "life", 2, "p", me.p, "v", new vec(12, 0), "bound", "aim", new vec(-player.p.x, player.p.y), "nway", [1, 2, 3, 4][difficulty], Math.PI / 12, me.p]))
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 12, "life", 2, "p", me.p, "v", new vec(12, 0), "bound", "aim", new vec(game_width * 2 - player.p.x, player.p.y), "nway", [1, 2, 3, 4][difficulty], Math.PI / 12, me.p]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 12, "life", 2, "p", me.p, "v", new vec(6, 0), "bound", "aim", new vec(-player.p.x, player.p.y), "nway", [1, 2, 3, 4][difficulty], Math.PI / 12, me.p]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 12, "life", 2, "p", me.p, "v", new vec(6, 0), "bound", "aim", new vec(game_width * 2 - player.p.x, player.p.y), "nway", [1, 2, 3, 4][difficulty], Math.PI / 12, me.p]))
       Sound_Data.bullet0.play()
     }
 
@@ -259,7 +259,6 @@ enemy_data.zako_7 = new Enemy(null, 32, 300)
       bullets = []
       explosion(me.p)
       Sound_Data.KO.play()
-      scene_main.continue_story()
     }
   })
   .export()
@@ -461,7 +460,7 @@ enemy_data.ethanol_4 = new Enemy(null, 32, 200)
 
       if (difficulty != 3) {
         for (let i = 0; i < 4; i++) { explosion(me.p) }
-        scene_main.story_num += 8
+        scene_main.story_num += 9
       }
 
       scene_main.continue_story()

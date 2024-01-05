@@ -426,7 +426,7 @@ const Scene_Main = class extends Scene {
     Image_Data.background.draw()
 
     Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext4(null, game_width + 40, height - 100, font_size, ["lives: ", "graze: " + player.graze, ["Easy", "Normal", "Hard", "Insane"][difficulty]])
+    Itext4(null, game_width + 40, height - 100, font_size, ["Lives: ", "Graze: " + player.graze, "Difficulty: " + ["Easy", "Normal", "Hard", "Insane!"][difficulty]])
 
     Ifont(20, "lightgreen", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
     Itext(null, game_width + 40 + 70, height - 100, "★".repeat(player.life))
@@ -452,7 +452,7 @@ const Scene_Main = class extends Scene {
 const Scene_Title = class extends Scene {
   constructor() {
     super()
-    this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane"] }
+    this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane!"] }
     this.function = {
       "0": (c) => {
         scene_main.chapter = c.current_value
@@ -486,18 +486,16 @@ const Scene_Title = class extends Scene {
 
     switch (this.c.current_branch) {
       case "1":
-        Itext5(this.c.frame, 20, 200, font_size, "・十字キーで移動\n・Shiftキーで低速\n・Aで後ろを向く\n・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵)\n・赤い点が当たり判定\n・白い円がかすり判定\n・Escでポーズ\n[X]")
+        Itext5(this.c.frame, 20, 200, font_size, "・十字キーで移動<br>・Shiftキーで低速<br>・Aで後ろを向く<br>・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵)<br>・赤い点が当たり判定<br>・白い円がかすり判定<br>・Escでポーズ<br>[X]")
         break
       case "2":
         Ifont(24, "white", "serif")
-        Itext5(this.c.frame, 20, 200, font_size, "警視庁公安部対天使科のコハクは今夜も天使の気配を感じて\n夜の東京を飛翔するのであった...[X]")
+        Itext5(this.c.frame, 20, 200, font_size, "警視庁公安部対天使科のコハクは今夜も天使の気配を感じて<br>夜の東京を飛翔するのであった...[X]")
         break
 
       case "3":
         Ifont(24, "white", "serif")
-        let a = "制作: お躁式ラケッツ!\n効果音: 効果音ラボ\n背景、キャラクター: "
-        Itext5(this.c.frame, 20, 200, font_size, a)
-        Ilink(this.c.frame - a.length, 20 + ctx.measureText("背景、キャラクター: ").width, 248, "https://www.craiyon.com")
+        Itext6(this.c.frame * 2, 20, 200, font_size, "制作: お躁式ラケッツ! <link>https://www.nicovideo.jp/user/131397716<br>効果音: 効果音ラボ <link>https://soundeffect-lab.info<br>背景、キャラクター: Craiyon <link>https://www.craiyon.com<br>[X]")
         break
     }
 

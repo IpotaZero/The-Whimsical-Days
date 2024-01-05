@@ -1,7 +1,7 @@
 let Sound_Data = {};
 Sound_Data.text = false;
-Sound_Data.mute_bgm = true;
-Sound_Data.mute_se = true;
+Sound_Data.mute_bgm = false;
+Sound_Data.mute_se = false;
 
 const Iaudio = class {
 	constructor(path, type = "se") {
@@ -187,8 +187,32 @@ function Itext4(frame, x, y, line_space, textArr) {
 }
 
 function Itext5(frame, x, y, line_space, text) {
-	let textArr = text.split("\n");
+	let textArr = text.split("<br>");
 	Itext4(frame, x, y, line_space, textArr);
+}
+
+//linkの埋め込みができます
+function Itext6(frame, x, y, line_space, text) {
+
+	Itext5(frame, x, y, line_space, text.replaceAll("<link>", ""))
+
+	let H = 0
+
+	let text_list = text.split("<br>")
+	for (let h = 0; h < text_list.length; h++) {
+		let I = ""
+		let t = text_list[h]
+		let link = t.split("<link>")
+		for (let i = 0; i < link.length; i++) {
+			let l = link[i]
+			if (i % 2 == 1) {
+				Ilink(frame - H - I.length, x + ctx.measureText(I).width, y + h * line_space, l)
+			}
+			I += l
+		}
+
+		H += t.replaceAll("<link>", "").length
+	}
 }
 
 function Icircle(x, y, r, c, id = "fill", size = 2) {
