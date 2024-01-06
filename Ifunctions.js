@@ -1,24 +1,147 @@
-let SoundData = {};
-SoundData.text = false;
-SoundData.muteBGM = true;
-SoundData.muteSE = false;
+let Sound_Data = {};
+Sound_Data.text = false;
+Sound_Data.mute_bgm = false;
+Sound_Data.mute_se = false;
 
-function sound_play(sound, mode = "as se") {
-	switch (mode) {
-		case "as se":
-			sound.currentTime = 0;
-			sound.muted = SoundData.muteSE
-			break;
-		case "as bgm":
-			sound.loop = true;
-			sound.muted = SoundData.muteBGM;
-			break;
+const Iaudio = class {
+	constructor(path, type = "se") {
+		this.audio = new Audio(path)
+		this.type = type
+
+		this.ended = false
+	}
+	play() {
+		if (this.ended) { return }
+
+		if (this.type == "se") {
+			this.audio.currentTime = 0
+			this.audio.muted = Sound_Data.mute_se
+		} else if (this.type == "bgm") {
+			this.audio.loop = true
+			this.audio.muted = Sound_Data.mute_bgm
+		}
+
+		this.audio.play()
 	}
 
-	sound.play();
+	pause() {
+		this.audio.pause()
+	}
+
+	reset() {
+		this.audio.currentTime = 0
+		this.ended = false
+		if (this.type == "bgm") { this.audio.loop = true }
+	}
+
+	mute() {
+		this.audio.muted = !this.audio.muted
+	}
+
+	set_volume(v) {
+		this.audio.volume = v
+	}
+
+	fadeout(frame, time) {
+		this.audio.volume = 0.4 * (1 - frame / time)
+	}
+
+	end() {
+		this.audio.loop = false
+		this.ended = !this.ended
+	}
 }
 
-let ImgData = {};
+const Iimage = class {
+	constructor(path, x = 0, y = 0, width, height, { ratio = 1, alpha = 1, rotate = 0, center_x = 0, center_y = 0, repeat_x = 1, repeat_y = 1 } = {}) {
+		let p = path.split(".")
+		if (p[p.length - 1] == "apng") {
+			this.type = "anime"
+			this.image = []
+			APNG.parseURL(path).then((apngObject) => { apngObject.frames.forEach((e) => { this.image.push(e.img) }) })
+			this.frame = 0
+
+		} else {
+			this.type = "not_anime"
+			this.image = new Image()
+			this.image.src = path
+
+		}
+
+		this.width = width
+		this.height = height
+		this.ratio = ratio
+		this.alpha = alpha
+
+		this.rotate = rotate
+		this.center_x = center_x
+		this.center_y = center_y
+
+		this.repeat_x = repeat_x
+		this.repeat_y = repeat_y
+
+		this.x = x
+		this.y = y
+	}
+
+	draw() {
+		// コンテキストを保存する
+		ctx.save();
+		// // 回転の中心に原点を移動する
+		ctx.translate(this.center_x * this.ratio + this.x, this.center_y * this.ratio + this.y);
+		// // canvasを回転する
+		ctx.rotate(this.rotate);
+
+		ctx.globalAlpha = this.alpha
+
+		const w = this.width * this.ratio / this.repeat_x
+		const h = this.height * this.ratio / this.repeat_y
+
+		ILoop([0, 0], [this.repeat_x - 1, this.repeat_y - 1], (a, b) => {
+			if (this.type == "anime") {
+				ctx.drawImage(this.image[this.frame], - this.center_x + w * a, - this.center_y + h * b, w, h)
+			} else {
+				ctx.drawImage(this.image, - this.center_x * this.ratio + w * a, - this.center_y * this.ratio + h * b, w, h)
+			}
+		})
+
+		if (this.type == "anime") {
+			this.frame = (this.frame + 1) % (this.image.length - 1)
+		}
+
+		// // コンテキストを元に戻す
+		ctx.restore();
+
+	}
+
+	move(x, y, loop_x, loop_y) {
+		this.x += x
+		this.y += y
+
+		this.x %= (loop_x - this.ratio - 1)
+		this.y %= (loop_y - this.ratio - 1)
+	}
+}
+
+let Image_Data = {};
+
+
+function Ilink(frame, x, y, link) {
+	let a = ctx.measureText(link)
+
+	ctx.save()
+
+	if (x <= mouse.p.x && mouse.p.x <= x + a.width && y - font_size <= mouse.p.y && mouse.p.y <= y) {
+		ctx.fillStyle = "#8080ff"
+		Iline2("#8080ff", 1, [new vec(x, y + 2), new vec(x + a.width, y + 2)])
+		if (mouse.clicked) {
+			window.open(link);
+		}
+	}
+	Itext(frame, x, y, link)
+
+	ctx.restore()
+}
 
 //文字送り{frame, x, y, text}
 function Itext(frame, x, y, text) {
@@ -31,7 +154,7 @@ function Itext(frame, x, y, text) {
 			for (let i = 0; i < frame; i++) {
 				t = t + text.charAt(i);
 			}
-			if (SoundData.text) { sound_play(SoundData.textSending); }
+			if (Sound_Data.text) { Sound_Data.text_sending.play(); }
 		} else {
 			t = text;
 		}
@@ -64,8 +187,32 @@ function Itext4(frame, x, y, line_space, textArr) {
 }
 
 function Itext5(frame, x, y, line_space, text) {
-	let textArr = text.split("\n");
+	let textArr = text.split("<br>");
 	Itext4(frame, x, y, line_space, textArr);
+}
+
+//linkの埋め込みができます
+function Itext6(frame, x, y, line_space, text) {
+
+	Itext5(frame, x, y, line_space, text.replaceAll("<link>", ""))
+
+	let H = 0
+
+	let text_list = text.split("<br>")
+	for (let h = 0; h < text_list.length; h++) {
+		let I = ""
+		let t = text_list[h]
+		let link = t.split("<link>")
+		for (let i = 0; i < link.length; i++) {
+			let l = link[i]
+			if (i % 2 == 1) {
+				Ilink(frame - H - I.length, x + ctx.measureText(I).width, y + h * line_space, l)
+			}
+			I += l
+		}
+
+		H += t.replaceAll("<link>", "").length
+	}
 }
 
 function Icircle(x, y, r, c, id = "fill", size = 2) {
@@ -133,6 +280,7 @@ function Iline(colour, size, arr) {
 	ctx.stroke();
 }
 
+//座標をベクトルで指定する
 function Iline2(colour, size, points) {
 	ctx.strokeStyle = colour;
 	ctx.lineWidth = size;
@@ -155,41 +303,21 @@ const vec = class {
 	constructor(_x, _y) {
 		this.x = _x;
 		this.y = _y;
-		this.length = Math.sqrt(_x ** 2 + _y ** 2);
 	}
+	length() { return Math.sqrt(this.x ** 2 + this.y ** 2); }
 
 	add(v) { return new vec(this.x + v.x, this.y + v.y); }
 	sub(v) { return new vec(this.x - v.x, this.y - v.y); }
 	mlt(m) { return new vec(this.x * m, this.y * m); }
-	nor() { if (this.length == 0) { return this; } else { return new vec(this.x / this.length, this.y / this.length); } }
+	nor() { if (this.length() == 0) { return this; } else { return new vec(this.x / this.length(), this.y / this.length()); } }
 	rot(rad) { return new vec(this.x * Math.cos(rad) - this.y * Math.sin(rad), this.x * Math.sin(rad) + this.y * Math.cos(rad)); }
 	new() { return new vec(this.x, this.y); }
 	dot(v) { return this.x * v.x + this.y * v.y; }
 }
 
-
-const vec3 = class {
-	constructor(_x, _y, _z) {
-		this.x = _x;
-		this.y = _y;
-		this.z = _z;
-		this.length = Math.sqrt(_x ** 2 + _y ** 2 + _z ** 2);
-		this.lengthH = Math.sqrt(_x ** 2 + _z ** 2);
-	}
-
-	add(v) { return new vec3(this.x + v.x, this.y + v.y, this.z + v.z); }
-	sub(v) { return new vec3(this.x - v.x, this.y - v.y, this.z - v.z); }
-	mlt(m) { return new vec3(this.x * m, this.y * m, this.z * m); }
-}
-
 //多重for文(f:関数, a:初期値, b:終了値)
 function ILoop(a = null, b, f) {
-	if (a == null) {
-		a = [];
-		for (let i = 0; i < b.length; i++) {
-			a.push(0);
-		}
-	}
+	a ??= Igenerator(function* () { for (let i = 0; i < b.length; i++) { yield 0 } })
 
 	//aをコピー
 	let arr = [...a];
@@ -204,13 +332,18 @@ function ILoop(a = null, b, f) {
 			}
 		}
 	}
+
 	f(...arr);
 }
 
-let Icamera = { p: new vec(0, 0), v: new vec(0, 0) };
+let Icamera = { p: new vec(-20, -20), v: new vec(0, 0) };
 
 function IcircleC(x, y, r, c, id, size) {
 	Icircle(x - Icamera.p.x, y - Icamera.p.y, r, c, id, size);
+}
+
+function IarcC(x, y, r, start, end, c, id, size) {
+	Iarc(x - Icamera.p.x, y - Icamera.p.y, r, start, end, c, id, size);
 }
 
 function IrectC(x, y, width, height, c, id, size) {
@@ -235,34 +368,67 @@ function Idice(a, b) {
 	return n;
 }
 
-function Icommand(c, x, y, linespace, option) {
-	if (option[c.current_branch] != null) {
-		Itext4(c.frame * 2, x + linespace, y, linespace, option[c.current_branch])
-		Itext(c.frame, x, y + font_size * c.current_value, "→")
+function Icommand(c, x, y, line_space, option, f, loop) {
+	let o = Iget(option, c.current_branch)
 
-		if (pushed.includes("ArrowDown")) { c.current_value++; sound_play(SoundData.select) }
-		if (pushed.includes("ArrowUp")) { c.current_value--; sound_play(SoundData.select) }
+	if (o != null) {
+		Itext4(c.frame * 2, x + line_space, y, line_space, o)
+		Itext(c.frame, x, y + line_space * c.current_value, "→")
 
-		c.current_value = (c.current_value + option[c.current_branch].length) % option[c.current_branch].length
+		if (pushed.includes("ArrowDown")) { c.current_value++; Sound_Data.select.play() }
+		if (pushed.includes("ArrowUp")) { c.current_value--; Sound_Data.select.play() }
+		c.current_value = (c.current_value + o.length) % o.length		//loop
 
 		if (pushed.includes("ok")) {
+			//押したときなんかなります
+			let fun = Iget(f, c.current_branch)
+			if (fun != null) { fun(c) }
+
 			c.current_branch += c.current_value
 			c.frame = 0
 			c.current_value = 0
-			sound_play(SoundData.ok)
+			Sound_Data.ok.play()
 		}
 	}
+
+	//ずっとなんかなります
+	let l = Iget(loop, c.current_branch)
+	if (l != null) { l(c) }
 
 	if (pushed.includes("cancel") && c.current_branch != "") {
 		c.current_value = Number(c.current_branch.charAt(c.current_branch.length - 1))
 		c.current_branch = c.current_branch.slice(0, -1)
 		c.frame = 0
-		sound_play(SoundData.cancel)
+		Sound_Data.cancel.play()
 	}
 
 	c.frame++;
 
 	return c
+}
+
+//.は後に処理される感じがする
+function Iget(obj, key) {
+	for (let dictKey in obj) {
+		// 正規表現を使用して部分一致を判定
+		let regex = new RegExp("^" + dictKey + "$");
+		if (key.match(regex)) {
+			return obj[dictKey]; // 部分一致するキーが見つかった場合、その値を返す
+		}
+	}
+	return undefined; // 部分一致するキーが見つからない場合は undefined を返す
+
+}
+
+//generatorを展開する
+function Igenerator(generator) {
+	let list = []
+
+	for (let i of generator()) {
+		list.push(i)
+	}
+
+	return list
 }
 
 console.log("Ifunctions.js_loaded");
