@@ -61,6 +61,8 @@ const Scene_Main = class extends Scene {
     this.colours = {}
 
     this.chapter_num = 0
+
+    this.mouse_mode = false
   }
 
   start() {
@@ -273,6 +275,10 @@ const Scene_Main = class extends Scene {
     player.v = player.v.nor()
     player.p = player.v.mlt(player.speed).add(player.p)
 
+    if (this.mouse_mode) {
+      player.p = mouse.p.add(new vec(-20, -20))
+    }
+
     if (player.p.x < 0) { player.p.x = 0 }
     if (player.p.x > game_width) { player.p.x = game_width }
     if (player.p.y < 0) { player.p.y = 0 }
@@ -281,6 +287,8 @@ const Scene_Main = class extends Scene {
     if (pushed.includes("KeyA")) {
       player.direction = 1 - player.direction
     }
+
+
   }
 
   danmaku() {
@@ -453,6 +461,7 @@ const Scene_Title = class extends Scene {
   constructor() {
     super()
     this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane!"] }
+
     this.function = {
       "0": (c) => {
         scene_main.chapter = c.current_value
@@ -461,6 +470,20 @@ const Scene_Title = class extends Scene {
         difficulty = c.current_value
         scene_anten.next_scene = scene_main
         scene_manager.MoveTo(scene_anten)
+      }
+    }
+
+    this.loopf = {
+      "1": (c) => {
+        Itext5(c.frame, 20, 200, font_size, "・十字キーで移動<br>・Shiftキーで低速<br>・Aで後ろを向く<br>・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵)<br>・赤い点が当たり判定<br>・白い円がかすり判定<br>・Escでポーズ<br>[X]")
+      },
+      "2": (c) => {
+        Ifont(24, "white", "serif")
+        Itext5(c.frame, 20, 200, font_size, "警視庁公安部対天使科のコハクは今夜も天使の気配を感じて<br>夜の東京を飛翔するのであった...[X]")
+      },
+      "3": (c) => {
+        Ifont(24, "white", "serif")
+        Itext6(c.frame * 2, 20, 200, font_size, "制作: お躁式ラケッツ! <link>https://www.nicovideo.jp/user/131397716<br>効果音: 効果音ラボ <link>https://soundeffect-lab.info<br>背景、キャラクター: Craiyon <link>https://www.craiyon.com<br>[X]")
       }
     }
 
@@ -482,22 +505,7 @@ const Scene_Title = class extends Scene {
     Itext(this.frame, 20, 20 + font_size, "The Whimsical Days!")
 
     Ifont(36, "white", "serif")
-    this.c = Icommand(this.c, 20, 200, font_size, this.option, this.function)
-
-    switch (this.c.current_branch) {
-      case "1":
-        Itext5(this.c.frame, 20, 200, font_size, "・十字キーで移動<br>・Shiftキーで低速<br>・Aで後ろを向く<br>・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵)<br>・赤い点が当たり判定<br>・白い円がかすり判定<br>・Escでポーズ<br>[X]")
-        break
-      case "2":
-        Ifont(24, "white", "serif")
-        Itext5(this.c.frame, 20, 200, font_size, "警視庁公安部対天使科のコハクは今夜も天使の気配を感じて<br>夜の東京を飛翔するのであった...[X]")
-        break
-
-      case "3":
-        Ifont(24, "white", "serif")
-        Itext6(this.c.frame * 2, 20, 200, font_size, "制作: お躁式ラケッツ! <link>https://www.nicovideo.jp/user/131397716<br>効果音: 効果音ラボ <link>https://soundeffect-lab.info<br>背景、キャラクター: Craiyon <link>https://www.craiyon.com<br>[X]")
-        break
-    }
+    this.c = Icommand(this.c, 20, 200, font_size, this.option, this.function, this.loopf)
 
     this.frame++;
   }
@@ -514,7 +522,7 @@ const Scene_preTitle = class extends Scene {
 
   end() {
     //bodyにボタンを追加
-    const buttons = { "brighten": "Brighten:ON", "mute_bgm": "Mute_bgm", "mute_se": "Mute_se" };
+    const buttons = { "brighten": "Brighten:ON", "control_mode": "Control_mode:key", "mute_bgm": "Mute_bgm", "mute_se": "Mute_se" };
     const keys = Object.keys(buttons)
     $(function () {
       for (let key of keys) {
@@ -625,6 +633,11 @@ const button = (id) => {
     case "brighten":
       scene_main.brighten = !scene_main.brighten
       $("#brighten").val("Brighten:" + (scene_main.brighten ? "ON" : "OFF"))
+      break
+
+    case "control_mode":
+      scene_main.mouse_mode = !scene_main.mouse_mode
+      $("#control_mode").val("Control_mode:" + (scene_main.mouse_mode ? "mouse" : "key"))
       break
     case "mute_bgm":
       Sound_Data.mute_bgm = !Sound_Data.mute_bgm

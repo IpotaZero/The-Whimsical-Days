@@ -368,18 +368,16 @@ function Idice(a, b) {
 	return n;
 }
 
-function Icommand(c, x, y, linespace, option, f) {
+function Icommand(c, x, y, line_space, option, f, loop) {
 	let o = Iget(option, c.current_branch)
 
 	if (o != null) {
-		Itext4(c.frame * 2, x + linespace, y, linespace, o)
-		Itext(c.frame, x, y + font_size * c.current_value, "→")
+		Itext4(c.frame * 2, x + line_space, y, line_space, o)
+		Itext(c.frame, x, y + line_space * c.current_value, "→")
 
 		if (pushed.includes("ArrowDown")) { c.current_value++; Sound_Data.select.play() }
 		if (pushed.includes("ArrowUp")) { c.current_value--; Sound_Data.select.play() }
-
-		//loop
-		c.current_value = (c.current_value + o.length) % o.length
+		c.current_value = (c.current_value + o.length) % o.length		//loop
 
 		if (pushed.includes("ok")) {
 			//押したときなんかなります
@@ -387,12 +385,15 @@ function Icommand(c, x, y, linespace, option, f) {
 			if (fun != null) { fun(c) }
 
 			c.current_branch += c.current_value
-
 			c.frame = 0
 			c.current_value = 0
 			Sound_Data.ok.play()
 		}
 	}
+
+	//ずっとなんかなります
+	let l = Iget(loop, c.current_branch)
+	if (l != null) { l(c) }
 
 	if (pushed.includes("cancel") && c.current_branch != "") {
 		c.current_value = Number(c.current_branch.charAt(c.current_branch.length - 1))
@@ -406,6 +407,7 @@ function Icommand(c, x, y, linespace, option, f) {
 	return c
 }
 
+//.は後に処理される感じがする
 function Iget(obj, key) {
 	for (let dictKey in obj) {
 		// 正規表現を使用して部分一致を判定
