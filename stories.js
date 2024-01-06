@@ -59,9 +59,10 @@ Sound_Data.uhm.set_volume(0.4)
 
 Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 50, 960, 1920, { ratio: 0.4, alpha: 1 })
 
+Ifont(24)
 const story = [
   [
-    { type: "text", text: "Kohaku:<br>くんくん...<br>こっちからプログラムの気配がする<br>な...", voice: Sound_Data.kohaku },
+    { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>くんくん...<br>こっちからプログラムの気配がするな..."), voice: Sound_Data.kohaku },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "bgm", bgm: Sound_Data.Drunkenness },
@@ -80,24 +81,28 @@ const story = [
       { time: 1065, type: "enemies", enemies: [enemy_data.zako_7] },
     ]),
 
-    { type: "sleep", interval: 697 },
+    { type: "sleep", interval: 695 },
 
     { type: "do", f: () => { BGM.end(); enemies.forEach((e) => { e.life = 0 }); scene_main.boss = true; scene_main.story_frame = 0 } },
+    { type: "enemy", enemy: enemy_data.ethanol_m1 },
+    { type: "sleep", interval: 48 },
     { type: "image", image: Image_Data.Ethanol },
-    { type: "text", text: "Ethanol:<br>追いかけてくるなよー", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>追いかけてくるなよー"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Kohaku:<br>こっちも仕事なもんでね", voice: Sound_Data.kohaku },
+    { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>こっちも仕事なもんでね"), voice: Sound_Data.kohaku },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>うーん", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>うーん"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>別に戦わなくても<br>いいんだけどね<br>", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>別に戦わなくてもいいんだけどね"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>君があたしを倒すつもりなら、<br>", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>君があたしを倒すつもりなら<br>"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>受けて立とうじゃないか!", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>受けて立とうじゃないか!<br>"), voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "delete_image" },
+    { type: "do", f: () => { enemies = [] } },
+
 
     { type: "enemy", enemy: enemy_data.ethanol_0 },
     { type: "bgm", bgm: Sound_Data.Intoxicarion },
@@ -108,9 +113,9 @@ const story = [
     { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
-    { type: "text", text: "Ethanol:<br>うううッー!", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>うううッー!"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>まだッあたしはッ負けてない!", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>まだッあたしはッ<br>負けてない!"), voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "delete_image" },
@@ -119,11 +124,11 @@ const story = [
 
     { type: "image", image: Image_Data.Ethanol },
     { type: "do", f: () => { scene_main.boss = false } },
-    { type: "text", text: "Ethanol:<br>ぐわーッ", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>ぐわーッ"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Kohaku:<br>さあ、ハイクを詠むんだな!", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>さあ、ハイクを詠むんだな!"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>苦しくて、 投げ出したいのは<br>きっとアセトアルデヒド", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>苦しくて、 投げ出したいのはきっとアセトアルデヒド"), voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "end" }

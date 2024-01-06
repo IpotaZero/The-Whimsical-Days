@@ -125,6 +125,8 @@ const Iimage = class {
 
 let Image_Data = {};
 
+const gcd = (x, y) => x % y ? gcd(y, x % y) : y
+const lcm = (x, y) => x * y / gcd(x, y)
 
 function Ilink(frame, x, y, link) {
 	let a = ctx.measureText(link)
@@ -215,7 +217,27 @@ function Itext6(frame, x, y, line_space, text) {
 	}
 }
 
-function Icircle(x, y, r, c, id = "fill", size = 2) {
+//文字の表示をいい感じに
+function Iadjust(max_width, text) {
+	const lines = text.split("<br>");
+
+	for (let h = 0; h < lines.length; h++) {
+		let line = lines[h];
+		for (let i = 0; i < line.length; i++) {
+			let substring = line.slice(0, i);
+			if (ctx.measureText(substring).width > max_width) {
+				lines[h] = substring + "<br>" + line.slice(i);
+				break;
+			}
+		}
+	}
+
+	const adjustedText = lines.join("<br>");
+
+	return adjustedText
+}
+
+function Icircle(x, y, r, c, id = "fill", width = 2) {
 	ctx.beginPath();
 	ctx.arc(x, y, r, 0, 2 * Math.PI);
 
@@ -226,13 +248,13 @@ function Icircle(x, y, r, c, id = "fill", size = 2) {
 			break;
 		case "stroke":
 			ctx.strokeStyle = c;
-			ctx.lineWidth = size;
+			ctx.lineWidth = width;
 			ctx.stroke();
 			break;
 	}
 }
 
-function Iarc(x, y, r, start, end, c, id = "fill", size = 2) {
+function Iarc(x, y, r, start, end, c, id = "fill", width = 2) {
 	ctx.beginPath();
 	ctx.arc(x, y, r, start, end);
 
@@ -243,10 +265,36 @@ function Iarc(x, y, r, start, end, c, id = "fill", size = 2) {
 			break;
 		case "stroke":
 			ctx.strokeStyle = c;
-			ctx.lineWidth = size;
+			ctx.lineWidth = width;
 			ctx.stroke();
 			break;
 	}
+}
+
+function Ipolygon(m, n, x, y, r, c, theta = 0, id = "fill", width = 2) {
+	ctx.beginPath()
+	const g = gcd(m, n)
+	m /= g
+	n /= g
+
+	const first = new vec(x, y).add(new vec(0, -r).rot(theta))
+	ctx.moveTo(first.x, first.y)
+
+	const angle = 2 * Math.PI * n / m
+	for (let i = 1; i <= m; i++) {
+		const to = new vec(x, y).add(new vec(0, -r).rot(theta + angle * i))
+		ctx.lineTo(to.x, to.y)
+	}
+
+	if (id == "fill") {
+		ctx.fillStyle = c
+		ctx.fill()
+	} else {
+		ctx.strokeStyle = c
+		ctx.lineWidth = width
+		ctx.stroke()
+	}
+
 }
 
 //座標、幅、高さ、色、ID,太さ
@@ -344,6 +392,10 @@ function IcircleC(x, y, r, c, id, size) {
 
 function IarcC(x, y, r, start, end, c, id, size) {
 	Iarc(x - Icamera.p.x, y - Icamera.p.y, r, start, end, c, id, size);
+}
+
+function IpolygonC(m, n, x, y, r, c, theta, id, width) {
+	Ipolygon(m, n, x - Icamera.p.x, y - Icamera.p.y, r, c, theta, id, width)
 }
 
 function IrectC(x, y, width, height, c, id, size) {

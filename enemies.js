@@ -1,10 +1,12 @@
 const Enemy = class {
-  constructor(p, r, life) {
+  constructor(p, r, life, { is_boss = false, is_inv = false } = {}) {
     this.pre_p = p
     this.p = p ?? new vec(game_width / 2, -100)
     this.r = r
     this.life = life
     this.f = []
+    this.is_boss = is_boss
+    this.is_inv = is_inv
 
   }
 
@@ -31,7 +33,7 @@ const Enemy = class {
   }
 
   export() {
-    return { p: this.p, r: this.r, life: this.life, maxlife: this.life, damaged: false, frame: 0, f: this.f }
+    return { p: this.p, r: this.r, life: this.life, maxlife: this.life, damaged: false, is_boss: this.is_boss, is_inv: this.is_inv, frame: 0, f: this.f }
   }
 }
 
@@ -263,16 +265,22 @@ enemy_data.zako_7 = new Enemy(null, 32, 300)
   })
   .export()
 
+enemy_data.ethanol_m1 = new Enemy(null, 56, 100, { is_boss: true, is_inv: true })
+  .move(new vec(game_width + 100, -100), new vec(game_width / 2, game_height / 6), 0, 48, x => 1 - (x - 1) ** 2)
+  .addf((me) => {
+    me.frame++
+  })
+  .export()
 
-enemy_data.ethanol_0 = new Enemy(new vec(game_width, game_height / 6), 32, 80)
+enemy_data.ethanol_0 = new Enemy(new vec(game_width, game_height / 6), 56, 120, { is_boss: true })
   .addf((me) => {
     me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 120) + game_width / 2
 
     if (me.frame % 6 == 0) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "ex", [16, 18, 24, 28][difficulty], me.p, "rot", Math.PI / [16, 18, 24, 28][difficulty]]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "ex", [12, 18, 24, 28][difficulty], me.p, "rot", Math.PI / [12, 18, 24, 28][difficulty]]))
       Sound_Data.bullet0.play()
     } else if (me.frame % 6 == 3) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "ex", [16, 18, 24, 28][difficulty], me.p]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "ex", [12, 18, 24, 28][difficulty], me.p]))
       Sound_Data.bullet0.play()
     }
 
@@ -289,7 +297,7 @@ enemy_data.ethanol_0 = new Enemy(new vec(game_width, game_height / 6), 32, 80)
   .export()
 
 
-enemy_data.ethanol_1 = new Enemy(null, 32, 200)
+enemy_data.ethanol_1 = new Enemy(null, 56, 300, { is_boss: true })
   .move(null, new vec(game_width / 2, game_height * 5 / 6), 0, 48, x => x ** 2)
   .addf((me) => {
     if (me.frame < 48) {
@@ -300,7 +308,7 @@ enemy_data.ethanol_1 = new Enemy(null, 32, 200)
       me.p.x = game_width / 3 * Math.sin((me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
 
       if (me.frame % [24, 16, 8, 4][difficulty] == 0) {
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 18, "p", me.p, "v", new vec(0, -6), "aim", player.p, "nway", 7, Math.PI / 24, me.p]))
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 15, "p", me.p, "v", new vec(0, -6), "aim", player.p, "nway", 7, Math.PI / 24, me.p]))
         Sound_Data.bullet1.play()
       }
     }
@@ -317,9 +325,9 @@ enemy_data.ethanol_1 = new Enemy(null, 32, 200)
 
 
 for (let i = 0; i < 2; i++) {
-  enemy_data["ethanol_2_" + i] = new Enemy(null, 32, 50)
+  enemy_data["ethanol_2_" + i] = new Enemy(null, 56, 80)
     .move(null, new vec(game_width / 2, game_height / 2), 0, 48, x => x ** 2)
-    .scale(32, 16, 0, 48, x => x)
+    .scale(56, 32, 0, 48, x => x)
     .addf((me) => {
       if (me.frame > 48) {
         me.p.x = game_width / 3 * Math.sin((2 * i - 1) * (me.frame - 48) * 2 * Math.PI / [240, 120, 90, 60][difficulty]) + game_width / 2
@@ -341,7 +349,7 @@ for (let i = 0; i < 2; i++) {
 
 }
 
-enemy_data.ethanol_2 = new Enemy(null, 32, 300)
+enemy_data.ethanol_2 = new Enemy(null, 56, 300, { is_boss: true })
   .move(null, new vec(game_width / 2, game_height / 2), 0, 48, x => x ** 2)
   .addf((me) => {
     if (me.frame > 48 && me.frame % 12 == 0) {
@@ -364,9 +372,9 @@ enemy_data.ethanol_2 = new Enemy(null, 32, 300)
 
 
 for (let i = 0; i < 4; i++) {
-  enemy_data["ethanol_3_" + i] = new Enemy(null, 16, 50)
+  enemy_data["ethanol_3_" + i] = new Enemy(null, 32, 80)
     .move(new vec(game_width / 2, game_height / 2), new vec(game_width / 2, game_height / 2).add(new vec(120, 0).rot(Math.PI / 2 * i)), 0, 24, x => x ** 2)
-    .scale(32, 16, 0, 24, x => x)
+    .scale(56, 32, 0, 24, x => x)
     .move(new vec(game_width / 2, game_height / 2).add(new vec(120, 0).rot(Math.PI / 2 * i)), new vec(game_width / 2, game_height / 5).add(new vec(120, 0).rot(Math.PI / 2 * i)), 25, 48, x => x ** 2)
     .addf((me) => {
 
@@ -388,7 +396,7 @@ for (let i = 0; i < 4; i++) {
 
 }
 
-enemy_data.ethanol_3 = new Enemy(null, 32, 200)
+enemy_data.ethanol_3 = new Enemy(null, 56, 300, { is_boss: true })
   .move(null, new vec(game_width / 2, game_height / 2), 0, 24, x => x ** 2)
   .move(new vec(game_width / 2, game_height / 2), new vec(game_width / 2, game_height / 5), 25, 48, x => x ** 2)
   .addf((me) => {
@@ -413,9 +421,9 @@ enemy_data.ethanol_3 = new Enemy(null, 32, 200)
 
 
 for (let i = 0; i < 12; i++) {
-  enemy_data["ethanol_4_" + i] = new Enemy(null, 32, 50)
+  enemy_data["ethanol_4_" + i] = new Enemy(null, 56, 80)
     .move(null, new vec(game_width / 2, game_height / 2).add(new vec(90, 0).rot(2 * Math.PI * i / 12)), 0, 60, x => x ** 2)
-    .scale(32, 16, 0, 60, x => x)
+    .scale(56, 32, 0, 60, x => x)
     .addf((me) => {
       if (me.frame > 60) {
         me.p.x = game_width / 2
@@ -439,7 +447,7 @@ for (let i = 0; i < 12; i++) {
 
 }
 
-enemy_data.ethanol_4 = new Enemy(null, 32, 200)
+enemy_data.ethanol_4 = new Enemy(null, 56, 300, { is_boss: true })
   .move(null, new vec(game_width / 2, game_height / 2), 0, 60, x => x ** 2)
   .addf((me) => {
     if (me.frame > 60) {
@@ -470,7 +478,7 @@ enemy_data.ethanol_4 = new Enemy(null, 32, 200)
   .export()
 
 enemy_data.ethanol_5 = {
-  p: new vec(0, 0), r: 32, life: 600, maxlife: 600, damaged: false, angle: 0, frame: 0, f: [
+  p: new vec(0, 0), r: 56, life: 900, maxlife: 900, damaged: false, angle: 0, is_boss: true, frame: 0, f: [
     (me) => {
       if (me.frame <= 24) {
         me.p = linear_move(me.frame, 24, null, new vec(game_width / 2, game_height / 2), x => x ** 2)

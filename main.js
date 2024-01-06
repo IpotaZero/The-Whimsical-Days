@@ -39,11 +39,16 @@ let next_enemies = []
 
 let difficulty = 0
 
+let lefttop = new vec(40, 500)
+let leftbottom = new vec(40, 680)
+let righttop = new vec(432, 500)
+let rightbottom = new vec(432, 680)
+
 const Scene_Main = class extends Scene {
   constructor() {
     super()
     Image_Data.background = new Iimage("./images/ba.png", 0, 0, width, height)
-    Image_Data.battle_bg = new Iimage("./images/battle_bg.png", -width + 20 + game_width / 2, -height + 20 + game_height / 2, width * 2, height * 2, { alpha: 0.1, center_x: width, center_y: height, repeat_x: 32, repeat_y: 32 })
+    Image_Data.battle_bg = new Iimage("./images/battle_bg.png", -width + 20 + game_width / 2, -height + 20 + game_height / 2, width * 2, height * 2, { alpha: 0.0, center_x: width, center_y: height, repeat_x: 32, repeat_y: 32 })
 
     Sound_Data.graze = new Iaudio("./sounds/graze.wav")
     Sound_Data.dash = new Iaudio("./sounds/dash.wav")
@@ -72,6 +77,8 @@ const Scene_Main = class extends Scene {
 
     this.frame = 0
     this.is_paused = false
+
+    this.battle_image_frame = 0
 
     this.story_frame = 0
     this.story_num = 0
@@ -176,19 +183,29 @@ const Scene_Main = class extends Scene {
         break
     }
 
+    this.story_image.forEach((i) => { i.alpha += 1 / 24; i.draw() })
+
     if (this.story_popup != "") {
       Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-      Itext5(this.story_frame, game_width + 20, game_height - 180, font_size, this.story_popup)
+      Itext5(this.story_frame, game_width + 40, game_height - 180, font_size, this.story_popup)
     }
 
     if (this.story_text != "") {
-      Irect(40, game_height - 180, game_width - 40, 180, "rgba(255,255,255,0.8)")
+      Irect(lefttop.x, lefttop.y, rightbottom.x - lefttop.x, rightbottom.y - lefttop.y, "#ffffffcc")
+
+      Iline2("#808080CC", 12, [lefttop.add(new vec(20, 40)), leftbottom.add(new vec(20, -20)), rightbottom.add(new vec(-40, -20))])
+      Iline2("#808080CC", 12, [lefttop.add(new vec(40, 20)), righttop.add(new vec(-20, 20)), rightbottom.add(new vec(-20, -40))])
+
+      Iline2("#808080CC", 6, [lefttop.add(new vec(13, 13)), lefttop.add(new vec(40, 40))])
+      Iline2("#808080CC", 6, [lefttop.add(new vec(10, 30)), lefttop.add(new vec(10, 10)), lefttop.add(new vec(30, 10))])
+
+      Iline2("#808080CC", 6, [rightbottom.add(new vec(-13, -13)), rightbottom.add(new vec(-40, -40))])
+      Iline2("#808080CC", 6, [rightbottom.add(new vec(-10, -30)), rightbottom.add(new vec(-10, -10)), rightbottom.add(new vec(-30, -10))])
 
       Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-      Itext5(this.story_frame, 45, game_height - 150, font_size, this.story_text + ok)
+      Itext5(this.story_frame, lefttop.x + 40, lefttop.y + 50, font_size, this.story_text + ok)
     }
 
-    this.story_image.forEach((i) => { i.alpha += 1 / 24; i.draw() })
     this.story_frame++;
   }
 
@@ -265,8 +282,8 @@ const Scene_Main = class extends Scene {
 
     if (player.dash > 0) {
       player.dash--;
-      bullets.push({ type: "effect", app: "none", colour: "red", life: 12, p: player.p, r: player.r, f: [(me) => { me.life--; me.colour = "rgba(255,0,0," + (me.life / 12) + ")" }] })
-      bullets.push({ type: "effect", app: "donut", colour: "white", life: 12, p: player.p, r: player.r + player.graze_r, f: [(me) => { me.life--; me.colour = "rgba(255,255,255," + (me.life / 12) + ")" }] })
+      bullets.push({ type: "effect", app: "none", colour: "red", life: 12, p: player.p, r: player.r, f: [(me) => { me.life--; me.colour = "rgba(255,0,0," + (me.life / 24) + ")" }] })
+      bullets.push({ type: "effect", app: "donut", colour: "white", life: 12, p: player.p, r: player.r + player.graze_r, f: [(me) => { me.life--; me.colour = "rgba(255,255,255," + (me.life / 24) + ")" }] })
     } else {
       player.inv = false
     }
@@ -314,7 +331,7 @@ const Scene_Main = class extends Scene {
       e.damaged = false
 
       bullets.forEach((b) => {
-        if (b.type == "friend" && b.r + e.r >= b.p.sub(e.p).length()) {
+        if (b.type == "friend" && !e.is_inv && b.r + e.r >= b.p.sub(e.p).length()) {
           b.life = 0
           e.life -= player.attack;
           e.damaged = true
@@ -362,8 +379,11 @@ const Scene_Main = class extends Scene {
 
     if (this.boss) {
       //Image_Data.battle_bg.move(-2, -2, 64, 64)
+      Image_Data.battle_bg.alpha = 0.1 * Math.min(48, this.battle_image_frame) / 48
       Image_Data.battle_bg.rotate += Math.PI / 360;
       Image_Data.battle_bg.draw()
+
+      this.battle_image_frame++
     }
 
     //player
@@ -418,6 +438,15 @@ const Scene_Main = class extends Scene {
 
       IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, "white");
       IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, "white", "stroke", 2);
+
+
+      if (e.is_boss) {
+        IpolygonC(7, 2, e.p.x, e.p.y, (e.r - 24) * 0.9, chroma(c).alpha(0.5).css(), Math.PI * e.frame / 144, "stroke", 2)
+        IpolygonC(11, 2, e.p.x, e.p.y, e.r * 0.9, chroma(c).alpha(0.5).css(), -Math.PI * e.frame / 144, "stroke", 2)
+        IcircleC(e.p.x, e.p.y, e.r - 24, c, "stroke", 2)
+      } else {
+        IpolygonC(7, 2, e.p.x, e.p.y, e.r * 0.9, chroma(c).alpha(0.5).css(), Math.PI * e.frame / 144, "stroke", 2)
+      }
 
       if (this.brighten) { IcircleC(e.p.x, e.p.y, e.r, chroma(c).alpha(0.1).css(), "stroke", 12) }
       IcircleC(e.p.x, e.p.y, e.r, c, "stroke", 2)
@@ -604,6 +633,10 @@ const Scene_Gameover = class extends Scene {
     }
 
     this.frame++;
+  }
+
+  end() {
+    Sound_Data.gameover.pause()
   }
 
 }
