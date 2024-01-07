@@ -39,10 +39,15 @@ let next_enemies = []
 
 let difficulty = 0
 
-let lefttop = new vec(40, 500)
-let leftbottom = new vec(40, 680)
-let righttop = new vec(432, 500)
-let rightbottom = new vec(432, 680)
+//message window
+const lefttop = new vec(40, 500)
+const leftbottom = new vec(40, 680)
+const righttop = new vec(432, 500)
+const rightbottom = new vec(432, 680)
+
+const dash_interval = 48
+
+const player_bullet = remodel([bullet_model], ["r", 3, "app", "none", "colour", "#ffffff80", "type", "friend"])[0]
 
 const Scene_Main = class extends Scene {
   constructor() {
@@ -59,10 +64,7 @@ const Scene_Main = class extends Scene {
     Sound_Data.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
     Sound_Data.u = new Iaudio("./sounds/u.wav")
 
-    this.dash_interval = 48
-
     this.brighten = true
-
     this.colours = {}
 
     this.chapter_num = 0
@@ -74,6 +76,9 @@ const Scene_Main = class extends Scene {
     bullets = []
     enemies = []
     enemy_vrs.p = new vec(game_width / 2, -100)
+    this.graze = 0
+    this.score = 0
+    this.socre_text = ""
 
     this.frame = 0
     this.is_paused = false
@@ -91,20 +96,24 @@ const Scene_Main = class extends Scene {
     this.story_text = ""
     this.story_popup = ""
 
-    this.s = 0
-
     this.c = { frame: 0, current_branch: "", current_value: 0 }
 
-    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, life: 8, graze: 0, attack: 1, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
+    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, life: 8, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
   }
 
   end() {
 
   }
 
+  scoring(score, text = "CRUSH!") {
+    this.score += score
+    this.socre_text = text + ": " + score
+  }
+
   continue_story() {
     this.story_num++;
     this.story_frame = 0;
+    this.story_interval = 0
   }
 
   story() {
@@ -117,6 +126,11 @@ const Scene_Main = class extends Scene {
           case "text":
             this.story_text = element.text
             if (element.voice == null) { Sound_Data.text = false } else { Sound_Data.text = true; Sound_Data.text_sending = element.voice }
+            break
+
+          case "score":
+            this.scoring((difficulty + 1) * 10 ** 5, "Bonus")
+            this.story_text = "Score: " + this.score
             break
 
           case "popup":
@@ -226,7 +240,13 @@ const Scene_Main = class extends Scene {
       this.frame = 0
     }
 
-    if (pushed.includes("KeyB")) { this.brighten = !this.brighten }
+    if (pushed.includes("KeyB")) {
+      let e = this.chapter[this.story_num]
+      do {
+        this.continue_story()
+        e = this.chapter[this.story_num]
+      } while (!["text", "do", "image"].includes(e.type))
+    }
 
     if (pushed.includes("Delete") && enemies.length > 0) {
       enemies[0].life = 0
@@ -239,7 +259,7 @@ const Scene_Main = class extends Scene {
       Itext(this.frame, game_width + 80, height / 2 + 24, "Pause")
 
       Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-      this.c = Icommand(this.c, game_width + 40, 530, font_size, { "": ["Back to Game", "Back to Title"] })
+      this.c = Icommand(this.c, game_width + 40, 450, font_size, { "": ["Back to Game", "Back to Title"] })
 
       switch (this.c.current_branch) {
         case "0":
@@ -274,7 +294,7 @@ const Scene_Main = class extends Scene {
     if (player.dash > 0) { player.speed = 60 }
 
     if (pushed.includes("ControlLeft") && player.dash_interval == 0) {
-      player.dash_interval = this.dash_interval
+      player.dash_interval = dash_interval
       player.dash = 12
       player.inv = true
       Sound_Data.dash.play()
@@ -287,24 +307,20 @@ const Scene_Main = class extends Scene {
     } else {
       player.inv = false
     }
+
     if (player.dash_interval > 0) { player.dash_interval--; }
 
     player.v = player.v.nor()
     player.p = player.v.mlt(player.speed).add(player.p)
 
-    if (this.mouse_mode) {
-      player.p = mouse.p.add(new vec(-20, -20))
-    }
+    if (this.mouse_mode) { player.p = mouse.p.add(new vec(-20, -20)) }
 
     if (player.p.x < 0) { player.p.x = 0 }
     if (player.p.x > game_width) { player.p.x = game_width }
     if (player.p.y < 0) { player.p.y = 0 }
     if (player.p.y > game_height) { player.p.y = game_height }
 
-    if (pushed.includes("KeyA")) {
-      player.direction = 1 - player.direction
-    }
-
+    if (pushed.includes("KeyA")) { player.direction = 1 - player.direction }
 
   }
 
@@ -312,41 +328,49 @@ const Scene_Main = class extends Scene {
     if (this.frame % 3 == 0) {
       if (pressed.includes("ShiftLeft")) {
         for (let i = 0; i < 5; i++) {
-          bullets.push(...remodel([bullet_model], ["r", 3, "app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
+          bullets.push(...remodel([player_bullet], ["p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
         }
       } else {
-        bullets.push(...remodel([bullet_model], ["r", 3, "app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
+        bullets.push(...remodel([player_bullet], ["p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
       }
     }
-
-    if (pushed.includes("Enter")) { console.log(bullets) }
 
     if (player.dead > 0) {
       bullets = []
       player.dead--;
     }
 
-    //敵と弾
     enemies.forEach((e) => {
       e.damaged = false
 
+      //closer, higher damage
+      const damage = 1 + Math.floor(3 * (1 - e.p.sub(player.p).length() / game_height))
+
+      //player_bullet vs enemy
       bullets.forEach((b) => {
         if (b.type == "friend" && !e.is_inv && b.r + e.r >= b.p.sub(e.p).length()) {
           b.life = 0
-          e.life -= player.attack;
+          e.life -= damage;
           e.damaged = true
+          this.scoring(100, "HIT")
         }
       })
+
+      //enemy's function
       e.f.forEach((f) => { f(e) })
     })
 
-
     bullets.forEach((b) => {
+      //bullet's function
       b.f.forEach((f) => { f(b) })
 
-      if (b.type == "enemy" && !player.inv && player.dead == 0 && b.r + player.r + player.graze_r >= b.p.sub(player.p).length()) {
-        player.graze++;
+      //enemy_bullet vs player
+      if (b.type == "enemy" && !player.inv && player.dead == 0 && b.life > 0 && b.r + player.r + player.graze_r >= b.p.sub(player.p).length()) {
+        //graze
+        this.graze++;
         Sound_Data.graze.play()
+        this.scoring(1000, "GRAZE")
+
         if (b.r + player.r >= b.p.sub(player.p).length()) {
           b.life = 0
           player.dead = 24
@@ -387,15 +411,43 @@ const Scene_Main = class extends Scene {
     }
 
     //player
-    ctx.globalAlpha = player.dead > 0 ? 0.4 : 1;
-    IcircleC(player.p.x, player.p.y, player.r, "red")
-    IarcC(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / this.dash_interval), "white", "stroke", 2)
+    const colour_player = player.dead > 0 ? "80" : "ff";
+    IcircleC(player.p.x, player.p.y, player.r, "#ff0000" + colour_player)
+    IarcC(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / dash_interval), "#ffffff" + colour_player, "stroke", 2)
     if (this.brighten) {
       IcircleC(player.p.x, player.p.y, player.r + player.graze_r, "rgba(255,255,255,0.2)", "stroke", 8)
       IcircleC(player.p.x, player.p.y, player.r, "rgba(255,0,0,0.2)", "stroke", 8)
     }
-    IarcC(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "yellow", "stroke", 2)
-    ctx.globalAlpha = 1;
+    IarcC(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "#ffff00" + colour_player, "stroke", 2)
+
+    //敵
+    enemies.forEach((e) => {
+      const colour_enemy = e.damaged ? "#ec1c24" : "#ffffff"
+
+      const colour_life_bar = e.is_inv ? "#ec1c24" : "#ffffff"
+
+      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, colour_life_bar);
+      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, colour_life_bar, "stroke", 2);
+
+      const colour_pattern = colour_enemy + "80"
+
+      if (this.brighten) {
+        IcircleC(e.p.x, e.p.y, e.r, chroma(colour_enemy).alpha(0.1).hex(), "stroke", 12)
+        if (e.is_boss) {
+          IcircleC(e.p.x, e.p.y, e.r - 24, chroma(colour_enemy).alpha(0.1).hex(), "stroke", 12)
+        }
+      }
+
+      if (e.is_boss) {
+        IpolygonC(7, 2, e.p.x, e.p.y, (e.r - 24) * 0.9, colour_pattern, Math.PI * e.frame / 144, "stroke", 2)
+        IpolygonC(11, 2, e.p.x, e.p.y, e.r * 0.9, colour_pattern, -Math.PI * e.frame / 144, "stroke", 2)
+        IcircleC(e.p.x, e.p.y, e.r - 24, colour_enemy, "stroke", 2)
+      } else {
+        IpolygonC(7, 2, e.p.x, e.p.y, e.r * 0.9, colour_pattern, Math.PI * e.frame / 144, "stroke", 2)
+      }
+
+      IcircleC(e.p.x, e.p.y, e.r, colour_enemy, "stroke", 2)
+    })
 
     let laser_count = 0
 
@@ -418,39 +470,22 @@ const Scene_Main = class extends Scene {
       }
 
       if (this.brighten) {
-        this.colours[b.colour] ??= chroma(b.colour).brighten(2).css()
+        this.colours[b.colour] ??= chroma(b.colour).brighten(2).hex()
+        const c = chroma(this.colours[b.colour])
 
         if (!["none", "ball", "laser"].includes(b.app)) {
-          IcircleC(b.p.x, b.p.y, b.r - 1, this.colours[b.colour], "stroke", 2)
-          IcircleC(b.p.x, b.p.y, b.r, chroma(b.colour).alpha(0.1).css(), "stroke", 12)
+          IcircleC(b.p.x, b.p.y, b.r - 1, c.hex(), "stroke", 2)
+          IcircleC(b.p.x, b.p.y, b.r, c.alpha(0.1 * c.alpha()).hex(), "stroke", 12)
         } else if (b.app == "laser") {
           if (laser_count % 4 == 0) {
-            IcircleC(b.p.x, b.p.y, b.r * 2, chroma(b.colour).alpha(0.1).css(), "stroke", 18)
+            IcircleC(b.p.x, b.p.y, b.r * 1.5, c.alpha(0.1 * c.alpha()).hex(), "stroke", 18)
           }
           laser_count++;
         }
       }
     })
 
-    //敵
-    enemies.forEach((e) => {
-      let c = e.damaged ? "red" : "white"
 
-      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, "white");
-      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, "white", "stroke", 2);
-
-
-      if (e.is_boss) {
-        IpolygonC(7, 2, e.p.x, e.p.y, (e.r - 24) * 0.9, chroma(c).alpha(0.5).css(), Math.PI * e.frame / 144, "stroke", 2)
-        IpolygonC(11, 2, e.p.x, e.p.y, e.r * 0.9, chroma(c).alpha(0.5).css(), -Math.PI * e.frame / 144, "stroke", 2)
-        IcircleC(e.p.x, e.p.y, e.r - 24, c, "stroke", 2)
-      } else {
-        IpolygonC(7, 2, e.p.x, e.p.y, e.r * 0.9, chroma(c).alpha(0.5).css(), Math.PI * e.frame / 144, "stroke", 2)
-      }
-
-      if (this.brighten) { IcircleC(e.p.x, e.p.y, e.r, chroma(c).alpha(0.1).css(), "stroke", 12) }
-      IcircleC(e.p.x, e.p.y, e.r, c, "stroke", 2)
-    })
 
     // let background_colour = "pink"
     // Irect(0, 0, 20, height, background_colour)
@@ -463,26 +498,19 @@ const Scene_Main = class extends Scene {
     Image_Data.background.draw()
 
     Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext4(null, game_width + 40, height - 100, font_size, ["Lives: ", "Graze: " + player.graze, "Difficulty: " + ["Easy", "Normal", "Hard", "Insane!"][difficulty]])
+    Itext4(null, game_width + 40, lefttop.y + font_size, font_size, ["Difficulty: " + ["Easy", "Normal", "Hard", "Insane!"][difficulty], "Lives: ", "Graze: " + this.graze, "Score: " + this.score])
+
+    Itext(null, game_width + 40, lefttop.y + font_size * 5, this.socre_text)
 
     Ifont(20, "lightgreen", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext(null, game_width + 40 + 70, height - 100, "★".repeat(player.life))
+    Itext(null, game_width + 40 + 70, lefttop.y + 24 * 2, "★".repeat(player.life))
 
-    if (pressed.includes("MetaLeft") && pressed.includes("ShiftLeft")) {
-      this.s = 24
-    }
-
-    if (this.s > 0) {
-      Itext(null, game_width + 40, height - 20, "おや、スクショかい？")
-      this.s--;
-    }
-
-    Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext(null, game_width + 40, 100, "" + this.story_interval)
-    Itext(null, game_width + 40, 150, "" + this.story_num)
-    Itext(null, game_width + 40, 200, this.chapter[this.story_num].type)
-    Itext(null, game_width + 40, 250, "bullets: " + bullets.length)
-    Itext(null, game_width + 40, 300, "enemies: " + enemies.length)
+    // Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+    // Itext(null, game_width + 40, 100, "" + this.story_interval)
+    // Itext(null, game_width + 40, 150, "" + this.story_num)
+    // Itext(null, game_width + 40, 200, this.chapter[this.story_num].type)
+    // Itext(null, game_width + 40, 250, "bullets: " + bullets.length)
+    // Itext(null, game_width + 40, 300, "enemies: " + enemies.length)
   }
 }
 
@@ -503,8 +531,17 @@ const Scene_Title = class extends Scene {
     }
 
     this.loopf = {
+      "0": (c) => {
+        Itext5(c.frame, 60, 400, font_size, ["vs Ethanol"][c.current_value]);
+      },
+      "0.": (c) => {
+        Itext5(c.frame, 60, 400, font_size, ["赤ちゃん向け", "操作を使いこなせたら", "隙間をすり抜けろ!", "テストプレイなんてしてないよ!"][c.current_value]);
+      },
       "1": (c) => {
-        Itext5(c.frame, 20, 200, font_size, "・十字キーで移動<br>・Shiftキーで低速<br>・Aで後ろを向く<br>・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵)<br>・赤い点が当たり判定<br>・白い円がかすり判定<br>・Escでポーズ<br>[X]")
+        Ifont(24, "white", "serif")
+        Itext5(c.frame * 2, 20, 200, font_size,
+          "・十字キーで移動<br>・Shiftキーで低速 <br>・Aで後ろを向く <br>・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵) <br>・赤い点が当たり判定 <br>・白い円がかすり判定 <br>・Escでポーズ <br>・敵に近づくほど攻撃力が上がる!(最大3倍)<br>・HPバーが赤い敵は無敵!持久力勝負だぜ!<br>・重くて動かないよ!って人は <br> BrightenをOFFしてください <br>[X]"
+        )
       },
       "2": (c) => {
         Ifont(24, "white", "serif")
@@ -519,6 +556,8 @@ const Scene_Title = class extends Scene {
     Sound_Data.ok = new Iaudio("./sounds/ok.wav")
     Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
     Sound_Data.select = new Iaudio("./sounds/select.wav")
+
+    this.mn = [3, 4]
   }
 
   start() {
@@ -533,10 +572,23 @@ const Scene_Title = class extends Scene {
     Ifont(60, "white", "serif")
     Itext(this.frame, 20, 20 + font_size, "The Whimsical Days!")
 
+    Ipolygon(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
+    //Itext(null, 480, height / 2, this.mn[0] + "/" + this.mn[1])
+
     Ifont(36, "white", "serif")
     this.c = Icommand(this.c, 20, 200, font_size, this.option, this.function, this.loopf)
 
     this.frame++;
+
+    if (this.frame % 14 == 0) {
+      let a
+      do {
+        a = [Math.floor(Math.random() * 12) + 2, Math.floor(Math.random() * 3) + 2]
+      } while (this.mn[0] / this.mn[1] == a[0] / a[1] || a[0] / a[1] < 2)
+
+      this.mn = a
+
+    }
   }
 }
 
@@ -563,20 +615,22 @@ const Scene_preTitle = class extends Scene {
   }
 
   loop() {
-    Irect(0, 0, width, height, "#121212")
+    if (this.frame <= 9) {
+      Irect(0, 0, width, height, "#121212")
 
-    Ifont(48, "white", "serif")
-    //中央ぞろえ
-    let text = "Push KeyZ"
-    let sub_text = text.slice(0, this.frame)
-    length = ctx.measureText(sub_text).width
-    Itext(this.frame, (width - length) / 2, height / 2, text)
+      Ifont(48, "white", "serif")
+      //中央ぞろえ
+      let text = "Push KeyZ"
+      let sub_text = text.slice(0, this.frame)
+      length = ctx.measureText(sub_text).width
+      Itext(this.frame, (width - length) / 2, height / 2, text)
+
+      this.frame++;
+    }
 
     if (pushed.includes("KeyZ")) {
       scene_manager.MoveTo(scene_title)
     }
-
-    this.frame++;
   }
 
 }

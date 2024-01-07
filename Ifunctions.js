@@ -128,6 +128,8 @@ let Image_Data = {};
 const gcd = (x, y) => x % y ? gcd(y, x % y) : y
 const lcm = (x, y) => x * y / gcd(x, y)
 
+const sigmoid = x => 1 / (1 + Math.exp(-x))
+
 function Ilink(frame, x, y, link) {
 	let a = ctx.measureText(link)
 
@@ -232,9 +234,9 @@ function Iadjust(max_width, text) {
 		}
 	}
 
-	const adjustedText = lines.join("<br>");
+	const adjusted_text = lines.join("<br>");
 
-	return adjustedText
+	return adjusted_text
 }
 
 function Icircle(x, y, r, c, id = "fill", width = 2) {
@@ -410,14 +412,6 @@ function IlineC(c, size, arr) {
 
 function IimageC(image, x, y, width, height) {
 	ctx.drawImage(image, x, y, width, height);
-}
-
-function Idice(a, b) {
-	let n = 0;
-	for (let i = 0; i < a; i++) {
-		n += Math.floor(Math.random() * b) + 1;
-	}
-	return n;
 }
 
 function Icommand(c, x, y, line_space, option, f, loop) {

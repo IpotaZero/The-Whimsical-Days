@@ -56,7 +56,6 @@ Sound_Data.Ethanol = new Iaudio("./sounds/select.wav")
 Sound_Data.uhm = new Iaudio("./sounds/⤵.wav")
 Sound_Data.uhm.set_volume(0.4)
 
-
 Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 50, 960, 1920, { ratio: 0.4, alpha: 1 })
 
 Ifont(24)
@@ -87,7 +86,7 @@ const story = [
     { type: "enemy", enemy: enemy_data.ethanol_m1 },
     { type: "sleep", interval: 48 },
     { type: "image", image: Image_Data.Ethanol },
-    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>追いかけてくるなよー"), voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>尾けてくるなよー"), voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>こっちも仕事なもんでね"), voice: Sound_Data.kohaku },
     { type: "ok" },
@@ -95,9 +94,9 @@ const story = [
     { type: "ok" },
     { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>別に戦わなくてもいいんだけどね"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>君があたしを倒すつもりなら<br>"), voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>あんたがあたしを倒すつもりなら"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>受けて立とうじゃないか!<br>"), voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>受けて立とうじゃないか!"), voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "delete_image" },
@@ -128,7 +127,9 @@ const story = [
     { type: "ok" },
     { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>さあ、ハイクを詠むんだな!"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>苦しくて、 投げ出したいのはきっとアセトアルデヒド"), voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>苦しくて、投げ出したいのはきっとアセトアルデヒド"), voice: Sound_Data.Ethanol },
+    { type: "ok" },
+    { type: "score" },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "end" }
