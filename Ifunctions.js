@@ -1,4 +1,4 @@
-let Sound_Data = {};
+const Sound_Data = {};
 Sound_Data.text = false;
 Sound_Data.mute_bgm = false;
 Sound_Data.mute_se = false;
@@ -123,12 +123,10 @@ const Iimage = class {
 	}
 }
 
-let Image_Data = {};
+const Image_Data = {};
 
 const gcd = (x, y) => x % y ? gcd(y, x % y) : y
 const lcm = (x, y) => x * y / gcd(x, y)
-
-const sigmoid = x => 1 / (1 + Math.exp(-x))
 
 function Ilink(frame, x, y, link) {
 	let a = ctx.measureText(link)
@@ -299,6 +297,25 @@ function Ipolygon(m, n, x, y, r, c, theta = 0, id = "fill", width = 2) {
 
 }
 
+const Iellipse = (x, y, r0, r1, arg, colour, start = 0, end = 2 * Math.PI, id = "fill", width = 2) => {
+	ctx.beginPath()
+
+	ctx.ellipse(x, y, r0, r1, arg, start, end)
+
+	switch (id) {
+		case "fill":
+			ctx.fillStyle = colour
+			ctx.fill()
+			break
+		case "stroke":
+			ctx.strokeStyle = colour
+			ctx.lineWidth = width
+			ctx.stroke()
+			break
+	}
+}
+
+
 //座標、幅、高さ、色、ID,太さ
 function Irect(x, y, width, height, c, id = "fill", size = 2) {
 	ctx.beginPath();
@@ -363,6 +380,66 @@ const vec = class {
 	rot(rad) { return new vec(this.x * Math.cos(rad) - this.y * Math.sin(rad), this.x * Math.sin(rad) + this.y * Math.cos(rad)); }
 	new() { return new vec(this.x, this.y); }
 	dot(v) { return this.x * v.x + this.y * v.y; }
+	arg() { return Math.atan2(this.y, this.x) }
+}
+
+const vec3 = class {
+	constructor(_x, _y, _z) {
+		this.x = _x;
+		this.y = _y;
+		this.z = _z
+	}
+	length() { return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2); }
+
+	add(v) { return new vec3(this.x + v.x, this.y + v.y, this.z + v.z); }
+	sub(v) { return new vec3(this.x - v.x, this.y - v.y, this.z - v.z); }
+	mlt(m) { return new vec3(this.x * m, this.y * m, this.z * m); }
+	nor() { if (this.length() == 0) { return this; } else { const l = this.length(); return new vec3(this.x / l, this.y / l, this.z / l); } }
+	rot(theta, v) {
+		//軸ベクトル
+		const u = v.nor()
+
+		//作用素
+		const r = new qua(Math.cos(theta / 2), Math.sin(theta / 2) * u.x, Math.sin(theta / 2) * u.y, Math.sin(theta / 2) * u.z)
+
+		//四元数にす
+		const a = new qua(0, this.x, this.y, this.z)
+
+		//回転させる
+		const e = r.mlt(a).mlt(r.cnj())
+
+		//ベクトルに戻す
+		const i = new vec3(e.b, e.c, e.d)
+
+		return i
+	}
+	to2() { return new vec(this.x, this.y) }
+}
+
+const qua = class {
+	constructor(a, b, c, d) {
+		this.a = a
+		this.b = b
+		this.c = c
+		this.d = d
+	}
+	length() { return Math.sqrt(this.a ** 2 + this.b ** 2 + this.c ** 2 + this.d ** 2) }
+	add(q) { return new qua(this.a + q.a, this.b + q.b, this.c + q.c, this.d + q.d) }
+	mlt(q) {
+		if (typeof q == "number") {
+			return new qua(this.a * q, this.b * q, this.c * q, this.d * q)
+		} else {
+			return new qua(
+				this.a * q.a - this.b * q.b - this.c * q.c - this.d * q.d,
+				this.a * q.b + this.b * q.a + this.c * q.d - this.d * q.c,
+				this.a * q.c - this.b * q.d + this.c * q.a + this.d * q.b,
+				this.a * q.d + this.b * q.c - this.c * q.b + this.d * q.a
+			)
+		}
+	}
+	cnj() {
+		return new qua(this.a, -this.b, -this.c, -this.d)
+	}
 }
 
 //多重for文(f:関数, a:初期値, b:終了値)

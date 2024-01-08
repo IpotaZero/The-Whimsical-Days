@@ -82,7 +82,14 @@ const story = [
 
     { type: "sleep", interval: 695 },
 
-    { type: "do", f: () => { BGM.end(); enemies.forEach((e) => { e.life = 0 }); scene_main.boss = true; scene_main.story_frame = 0 } },
+    {
+      type: "do", f: () => {
+        BGM.end();
+        enemies.forEach((e) => { e.life = 0 });
+        scene_main.boss = true;
+        scene_main.story_frame = 0
+      }
+    },
     { type: "enemy", enemy: enemy_data.ethanol_m1 },
     { type: "sleep", interval: 48 },
     { type: "image", image: Image_Data.Ethanol },
@@ -121,6 +128,8 @@ const story = [
     { type: "enemy", enemy: enemy_data.ethanol_5 },
     { type: "wait" },
 
+
+    { type: "sleep", interval: 60 },
     { type: "image", image: Image_Data.Ethanol },
     { type: "do", f: () => { scene_main.boss = false } },
     { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>ぐわーッ"), voice: Sound_Data.Ethanol },

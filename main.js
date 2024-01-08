@@ -339,7 +339,7 @@ const scene_main = new class extends Scene {
           b.life = 0
           e.life -= damage;
           e.damaged = true
-          this.scoring(100, "HIT")
+          this.scoring(100 * damage, "HIT")
         }
       })
 
@@ -352,18 +352,23 @@ const scene_main = new class extends Scene {
       b.f.forEach((f) => { f(b) })
 
       //enemy_bullet vs player
-      if (b.type == "enemy" && !player.inv && player.dead == 0 && b.life > 0 && b.r + player.r + player.graze_r >= b.p.sub(player.p).length()) {
-        //graze
-        this.graze++;
-        Sound_Data.graze.play()
-        this.scoring(1000, "GRAZE")
+      if (["enemy", "score"].includes(b.type) && !player.inv && player.dead == 0 && b.life > 0 && b.r + player.r + player.graze_r >= b.p.sub(player.p).length()) {
+        if (b.type == "enemy") {
+          //graze
+          this.graze++;
+          this.scoring(1000, "GRAZE")
 
-        if (b.r + player.r >= b.p.sub(player.p).length()) {
+          if (b.r + player.r >= b.p.sub(player.p).length()) {
+            b.life = 0
+            player.dead = 24
+            player.life--;
+            Sound_Data.u.play()
+          }
+        } else {
+          this.scoring(100, "BULLET")
           b.life = 0
-          player.dead = 24
-          player.life--;
-          Sound_Data.u.play()
         }
+        Sound_Data.graze.play()
       }
     })
 

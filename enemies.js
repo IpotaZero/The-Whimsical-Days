@@ -44,32 +44,48 @@ const bullet_model = {
   ]
 }
 
-enemy_data = {}
-enemy_vrs = { p: new vec(game_width / 2, -100) }
+const enemy_data = {}
+const enemy_vrs = { p: new vec(game_width / 2, -100) }
 
-function wall(p) {
+const wall = (p) => {
   return p.x < 0 || game_width < p.x | p.y < 0 || game_height < p.y
 }
 
-function linear_move(frame, time, p0, p1, fun = x => x) {
+const linear_move = (frame, time, p0, p1, fun = x => x) => {
   p0 ??= enemy_vrs.p
   return p0.add(p1.sub(p0).mlt(fun(frame / time)))
 }
 
-function circular_move(center, frame, radius, cycle, rad = 0) {
+const circular_move = (center, frame, radius, cycle, rad = 0) => {
   return center.add(new vec(Math.cos(frame * Math.PI * 2 / cycle + rad), Math.sin(frame * Math.PI * 2 / cycle + rad)).mlt(radius));
 }
 
-function get_angle(v0, v1) {
+const get_angle = (v0, v1) => {
   let a = Math.atan(v1.y / v1.x) - Math.atan(v0.y / v0.x);
   return v1.x > 0 ? a : a + Math.PI;
 }
 
-function explosion(pos) {
+const explosion = (pos, speed = 6) => {
   for (let i = 0; i < 16; i++) {
     let c = chroma.hsl(Math.floor(90 * Math.sin(2 * Math.PI * Math.random()) + 90), 1, 0.5).hex()
-    bullets.push(...remodel([bullet_model], ["type", "effect", "colour", c, "r", 12 * Math.random() + 1, "life", 48, "p", pos, "v", new vec(6 * Math.random(), 0).rot(Math.random() * 6), "f", (me) => { me.life--; me.colour = chroma(c).alpha(me.life / 96).hex() }]))
+    bullets.push(...remodel([bullet_model], ["type", "effect", "colour", c, "r", 12 * Math.random() + 1, "life", 48, "p", pos, "v", new vec(speed * Math.random(), 0).rot(Math.random() * 6), "f", (me) => { me.life--; me.colour = chroma(c).alpha(me.life / 96).hex() }]))
   }
+}
+
+const make_bullets_into_score = (speed = 24) => {
+  next_bullets = []
+  bullets.map((b) => {
+    if (b.type = "enemy") {
+      b.r = 6
+      b.app = "laser"
+      b.colour = "#80ffff80"
+      b.type = "score"
+      b.f = [(me) => {
+        me.v = player.p.sub(me.p).nor().mlt(speed)
+        me.p = me.p.add(me.v)
+      }]
+    }
+  })
 }
 
 enemy_data.zako_0 = new Enemy(null, 16, 30)
@@ -268,7 +284,7 @@ enemy_data.zako_7 = new Enemy(null, 32, 695, { is_inv: true })
 
     me.frame++;
     if (me.life <= 0) {
-      bullets = []
+      make_bullets_into_score()
       explosion(me.p)
       Sound_Data.KO.play()
       scene_main.scoring(me.maxlife ** 2)
@@ -298,7 +314,7 @@ enemy_data.ethanol_0 = new Enemy(new vec(game_width, game_height / 6), 56, 240, 
     me.frame++;
 
     if (me.life <= 0) {
-      bullets = []
+      make_bullets_into_score()
       next_enemies.push({ ...enemy_data["ethanol_1"] })
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
@@ -327,7 +343,7 @@ enemy_data.ethanol_1 = new Enemy(null, 56, 600, { is_boss: true })
 
     me.frame++;
     if (me.life <= 0) {
-      bullets = []
+      make_bullets_into_score()
       next_enemies.push({ ...enemy_data["ethanol_2"] }, { ...enemy_data["ethanol_2_0"] }, { ...enemy_data["ethanol_2_1"] })
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
@@ -367,15 +383,15 @@ enemy_data.ethanol_2 = new Enemy(null, 56, 600, { is_boss: true })
   .move(null, new vec(game_width / 2, game_height / 2), 0, 48, x => x ** 2)
   .addf((me) => {
     if (me.frame > 48 && me.frame % [24, 24, 12, 12][difficulty] == 0) {
-      bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 6), "aim", player.p, "nway", [1, 3, 5, 7][difficulty], Math.PI / 12, me.p, "arrow", 30]))
-      bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 6), "aim", player.p, "do", (me) => { me.v.y *= -1 }, "nway", [1, 3, 5, 7][difficulty], Math.PI / 12, me.p, "arrow", 30]))
+      bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 6), "aim", player.p, "nway", [1, 3, 3, 3][difficulty], Math.PI / 12, me.p, "arrow", 30]))
+      bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 6), "aim", player.p, "do", (me) => { me.v.y *= -1 }, "nway", [1, 3, 3, 3][difficulty], Math.PI / 12, me.p, "arrow", 30]))
       Sound_Data.bullet0.play()
     }
 
     me.frame++;
 
     if (me.life <= 0) {
-      bullets = []
+      make_bullets_into_score()
       enemies = []
       next_enemies.push({ ...enemy_data["ethanol_3"] })
       for (let i = 0; i < 4; i++) { next_enemies.push({ ...enemy_data["ethanol_3_" + i] }) }
@@ -425,7 +441,7 @@ enemy_data.ethanol_3 = new Enemy(null, 56, 600, { is_boss: true })
     me.frame++;
 
     if (me.life <= 0) {
-      bullets = []
+      make_bullets_into_score()
       enemies = []
       next_enemies.push({ ...enemy_data["ethanol_4"] })
       for (let i = 0; i < 12; i++) { next_enemies.push({ ...enemy_data["ethanol_4_" + i] }) }
@@ -480,13 +496,13 @@ enemy_data.ethanol_4 = new Enemy(null, 56, 600, { is_boss: true })
 
     me.frame++;
     if (me.life <= 0) {
-      bullets = []
+      make_bullets_into_score(12)
       enemies = []
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
 
       if (difficulty != 3) {
-        for (let i = 0; i < 4; i++) { explosion(me.p) }
+        for (let i = 0; i < 4; i++) { explosion(me.p, 3) }
         scene_main.story_num += 9
       }
 
@@ -516,11 +532,11 @@ enemy_data.ethanol_5 = {
 
       me.frame++;
       if (me.life <= 0) {
-        bullets = []
+        make_bullets_into_score(12)
         enemies = []
         enemy_vrs.p = me.p
         Sound_Data.KO.play()
-        for (let i = 0; i < 4; i++) { explosion(me.p) }
+        for (let i = 0; i < 4; i++) { explosion(me.p, 3) }
         scene_main.continue_story()
         scene_main.scoring(me.maxlife ** 2)
       }
