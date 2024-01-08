@@ -1,16 +1,3 @@
-const Scene_Manager = class {
-  constructor(_scene) {
-    this.current_scene = _scene;
-    this.current_scene.start()
-  }
-
-  MoveTo(_scene) {
-    this.current_scene.end();
-    this.current_scene = _scene;
-    this.current_scene.start();
-  }
-}
-
 const Scene = class {
   constructor() {
 
@@ -49,7 +36,7 @@ const dash_interval = 48
 
 const player_bullet = remodel([bullet_model], ["r", 3, "app", "none", "colour", "#ffffff80", "type", "friend"])[0]
 
-const Scene_Main = class extends Scene {
+const scene_main = new class extends Scene {
   constructor() {
     super()
     Image_Data.background = new Iimage("./images/ba.png", 0, 0, width, height)
@@ -512,9 +499,9 @@ const Scene_Main = class extends Scene {
     // Itext(null, game_width + 40, 250, "bullets: " + bullets.length)
     // Itext(null, game_width + 40, 300, "enemies: " + enemies.length)
   }
-}
+}()
 
-const Scene_Title = class extends Scene {
+const scene_title = new class extends Scene {
   constructor() {
     super()
     this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane!"] }
@@ -590,9 +577,9 @@ const Scene_Title = class extends Scene {
 
     }
   }
-}
+}()
 
-const Scene_preTitle = class extends Scene {
+const scene_pretitle = new class extends Scene {
   constructor() {
     super()
   }
@@ -633,9 +620,9 @@ const Scene_preTitle = class extends Scene {
     }
   }
 
-}
+}()
 
-const Scene_Anten = class extends Scene {
+const scene_anten = new class extends Scene {
   start() {
     this.frame = 0
   }
@@ -653,9 +640,9 @@ const Scene_Anten = class extends Scene {
       scene_manager.MoveTo(this.next_scene)
     }
   }
-}
+}()
 
-const Scene_Gameover = class extends Scene {
+const scene_gameover = new class extends Scene {
   constructor() {
     super()
     Sound_Data.gameover = new Iaudio("./sounds/gameover.wav")
@@ -693,15 +680,20 @@ const Scene_Gameover = class extends Scene {
     Sound_Data.gameover.pause()
   }
 
-}
+}()
 
-let scene_anten = new Scene_Anten()
-let scene_gameover = new Scene_Gameover()
-let scene_pretitle = new Scene_preTitle()
-let scene_title = new Scene_Title()
-let scene_main = new Scene_Main()
+const scene_manager = new class {
+  constructor(_scene) {
+    this.current_scene = _scene;
+    this.current_scene.start()
+  }
 
-let scene_manager = new Scene_Manager(scene_pretitle)
+  MoveTo(_scene) {
+    this.current_scene.end();
+    this.current_scene = _scene;
+    this.current_scene.start();
+  }
+}(scene_pretitle)
 
 let BGM = null
 
