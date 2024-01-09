@@ -414,6 +414,7 @@ const vec3 = class {
 		return i
 	}
 	to2() { return new vec(this.x, this.y) }
+	new() { return new vec3(this.x, this.y, this.z) }
 }
 
 const qua = class {

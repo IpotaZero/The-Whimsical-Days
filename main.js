@@ -527,27 +527,49 @@ const scene_title = new class extends Scene {
         Itext5(c.frame, 60, 400, font_size, ["vs Ethanol"][c.current_value]);
       },
       "0.": (c) => {
-        Itext5(c.frame, 60, 400, font_size, ["赤ちゃん向け", "操作を使いこなせたら", "隙間をすり抜けろ!", "テストプレイなんてしてないよ!"][c.current_value]);
+        Itext5(c.frame, 60, 400, font_size, ["弾幕初めての人向け", "操作を使いこなせたら", "隙間をすり抜けろ!", "テストプレイなんてしてないよ!"][c.current_value]);
       },
       "1": (c) => {
         Ifont(24, "white", "serif")
         Itext5(c.frame * 2, 20, 200, font_size,
-          "・十字キーで移動<br>・Shiftキーで低速 <br>・Aで後ろを向く <br>・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵) <br>・赤い点が当たり判定 <br>・白い円がかすり判定 <br>・Escでポーズ <br>・敵に近づくほど攻撃力が上がる!(最大3倍)<br>・HPバーが赤い敵は無敵!持久力勝負だぜ!<br>・重くて動かないよ!って人は <br> BrightenをOFFしてください <br>[X]"
+          "・十字キーで移動<br>・Shiftキーで低速 <br>"
+          + "・Aで後ろを向く <br>・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵) <br>"
+          + "・赤い点が当たり判定 <br>"
+          + "・白い円がかすり判定 <br>"
+          + "・Escでポーズ <br>"
+          + "・敵に近づくほど攻撃力が上がる!(最大3倍)<br>"
+          + "・HPバーが赤い敵は無敵!持久力勝負だぜ!<br>"
+          + "・重くて動かないよ!って人は <br> BrightenをOFFしてください <br>[X]"
         )
       },
       "2": (c) => {
         Ifont(24, "white", "serif")
-        Itext5(c.frame, 20, 200, font_size, "警視庁公安部対天使科のコハクは今夜も天使の気配を感じて<br>夜の東京を飛翔するのであった...[X]")
+        Itext5(c.frame, 20, 200, font_size, "警視庁公安部対天使科実動隊のコハクは今夜も天使の気配を感じて<br>夜の東京を飛翔するのであった...[X]")
       },
       "3": (c) => {
         Ifont(24, "white", "serif")
-        Itext6(c.frame * 2, 20, 200, font_size, "制作: お躁式ラケッツ! <link>https://www.nicovideo.jp/user/131397716<br>効果音: 効果音ラボ <link>https://soundeffect-lab.info<br>背景、キャラクター: Craiyon <link>https://www.craiyon.com<br>[X]")
+        Itext6(c.frame * 2, 20, 200, font_size,
+          "制作: お躁式ラケッツ! <link>https://www.nicovideo.jp/user/131397716<br>"
+          + "効果音: 効果音ラボ <link>https://soundeffect-lab.info<br>"
+          + "背景、キャラクター: Craiyon <link>https://www.craiyon.com<br>[X]"
+        )
       }
     }
 
     Sound_Data.ok = new Iaudio("./sounds/ok.wav")
     Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
     Sound_Data.select = new Iaudio("./sounds/select.wav")
+
+    // const num = 120
+    // this.circle = Igenerator(
+    //   function* () {
+    //     for (let h = 0; h < 36; h++) {
+    //       yield Igenerator(
+    //         function* () { for (let i = 0; i < num; i++) { yield new vec3(Math.cos(2 * Math.PI * i / num), Math.sin(2 * Math.PI * i / num), 0).rot(2 * Math.PI * h / 36, new vec3(1, 2, 1)).to2() } }
+    //       )
+    //     }
+    //   }
+    // )
 
     this.mn = [3, 4]
   }
@@ -566,6 +588,13 @@ const scene_title = new class extends Scene {
 
     Ipolygon(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
     //Itext(null, 480, height / 2, this.mn[0] + "/" + this.mn[1])
+
+    // this.circle[this.frame % 36].forEach((c) => {
+    //   const d = c.mlt(120)
+    //   const e = c.mlt(60)
+    //   Icircle(width * 3 / 4 + d.x, height * 3 / 4 + d.y, 1, "white")
+    //   Icircle(width * 3 / 4 + e.x, height * 3 / 4 + e.y, 1, "white")
+    // })
 
     Ifont(36, "white", "serif")
     this.c = Icommand(this.c, 20, 200, font_size, this.option, this.function, this.loopf)

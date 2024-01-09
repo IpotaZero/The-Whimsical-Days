@@ -92,7 +92,7 @@ enemy_data.zako_0 = new Enemy(null, 16, 30)
   .addf((me) => {
     me.p = circular_move(new vec(0, 0), me.frame, 300, 4 * 120)
     if (me.frame % [36, 24, 12, 6][difficulty] == 0) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", [1, 3, 7, 11][difficulty], Math.PI / 12, me.p]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "aim", player.p, "nway", [1, 3, 7, 11][difficulty], Math.PI / 12, me.p]))
       Sound_Data.bullet0.play()
     }
 
@@ -115,7 +115,7 @@ enemy_data.zako_1 = new Enemy(null, 16, 30)
     me.p = circular_move(new vec(game_width, 0), -me.frame, -300, 4 * 120)
 
     if (me.frame % [36, 24, 12, 6][difficulty] == 0) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", [1, 3, 7, 11][difficulty], Math.PI / 12, me.p]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "aim", player.p, "nway", [1, 3, 7, 11][difficulty], Math.PI / 12, me.p]))
       Sound_Data.bullet0.play()
     }
 
@@ -136,7 +136,7 @@ enemy_data.zako_2 = new Enemy(null, 32, 200)
   .move(null, new vec(game_width / 2, game_height / 6), 0, 24, x => 1 - (x - 1) ** 2)
   .addf((me) => {
     if (24 < me.frame && me.frame < 144 && me.frame % [24, 12, 6, 3][difficulty] == 0) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", 7, Math.PI / 16, me.p]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "aim", player.p, "nway", 7, Math.PI / 16, me.p]))
       Sound_Data.bullet0.play()
     }
 
@@ -161,7 +161,7 @@ for (let i = 0; i < 4; i++) {
       me.p = me.p.add(new vec(-4, 0));
 
       if (me.frame % [36, 24, 12, 6][difficulty] == 0) {
-        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(6, 0), "aim", player.p, "arrow", 20]))
+        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec([3, 6, 6, 6][difficulty], 0), "aim", player.p, "arrow", 20]))
       }
 
       me.frame++;
@@ -182,7 +182,7 @@ for (let i = 0; i < 4; i++) {
       me.p = me.p.add(new vec(4, 0));
 
       if (me.frame % [36, 24, 12, 6][difficulty] == 0) {
-        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(6, 0), "aim", player.p, "arrow", 20]))
+        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec([3, 6, 6, 6][difficulty], 0), "aim", player.p, "arrow", 20]))
       }
 
       me.frame++;
@@ -206,7 +206,7 @@ for (let i = 0; i < 8; i++) {
       me.p = me.p.add(new vec(0, 4));
 
       if (me.frame % [48, 24, 12, 6][difficulty] == 0) {
-        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(6, 0), "aim", player.p, "arrow", 20]))
+        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec([3, 6, 6, 6][difficulty], 0), "aim", player.p, "arrow", 20]))
         Sound_Data.bullet0.play()
       }
 
@@ -227,7 +227,7 @@ for (let i = 0; i < 8; i++) {
       me.p = me.p.add(new vec(0, -4));
 
       if (me.frame % [36, 24, 12, 6][difficulty] == 0) {
-        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(6, 0), "aim", player.p, "arrow", 20]))
+        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec([3, 6, 6, 6][difficulty], 0), "aim", player.p, "arrow", 20]))
         Sound_Data.bullet0.play()
       }
 
@@ -250,7 +250,7 @@ for (let i = 0; i < 3; i++) {
     .move(null, new vec(game_width / 2 + 120 * (i - 1), game_height / 6), 0, 24)
     .addf((me) => {
       if (24 < me.frame && me.frame < 200 && me.frame % [6, 6, 3, 3][difficulty] == 0) {
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "aim", player.p, "nway", [3, 5, 7, 9][difficulty], Math.PI / 12, me.p]))
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "aim", player.p, "nway", [3, 5, 7, 9][difficulty], Math.PI / 12, me.p]))
         Sound_Data.bullet1.play()
       }
       me.frame++
@@ -273,7 +273,7 @@ enemy_data.zako_7 = new Enemy(null, 32, 695, { is_inv: true })
     me.life = 695 - me.frame
     me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 240) + game_width / 2
 
-    bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "ex", [8, 12, 16, 20][difficulty], me.p]))
+    bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "ex", [8, 12, 16, 20][difficulty], me.p]))
     Sound_Data.bullet1.play()
 
     if (me.frame % [24, 24, 12, 12][difficulty] == 0) {
@@ -304,10 +304,10 @@ enemy_data.ethanol_0 = new Enemy(new vec(game_width, game_height / 6), 56, 240, 
     me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 120) + game_width / 2
 
     if (me.frame % 6 == 0) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "ex", [6, 12, 24, 28][difficulty], me.p, "rot", Math.PI / [6, 12, 24, 28][difficulty]]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "ex", [6, 12, 24, 28][difficulty], me.p, "rot", Math.PI / [6, 12, 24, 28][difficulty]]))
       Sound_Data.bullet0.play()
     } else if (me.frame % 6 == 3) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "ex", [6, 12, 24, 28][difficulty], me.p]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "ex", [6, 12, 24, 28][difficulty], me.p]))
       Sound_Data.bullet0.play()
     }
 
@@ -336,7 +336,7 @@ enemy_data.ethanol_1 = new Enemy(null, 56, 600, { is_boss: true })
       me.p.x = game_width / 3 * Math.sin((me.frame - 48) * 2 * Math.PI / 120) + game_width / 2
 
       if (me.frame % [24, 16, 8, 4][difficulty] == 0) {
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 15, "p", me.p, "v", new vec(0, -6), "aim", player.p, "nway", 7, Math.PI / 24, me.p]))
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 15, "p", me.p, "v", new vec(0, -[3, 6, 6, 6][difficulty]), "aim", player.p, "nway", 7, Math.PI / 24, me.p]))
         Sound_Data.bullet1.play()
       }
     }
@@ -362,8 +362,8 @@ for (let i = 0; i < 2; i++) {
         me.p.x = game_width / 3 * Math.sin((2 * i - 1) * (me.frame - 48) * 2 * Math.PI / [240, 120, 90, 60][difficulty]) + game_width / 2
 
         if (me.frame % [6, 4, 2, 1][difficulty] == 0) {
-          bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(0, -6)]))
-          bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(0, 6)]))
+          bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(0, -[3, 6, 6, 6][difficulty])]))
+          bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(0, [3, 6, 6, 6][difficulty])]))
           Sound_Data.bullet1.play()
         }
       }
@@ -383,8 +383,8 @@ enemy_data.ethanol_2 = new Enemy(null, 56, 600, { is_boss: true })
   .move(null, new vec(game_width / 2, game_height / 2), 0, 48, x => x ** 2)
   .addf((me) => {
     if (me.frame > 48 && me.frame % [24, 24, 12, 12][difficulty] == 0) {
-      bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 6), "aim", player.p, "nway", [1, 3, 3, 3][difficulty], Math.PI / 12, me.p, "arrow", 30]))
-      bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 6), "aim", player.p, "do", (me) => { me.v.y *= -1 }, "nway", [1, 3, 3, 3][difficulty], Math.PI / 12, me.p, "arrow", 30]))
+      bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, [3, 6, 6, 6][difficulty]), "aim", player.p, "nway", [1, 3, 3, 3][difficulty], Math.PI / 12, me.p, "arrow", 30]))
+      bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, [3, 6, 6, 6][difficulty]), "aim", player.p, "do", (me) => { me.v.y *= -1 }, "nway", [1, 3, 3, 3][difficulty], Math.PI / 12, me.p, "arrow", 30]))
       Sound_Data.bullet0.play()
     }
 
@@ -413,7 +413,7 @@ for (let i = 0; i < 4; i++) {
       if (me.frame > 48) {
         me.p = circular_move(new vec(game_width / 2, game_height / 5), me.frame - 48, 120, 144, Math.PI / 2 * i)
         if (me.frame % [24, 24, 12, 12][difficulty] == 0) {
-          bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 12), "aim", player.p, "arrow", 30]))
+          bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, [6, 12, 12, 12][difficulty]), "aim", player.p, "arrow", 30]))
         }
       }
 
@@ -434,7 +434,7 @@ enemy_data.ethanol_3 = new Enemy(null, 56, 600, { is_boss: true })
   .move(new vec(game_width / 2, game_height / 2), new vec(game_width / 2, game_height / 5), 25, 48, x => x ** 2)
   .addf((me) => {
     if (me.frame > 48 && me.frame % [18, 12, 9, 6][difficulty] == 0) {
-      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(0, 12), "aim", player.p, "ex", 32, me.p]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(0, [6, 12, 12, 12][difficulty]), "aim", player.p, "ex", 32, me.p]))
       Sound_Data.bullet0.play()
     }
 
@@ -465,7 +465,7 @@ for (let i = 0; i < 12; i++) {
         me.p = me.p.add(new vec(90, 0).rot(2 * Math.PI * i / 12 + (me.frame - 60) / 36))
 
         if (me.frame % [12, 8, 4, 1][difficulty] == 0) {
-          bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame, "p", me.p, "v", new vec(0, 12), "aim", player.p]))
+          bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame, "p", me.p, "v", new vec(0, [6, 12, 12, 12][difficulty]), "aim", player.p]))
           Sound_Data.bullet1.play()
         }
       }
@@ -489,7 +489,7 @@ enemy_data.ethanol_4 = new Enemy(null, 56, 600, { is_boss: true })
       me.p.y = game_height / 2 - Math.sin(2 * Math.PI * (me.frame - 60) / 240) * game_height / 3
 
       if (me.frame % [48, 36, 24, 12][difficulty] == 0) {
-        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, 12), "aim", player.p, "arrow", 30, "ex", [16, 24, 32, 40][difficulty], me.p]))
+        bullets.push(...remodel([bullet_model], ["app", "laser", "colourful", me.frame, "r", 2, "p", me.p, "v", new vec(0, [6, 12, 12, 12][difficulty]), "aim", player.p, "arrow", 30, "ex", [16, 24, 32, 40][difficulty], me.p]))
         Sound_Data.bullet0.play()
       }
     }
@@ -521,11 +521,11 @@ enemy_data.ethanol_5 = {
       } else {
         if (me.frame % 2 == 0) {
           me.angle += 6;
-          bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame, "p", me.p, "v", new vec(0, 6).rot(me.angle * Math.PI / 180), "ex", 9, me.p]))
+          bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame, "p", me.p, "v", new vec(0, [3, 6, 6, 6][difficulty]).rot(me.angle * Math.PI / 180), "ex", 9, me.p]))
           Sound_Data.bullet1.play()
         } else if (me.life < 300) {
           me.angle += 6;
-          bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame - 120, "p", me.p, "v", new vec(0, 6).rot(-me.angle * Math.PI / 180), "ex", 9, me.p]))
+          bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame - 120, "p", me.p, "v", new vec(0, [3, 6, 6, 6][difficulty]).rot(-me.angle * Math.PI / 180), "ex", 9, me.p]))
           Sound_Data.bullet1.play()
         }
       }

@@ -129,7 +129,7 @@ const story = [
     { type: "wait" },
 
 
-    { type: "sleep", interval: 60 },
+    { type: "sleep", interval: 24 },
     { type: "image", image: Image_Data.Ethanol },
     { type: "do", f: () => { scene_main.boss = false } },
     { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>ぐわーッ"), voice: Sound_Data.Ethanol },
