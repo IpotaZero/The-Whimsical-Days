@@ -249,8 +249,8 @@ for (let i = 0; i < 3; i++) {
   enemy_data["zako_5_" + i] = new Enemy(null, 16, 60)
     .move(null, new vec(game_width / 2 + 120 * (i - 1), game_height / 6), 0, 24)
     .addf((me) => {
-      if (24 < me.frame && me.frame < 200 && me.frame % [6, 6, 3, 3][difficulty] == 0) {
-        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "aim", player.p, "nway", [3, 5, 7, 9][difficulty], Math.PI / 12, me.p]))
+      if (24 < me.frame && me.frame < 200 && me.frame % [48, 48, 24, 12][difficulty] == 0) {
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "aim", player.p, "sim", 3, [3, 6, 6, 6][difficulty], "nway", [3, 5, 7, 9][difficulty], Math.PI / 12, me.p]))
         Sound_Data.bullet1.play()
       }
       me.frame++
@@ -273,7 +273,7 @@ enemy_data.zako_7 = new Enemy(null, 32, 695, { is_inv: true })
     me.life = 695 - me.frame
     me.p.x = game_width / 3 * Math.sin(me.frame * 2 * Math.PI / 240) + game_width / 2
 
-    bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "ex", [8, 12, 16, 20][difficulty], me.p]))
+    bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(12, 0), "ex", [8, 12, 14, 16][difficulty], me.p]))
     Sound_Data.bullet1.play()
 
     if (me.frame % [24, 24, 12, 12][difficulty] == 0) {
@@ -697,7 +697,21 @@ function remodel(bulletArr, pro) {
         c.push(...remodel(buls, ["f", (me) => { if (me.p.x - me.r < 0 || game_width < me.p.x + me.r) { me.v.x *= -1; me.life--; } if (me.p.y - me.r < 0 || game_height < me.p.y + me.r) { me.v.y *= -1; me.life--; } }]));
         break;
 
-      //わざわざコマンドにするほどでもないことをして
+      //["sim",num,max_speed]
+      case "sim":
+        const sim_num = pro[i + 1]
+        const sim_max_speed = pro[i + 2]
+        buls.forEach((b) => {
+          const default_speed = b.v.length()
+          for (let i = 0; i < sim_num; i++) {
+            console.log(i)
+            c.push(...remodel([b], ["v", b.v.nor().mlt(default_speed + (sim_max_speed - default_speed) * i / (sim_num - 1))]))
+          }
+        })
+        i += 2
+        break
+
+      //わざわざコマンドにするほどでもないことをして(数は変えられない)
       case "do": buls.forEach((b) => { pro[i + 1](b); c.push(b) }); i++; break;
 
       //[対象,数値やベクトルや関数]代入(基本操作)

@@ -116,7 +116,7 @@ const scene_main = new class extends Scene {
             break
 
           case "score":
-            this.scoring((difficulty + 1) * 10 ** 5, "Bonus")
+            this.scoring((difficulty + 1) * player.life * 10 ** 5, "Bonus")
             this.story_text = "Score: " + this.score
             break
 
@@ -380,7 +380,7 @@ const scene_main = new class extends Scene {
     next_bullets = []
     next_enemies = []
 
-    if (player.life <= 0) {
+    if (player.life < 0) {
       scene_manager.MoveTo(scene_gameover)
     }
   }
@@ -531,7 +531,7 @@ const scene_title = new class extends Scene {
       },
       "1": (c) => {
         Ifont(24, "white", "serif")
-        Itext5(c.frame * 2, 20, 200, font_size,
+        Itext5(c.frame * 4, 20, 200, font_size,
           "・十字キーで移動<br>・Shiftキーで低速 <br>"
           + "・Aで後ろを向く <br>・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵) <br>"
           + "・赤い点が当たり判定 <br>"
@@ -539,6 +539,7 @@ const scene_title = new class extends Scene {
           + "・Escでポーズ <br>"
           + "・敵に近づくほど攻撃力が上がる!(最大3倍)<br>"
           + "・HPバーが赤い敵は無敵!持久力勝負だぜ!<br>"
+          + "・8回まで逝ける<br>"
           + "・重くて動かないよ!って人は <br> BrightenをOFFしてください <br>[X]"
         )
       },
