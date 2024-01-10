@@ -3,6 +3,33 @@ Sound_Data.text = false;
 Sound_Data.mute_bgm = false;
 Sound_Data.mute_se = false;
 
+const LocalStorage = class {
+	constructor(name) {
+		this.name = name;
+		this.data = {};
+	}
+	delete() {
+		localStorage.removeItem(this.name);
+	}
+	load() {
+		let data = null;
+		if (localStorage != null) {
+			data = JSON.parse(localStorage.getItem(this.name));
+		}
+		if (data != null) {
+			this.data = data;
+			return true;
+		}
+		return false;
+	}
+	save() {
+		let data = JSON.stringify(this.data);
+		if (localStorage != null) {
+			localStorage.setItem(this.name, data);
+		}
+	}
+}
+
 const Iaudio = class {
 	constructor(path, type = "se") {
 		this.audio = new Audio(path)

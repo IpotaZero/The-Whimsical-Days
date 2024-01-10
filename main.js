@@ -26,6 +26,21 @@ let next_enemies = []
 
 let difficulty = 0
 
+let save = new LocalStorage("save")
+
+//セーブデータが存在しないなら
+if (!save.load()) {
+  save.data = {}
+  ILoop([0, 0], [0, 3], (stage, difficulty) => {
+    save.data["stage_" + stage] ??= {}
+    save.data["stage_" + stage]["difficulty_" + difficulty] = {
+      cleared: false,
+      highest_score: 0
+    }
+  })
+}
+
+
 //message window
 const lefttop = new vec(40, 500)
 const leftbottom = new vec(40, 680)
@@ -89,7 +104,9 @@ const scene_main = new class extends Scene {
   }
 
   end() {
-
+    const a = save.data["stage_" + this.chapter_num]["difficulty_" + difficulty]
+    a["highest_score"] = Math.max(a["highest_score"], this.score)
+    save.save()
   }
 
   scoring(score, text = "CRUSH!") {
@@ -116,8 +133,11 @@ const scene_main = new class extends Scene {
             break
 
           case "score":
-            this.scoring((difficulty + 1) * player.life * 10 ** 5, "Bonus")
+            this.scoring((difficulty + 1) * player.life * 10 ** 5, "Life Bonus")
             this.story_text = "Score: " + this.score
+            const a = save.data["stage_" + this.chapter_num]["difficulty_" + difficulty]
+            a["cleared"] = true
+            a["highest_score"] = Math.max(a["highest_score"], this.score)
             break
 
           case "popup":
@@ -490,12 +510,19 @@ const scene_main = new class extends Scene {
     Image_Data.background.draw()
 
     Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext4(null, game_width + 40, lefttop.y + font_size, font_size, ["Difficulty: " + ["Easy", "Normal", "Hard", "Insane!"][difficulty], "Lives: ", "Graze: " + this.graze, "Score: " + this.score])
+    Itext4(null, game_width + 40, lefttop.y + font_size, font_size,
+      [
+        "Difficulty: " + ["Easy", "Normal", "Hard", "Insane!"][difficulty],
+        "Lives: ", "Graze: " + this.graze,
+        "Score: " + this.score, "",
+        "HScore: " + save.data["stage_" + this.chapter_num]["difficulty_" + difficulty]["highest_score"]
+      ]
+    )
 
     Itext(null, game_width + 40, lefttop.y + font_size * 5, this.socre_text)
 
     Ifont(20, "lightgreen", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext(null, game_width + 40 + 70, lefttop.y + 24 * 2, "★".repeat(player.life))
+    Itext(null, game_width + 40 + 70, lefttop.y + 24 * 2, "★".repeat(Math.max(player.life, 0)))
 
     // Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
     // Itext(null, game_width + 40, 100, "" + this.story_interval)
@@ -528,6 +555,8 @@ const scene_title = new class extends Scene {
       },
       "0.": (c) => {
         Itext5(c.frame, 60, 400, font_size, ["弾幕初めての人向け", "操作を使いこなせたら", "隙間をすり抜けろ!", "テストプレイなんてしてないよ!"][c.current_value]);
+        Itext5(c.frame, 60, 400 + font_size, font_size, "Highest Score: " + save.data["stage_" + c.current_branch.charAt(1)]["difficulty_" + c.current_value]["highest_score"]);
+        Itext5(c.frame, 60, 400 + font_size * 2, font_size, save.data["stage_" + c.current_branch.charAt(1)]["difficulty_" + c.current_value]["cleared"] ? "Cleared!" : "not Cleared");
       },
       "1": (c) => {
         Ifont(24, "white", "serif")
@@ -561,17 +590,6 @@ const scene_title = new class extends Scene {
     Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
     Sound_Data.select = new Iaudio("./sounds/select.wav")
 
-    // const num = 120
-    // this.circle = Igenerator(
-    //   function* () {
-    //     for (let h = 0; h < 36; h++) {
-    //       yield Igenerator(
-    //         function* () { for (let i = 0; i < num; i++) { yield new vec3(Math.cos(2 * Math.PI * i / num), Math.sin(2 * Math.PI * i / num), 0).rot(2 * Math.PI * h / 36, new vec3(1, 2, 1)).to2() } }
-    //       )
-    //     }
-    //   }
-    // )
-
     this.mn = [3, 4]
   }
 
@@ -588,14 +606,6 @@ const scene_title = new class extends Scene {
     Itext(this.frame, 20, 20 + font_size, "The Whimsical Days!")
 
     Ipolygon(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
-    //Itext(null, 480, height / 2, this.mn[0] + "/" + this.mn[1])
-
-    // this.circle[this.frame % 36].forEach((c) => {
-    //   const d = c.mlt(120)
-    //   const e = c.mlt(60)
-    //   Icircle(width * 3 / 4 + d.x, height * 3 / 4 + d.y, 1, "white")
-    //   Icircle(width * 3 / 4 + e.x, height * 3 / 4 + e.y, 1, "white")
-    // })
 
     Ifont(36, "white", "serif")
     this.c = Icommand(this.c, 20, 200, font_size, this.option, this.function, this.loopf)
@@ -732,13 +742,25 @@ const scene_manager = new class {
 
 let BGM = null
 
+const fpsInterval = 1000 / 24;
+let then = Date.now();
+let start_time = then;
+
 const main = () => {
-  scene_manager.current_scene.loop();
+  requestAnimationFrame(main)
 
-  Irect(0, 0, width, height, "white", "stroke", 2);
+  let now = Date.now();
+  let elapsed = now - then;
 
-  pushed = [];
+  if (elapsed > fpsInterval) {
+    then = now - (elapsed % fpsInterval);
 
+    scene_manager.current_scene.loop();
+
+    Irect(0, 0, width, height, "white", "stroke", 2);
+
+    pushed = [];
+  }
 }
 
 const button = (id) => {
@@ -765,5 +787,4 @@ const button = (id) => {
   }
 }
 
-//24fpsで実行
-main_loop = setInterval(main, 1000 / 24)
+main()

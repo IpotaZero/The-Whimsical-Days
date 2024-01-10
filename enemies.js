@@ -249,7 +249,7 @@ for (let i = 0; i < 3; i++) {
   enemy_data["zako_5_" + i] = new Enemy(null, 16, 60)
     .move(null, new vec(game_width / 2 + 120 * (i - 1), game_height / 6), 0, 24)
     .addf((me) => {
-      if (24 < me.frame && me.frame < 200 && me.frame % [48, 48, 24, 12][difficulty] == 0) {
+      if (24 < me.frame && me.frame < 200 && me.frame % [48, 24, 18, 12][difficulty] == 0) {
         bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec([6, 12, 12, 12][difficulty], 0), "aim", player.p, "sim", 3, [3, 6, 6, 6][difficulty], "nway", [3, 5, 7, 9][difficulty], Math.PI / 12, me.p]))
         Sound_Data.bullet1.play()
       }
