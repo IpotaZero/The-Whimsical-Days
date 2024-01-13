@@ -56,17 +56,25 @@ Sound_Data.Ethanol = new Iaudio("./sounds/select.wav")
 Sound_Data.uhm = new Iaudio("./sounds/⤵.wav")
 Sound_Data.uhm.set_volume(0.4)
 
-Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 50, 960, 1920, { ratio: 0.4, alpha: 1 })
+Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 80, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
+Image_Data.Kohaku = new Iimage("images/Kohaku.apng", -50, 50, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
 
 Ifont(24)
 const story = [
   [
-    { type: "text", text: Iadjust(game_width - 140, "プログラムの気配がする...<br>"), voice: Sound_Data.kohaku },
+    { type: "text", text: Iadjust(game_width - 140, "Arthur:<br>前方2kmにプログラムの気配あり"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "image", image: Image_Data.Kohaku },
+    { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>本当か?<br>"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "text", text: Iadjust(game_width - 140, "Arthur:<br>Crosshand家の名誉に誓って<br>"), voice: Sound_Data.kohaku },
     { type: "ok" },
     { type: "text", text: "" },
+    { type: "delete_image" },
     { type: "bgm", bgm: Sound_Data.Drunkenness },
     { type: "sleep", interval: 48 },
     { type: "text", text: "" },
+
 
     ...translate([
       { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
@@ -95,6 +103,7 @@ const story = [
     { type: "image", image: Image_Data.Ethanol },
     { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>尾けてくるなよー"), voice: Sound_Data.Ethanol },
     { type: "ok" },
+    { type: "image", image: Image_Data.Kohaku },
     { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>こっちも仕事なもんでね"), voice: Sound_Data.kohaku },
     { type: "ok" },
     { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>うーん"), voice: Sound_Data.Ethanol },
@@ -134,6 +143,7 @@ const story = [
     { type: "do", f: () => { scene_main.boss = false } },
     { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>ぐわーッ"), voice: Sound_Data.Ethanol },
     { type: "ok" },
+    { type: "image", image: Image_Data.Kohaku },
     { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>さあ、ハイクを詠むんだな!<br>"), voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>苦しくて、投げ出したいのはきっとアセトアルデヒド"), voice: Sound_Data.Ethanol },

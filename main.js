@@ -35,6 +35,7 @@ if (!save.load()) {
     save.data["stage_" + stage] ??= {}
     save.data["stage_" + stage]["difficulty_" + difficulty] = {
       cleared: false,
+      no_miss_clear: false,
       highest_score: 0
     }
   })
@@ -50,6 +51,13 @@ const rightbottom = new vec(432, 680)
 const dash_interval = 48
 
 const player_bullet = remodel([bullet_model], ["r", 3, "app", "none", "colour", "#ffffff80", "type", "friend"])[0]
+
+const damage_effect = {
+  type: "effect", colour: "#00ffff80", app: "laser",
+  p: new vec(0, 0), r: 6, life: 6, v: new vec(0, 0), f: [
+    (me) => { me.life-- }
+  ]
+}
 
 const scene_main = new class extends Scene {
   constructor() {
@@ -137,6 +145,7 @@ const scene_main = new class extends Scene {
             this.story_text = "Score: " + this.score
             const a = save.data["stage_" + this.chapter_num]["difficulty_" + difficulty]
             a["cleared"] = true
+            if (player.life == 8) { a["no_miss_clear"] = true }
             a["highest_score"] = Math.max(a["highest_score"], this.score)
             break
 
@@ -262,11 +271,16 @@ const scene_main = new class extends Scene {
     this.draw()
 
     if (this.is_paused) {
+      if (pushed.includes("KeyR")) {
+        scene_anten.next_scene = scene_main
+        scene_manager.MoveTo(scene_anten)
+      }
+
       Ifont(48, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
       Itext(this.frame, game_width + 80, height / 2 + 24, "Pause")
 
       Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-      this.c = Icommand(this.c, game_width + 40, 450, font_size, { "": ["Back to Game", "Back to Title"] })
+      this.c = Icommand(this.c, game_width + 40, 450, font_size, { "": ["Back to Game", "Retry[R]", "Back to Title"] })
 
       switch (this.c.current_branch) {
         case "0":
@@ -275,6 +289,10 @@ const scene_main = new class extends Scene {
 
           break
         case "1":
+          scene_anten.next_scene = scene_main
+          scene_manager.MoveTo(scene_anten)
+          break
+        case "2":
           scene_anten.next_scene = scene_title
           scene_manager.MoveTo(scene_anten)
           break
@@ -353,12 +371,14 @@ const scene_main = new class extends Scene {
       //closer, higher damage
       const damage = 1 + Math.floor(3 * (1 - e.p.sub(player.p).length() / game_height))
 
+
       //player_bullet vs enemy
       bullets.forEach((b) => {
         if (b.type == "friend" && !e.is_inv && b.r + e.r >= b.p.sub(e.p).length()) {
           b.life = 0
           e.life -= damage;
           e.damaged = true
+          //next_bullets.push(...remodel([damage_effect], ["colour", c, "p", b.p]))
           this.scoring(100 * damage, "HIT")
         }
       })
@@ -432,35 +452,6 @@ const scene_main = new class extends Scene {
     }
     IarcC(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "#ffff00" + colour_player, "stroke", 2)
 
-    //敵
-    enemies.forEach((e) => {
-      const colour_enemy = e.damaged ? "#ec1c24" : "#ffffff"
-
-      const colour_life_bar = e.is_inv ? "#ec1c24" : "#ffffff"
-
-      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, colour_life_bar);
-      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, colour_life_bar, "stroke", 2);
-
-      const colour_pattern = colour_enemy + "80"
-
-      if (this.brighten) {
-        IcircleC(e.p.x, e.p.y, e.r, chroma(colour_enemy).alpha(0.1).hex(), "stroke", 12)
-        if (e.is_boss) {
-          IcircleC(e.p.x, e.p.y, e.r - 24, chroma(colour_enemy).alpha(0.1).hex(), "stroke", 12)
-        }
-      }
-
-      if (e.is_boss) {
-        IpolygonC(7, 2, e.p.x, e.p.y, (e.r - 24) * 0.9, colour_pattern, Math.PI * e.frame / 144, "stroke", 2)
-        IpolygonC(11, 2, e.p.x, e.p.y, e.r * 0.9, colour_pattern, -Math.PI * e.frame / 144, "stroke", 2)
-        IcircleC(e.p.x, e.p.y, e.r - 24, colour_enemy, "stroke", 2)
-      } else {
-        IpolygonC(7, 2, e.p.x, e.p.y, e.r * 0.9, colour_pattern, Math.PI * e.frame / 144, "stroke", 2)
-      }
-
-      IcircleC(e.p.x, e.p.y, e.r, colour_enemy, "stroke", 2)
-    })
-
     let laser_count = 0
 
     //弾
@@ -497,8 +488,6 @@ const scene_main = new class extends Scene {
       }
     })
 
-
-
     // let background_colour = "pink"
     // Irect(0, 0, 20, height, background_colour)
     // Irect(20 + game_width, 0, width - game_width - 20, height, background_colour)
@@ -506,6 +495,41 @@ const scene_main = new class extends Scene {
     // Irect(20, 20 + game_height, game_width, 20, background_colour)
 
     ctx.globalCompositeOperation = "source-over"
+
+    //敵
+    enemies.forEach((e) => {
+      const colour_enemy = e.damaged ? "#ec1c24" : "#ffffff"
+
+      const colour_life_bar = e.is_inv ? "#ec1c24" : "#ffffff"
+
+      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, colour_life_bar);
+      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, colour_life_bar, "stroke", 2);
+
+      const colour_pattern = colour_enemy + "80"
+
+      if (this.brighten) {
+        IcircleC(e.p.x, e.p.y, e.r, colour_enemy + "1a", "stroke", 12)
+        if (e.is_boss) {
+          IcircleC(e.p.x, e.p.y, e.r - 24, colour_enemy + "1a", "stroke", 12)
+        }
+      }
+
+      if (e.is_boss) {
+        IpolygonC(7, 2, e.p.x, e.p.y, (e.r - 24) * 0.9, colour_pattern, Math.PI * e.frame / 144, "stroke", 2)
+        IpolygonC(11, 2, e.p.x, e.p.y, e.r * 0.9, colour_pattern, -Math.PI * e.frame / 144, "stroke", 2)
+        IcircleC(e.p.x, e.p.y, e.r - 24, colour_enemy, "stroke", 2)
+      } else {
+        IpolygonC(7, 2, e.p.x, e.p.y, e.r * 0.9, colour_pattern, Math.PI * e.frame / 144, "stroke", 2)
+      }
+
+      IcircleC(e.p.x, e.p.y, e.r, colour_enemy, "stroke", 2)
+
+      if (e.app != null) {
+        e.app.x = e.p.x - 13
+        e.app.y = e.p.y - 10
+        e.app.draw()
+      }
+    })
 
     Image_Data.background.draw()
 
@@ -536,7 +560,12 @@ const scene_main = new class extends Scene {
 const scene_title = new class extends Scene {
   constructor() {
     super()
-    this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane!"] }
+
+    Image_Data.ethanolSD = new Iimage("images/EthanolSD.png", 44, 170, 36, 36)
+
+    this.sc = { frame: 0, current_value: 0 }
+
+    this.option = { "": ["PLAY", "MANUAL", "STORY", "ACHIEVEMENTS", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane!"], "3": Igenerator(function* () { for (let i = 0; i < 8; i++) { yield "  " + i } }) }
 
     this.function = {
       "0": (c) => {
@@ -551,10 +580,12 @@ const scene_title = new class extends Scene {
 
     this.loopf = {
       "0": (c) => {
+        Ifont(36, "white", "serif")
         Itext5(c.frame, 60, 400, font_size, ["vs Ethanol"][c.current_value]);
       },
       "0.": (c) => {
-        Itext5(c.frame, 60, 400, font_size, ["弾幕初めての人向け", "操作を使いこなせたら", "隙間をすり抜けろ!", "テストプレイなんてしてないよ!"][c.current_value]);
+        Ifont(36, "white", "serif")
+        Itext5(c.frame, 60, 400, font_size, ["初めての人向け", "操作を使いこなせたら", "隙間をすり抜けろ!", "テストプレイなんてしてないよ!"][c.current_value]);
         Itext5(c.frame, 60, 400 + font_size, font_size, "Highest Score: " + save.data["stage_" + c.current_branch.charAt(1)]["difficulty_" + c.current_value]["highest_score"]);
         Itext5(c.frame, 60, 400 + font_size * 2, font_size, save.data["stage_" + c.current_branch.charAt(1)]["difficulty_" + c.current_value]["cleared"] ? "Cleared!" : "not Cleared");
       },
@@ -573,10 +604,23 @@ const scene_title = new class extends Scene {
         )
       },
       "2": (c) => {
-        Ifont(24, "white", "serif")
-        Itext5(c.frame, 20, 200, font_size, "警視庁公安部対天使科実動隊のコハクは今夜も天使の気配を感じて<br>夜の東京を飛翔するのであった...[X]")
+        Ifont(36, "white", "serif")
+        Itext5(c.frame, 20, 200, font_size, "警視庁公安部対天使科実動隊のコハクは<br>今夜も天使の気配を感じて夜の東京を<br>飛翔するのであった...[X]")
       },
       "3": (c) => {
+        Image_Data.ethanolSD.height = 36 * this.achive.length
+        Image_Data.ethanolSD.repeat_y = this.achive.length
+
+        Image_Data.ethanolSD.draw()
+
+        Ifont(24, "white", "serif")
+        Itext5(null, 150, 200, font_size, this.achive[c.current_value])
+      },
+      "3.": (c) => {
+        Ifont(24, "white", "serif")
+        Itext5(null, 150, 200, font_size, this.achive[c.current_branch.charAt(1)])
+      },
+      "4": (c) => {
         Ifont(24, "white", "serif")
         Itext6(c.frame * 2, 20, 200, font_size,
           "制作: お躁式ラケッツ! <link>https://www.nicovideo.jp/user/131397716<br>"
@@ -597,6 +641,11 @@ const scene_title = new class extends Scene {
     this.frame = 0
     this.c = { frame: 0, current_branch: "", current_value: 0 }
     Sound_Data.text = false
+
+    this.achive = [
+      ...Igenerator(function* () { for (let i = 0; i < 4; i++) { yield "Stage0の" + ["Easy", "Normal", "Hard", "Insane!"][i] + "をクリアする:<br>" + (save.data["stage_0"]["difficulty_" + i]["cleared"] ? "Achieved!" : "Unachived") } }),
+      ...Igenerator(function* () { for (let i = 0; i < 4; i++) { yield "Stage0の" + ["Easy", "Normal", "Hard", "Insane!"][i] + "をノーミスクリアする:<br>" + (save.data["stage_0"]["difficulty_" + i]["no_miss_clear"] ? "Achieved!" : "Unachived") } }),
+    ]
   }
 
   loop() {
@@ -710,10 +759,18 @@ const scene_gameover = new class extends Scene {
 
       let text = "GAMEOVER!"
       length = ctx.measureText(text).width
-      Itext((this.frame - 36) / 15, (width - length) / 2, height / 2, text)
+      Itext((this.frame - 36) / 15, (width - length) / 2, height / 2 + 30, text)
+
+      Ifont(32, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+      Itext4(null, 0, game_height - font_size, font_size, ["[Z] to back to title", "[R] to retry"])
 
       if (pushed.includes("ok")) {
         scene_anten.next_scene = scene_title
+        scene_manager.MoveTo(scene_anten)
+      }
+
+      if (pushed.includes("KeyR")) {
+        scene_anten.next_scene = scene_main
         scene_manager.MoveTo(scene_anten)
       }
     }
