@@ -42,6 +42,8 @@ const Iaudio = class {
 		this.type = type
 
 		this.ended = false
+
+		this.volume = 1
 	}
 	play() {
 		if (this.ended) { return }
@@ -49,9 +51,12 @@ const Iaudio = class {
 		if (this.type == "se") {
 			this.audio.currentTime = 0
 			this.audio.muted = Sound_Data.mute_se
+			this.audio.volume = config.data.volume_se * this.volume / 12
 		} else if (this.type == "bgm") {
 			this.audio.loop = true
 			this.audio.muted = Sound_Data.mute_bgm
+			this.audio.volume = config.data.volume_bgm * this.volume / 12
+
 		}
 
 		this.audio.play()
@@ -69,10 +74,6 @@ const Iaudio = class {
 
 	mute() {
 		this.audio.muted = !this.audio.muted
-	}
-
-	set_volume(v) {
-		this.audio.volume = v
 	}
 
 	fadeout(frame, time) {
@@ -391,13 +392,14 @@ const Ireuleaux = (m, n, x, y, r, c = "white", theta = 0, id = "fill", width = 2
 				Math.PI / 2 + 2 * Math.PI / m * n * i + angle / 2 + theta + 2 * Math.PI * h / g / m)
 		}
 		ctx.stroke()
+		if (id == "fill") {
+			ctx.fillStyle = c
+			ctx.fill()
+		}
 
 	}
 
-	if (id == "fill") {
-		ctx.fillStyle = c
-		ctx.fill()
-	}
+
 
 }
 

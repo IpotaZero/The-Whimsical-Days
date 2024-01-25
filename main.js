@@ -53,8 +53,8 @@ let key_config = new LocalStorage("key_config",
 let config = new LocalStorage("config", {
   "brighten": true,
   "control_mode": "key",
-  "mute_bgm": false,
-  "mute_se": false
+  "volume_bgm": 12,
+  "volume_se": 12
 })
 
 //message window
@@ -179,7 +179,7 @@ const scene_main = new class extends Scene {
           case "se":
             console.log(element)
             element.se.reset()
-            element.se.set_volume(0.4)
+            element.se.volume = 0.4
             element.se.play()
             break
 
@@ -187,7 +187,7 @@ const scene_main = new class extends Scene {
             if (BGM != null) { BGM.pause() }
             BGM = element.bgm
             BGM.reset()
-            BGM.set_volume(0.4)
+            element.bgm.volume = 0.4
             BGM.play()
             break
 
@@ -671,7 +671,7 @@ const scene_title = new class extends Scene {
     Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
     Sound_Data.select = new Iaudio("./sounds/select.wav")
     Sound_Data.whimsicalness = new Iaudio("./sounds/Whimsicalness.wav", "bgm")
-    Sound_Data.whimsicalness.set_volume(1)
+    Sound_Data.whimsicalness.volume = 1
 
     this.mn = [3, 1]
   }
@@ -688,7 +688,7 @@ const scene_title = new class extends Scene {
     ]
 
     BGM = Sound_Data.whimsicalness
-    BGM.set_volume(1)
+    BGM.volume = 0.7
     BGM.reset()
     BGM.play()
   }
@@ -703,7 +703,9 @@ const scene_title = new class extends Scene {
     //Ipolygon(this.mn[0], this.mn[1], width / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
 
     Ireuleaux(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 100, "#ffffff80", Math.PI * this.frame / 144, "stroke", 2)
-
+    if (config.data.brighten) {
+      Ireuleaux(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 100, "#ffffff19", Math.PI * this.frame / 144, "stroke", 12)
+    }
     //Itrochoid(-this.mn[0], this.mn[1], 0.5, width * 3 / 4, height * 3 / 4, 120, Math.PI * this.frame / 144, "white", "stroke", 2)
 
     Ifont(36, "white", "serif")
@@ -733,19 +735,20 @@ const scene_pretitle = new class extends Scene {
   }
 
   end() {
-    //bodyにボタンを追加
-    const buttons = { "brighten": "Brighten:" + (config.data.brighten ? "ON" : "OFF"), "control_mode": "Control_mode:" + config.data.control_mode, "mute_bgm": "Mute_bgm", "mute_se": "Mute_se" };
-    const keys = Object.keys(buttons)
-    $(function () {
-      for (let key of keys) {
-        $("body").append("<input type='button' id=" + key + " value=" + buttons[key] + " onclick='button(id);'></input>");
-      }
-      //ボタンの数をcss側に伝えます
-      $("body").css("--button_num", keys.length)
-    });
+    $("body").append("BGM Volume:")
+    $("body").append("<input type='range' id=volume_bgm min=0 max=12 step=1 onchange='range(id)'></input>")
+    $("body").append("SE Volume:")
+    $("body").append("<input type='range' id=volume_se min=0 max=12 step=1 onchange='range(id)'></input>")
 
-    Sound_Data.mute_bgm = config.data.mute_bgm
-    Sound_Data.mute_se = config.data.mute_se
+    $("#volume_bgm").val(config.data.volume_bgm)
+    $("#volume_se").val(config.data.volume_se)
+
+    //bodyにボタンを追加
+    const buttons = { "brighten": "Brighten:" + (config.data.brighten ? "ON" : "OFF"), "control_mode": "Control_mode:" + config.data.control_mode };
+    const keys = Object.keys(buttons)
+    for (let key of keys) {
+      $("body").append("<input type='button' id=" + key + " value=" + buttons[key] + " onclick='button(id)'></input>");
+    }
 
   }
 
@@ -902,6 +905,24 @@ const button = (id) => {
       config.save()
       break
   }
+}
+
+const range = (id) => {
+  switch (id) {
+    case "volume_bgm":
+      const volume = $("#" + id).val()
+      config.data.volume_bgm = volume
+      config.save()
+
+      BGM.audio.volume = volume / 12
+      break
+    case "volume_se":
+      const volume_se = $("#" + id).val()
+      config.data.volume_se = volume_se
+      config.save()
+      break
+  }
+  console.log(id, $("#" + id).val())
 }
 
 main()

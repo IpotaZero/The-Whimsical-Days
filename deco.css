@@ -2,7 +2,11 @@ body {
   background: linear-gradient(90deg, #000000, transparent), url("images/back.png");
   background-size: 128px;
   text-align: center;
-  --button_num: 4
+
+  color: white;
+  font-family: serif;
+
+  text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
 }
 
 input[type="button"] {
@@ -14,7 +18,7 @@ input[type="button"] {
 
   font-family: serif;
 
-  width: calc(720px/var(--button_num));
+  width: 140px;
 }
 
 input[type="button"]:hover {
@@ -23,4 +27,37 @@ input[type="button"]:hover {
 
   background-color: white;
   border: 1px solid black;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 120px;
+  /* 全体の幅を720pxに調整 */
+  height: 10px;
+  border-radius: 5px;
+  background: white;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: black;
+  border: 2px solid white;
+  /* 白線で縁取り */
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: black;
+  cursor: pointer;
 }

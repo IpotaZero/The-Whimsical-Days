@@ -54,7 +54,7 @@ Sound_Data.kohaku = new Iaudio("./sounds/select.wav")
 Sound_Data.Ethanol = new Iaudio("./sounds/select.wav")
 
 Sound_Data.uhm = new Iaudio("./sounds/⤵.wav")
-Sound_Data.uhm.set_volume(0.4)
+Sound_Data.uhm.volume = 0.4
 
 Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 80, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
 Image_Data.Kohaku = new Iimage("images/Kohaku.apng", -50, 50, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
