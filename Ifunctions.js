@@ -4,9 +4,15 @@ Sound_Data.mute_bgm = false;
 Sound_Data.mute_se = false;
 
 const LocalStorage = class {
-	constructor(name) {
+	constructor(name, dflt) {
 		this.name = name;
-		this.data = {};
+		this.data = { ...dflt };
+		this.dflt = { ...dflt }
+
+		this.load()
+	}
+	reset() {
+		this.data = { ...this.dflt }
 	}
 	delete() {
 		localStorage.removeItem(this.name);
@@ -304,13 +310,15 @@ function Ipolygon(m, n, x, y, r, c, theta = 0, id = "fill", width = 2) {
 	m /= g
 	n /= g
 
-	const first = new vec(x, y).add(new vec(0, -r).rot(theta))
-	ctx.moveTo(first.x, first.y)
+	for (let h = 0; h < g; h++) {
+		const first = new vec(x, y).add(new vec(0, -r).rot(theta + 2 * Math.PI * h / g / m))
+		ctx.moveTo(first.x, first.y)
 
-	const angle = 2 * Math.PI * n / m
-	for (let i = 1; i <= m; i++) {
-		const to = new vec(x, y).add(new vec(0, -r).rot(theta + angle * i))
-		ctx.lineTo(to.x, to.y)
+		const angle = 2 * Math.PI * n / m
+		for (let i = 1; i <= m; i++) {
+			const to = new vec(x, y).add(new vec(0, -r).rot(theta + angle * i + 2 * Math.PI * h / g / m))
+			ctx.lineTo(to.x, to.y)
+		}
 	}
 
 	if (id == "fill") {
@@ -320,6 +328,75 @@ function Ipolygon(m, n, x, y, r, c, theta = 0, id = "fill", width = 2) {
 		ctx.strokeStyle = c
 		ctx.lineWidth = width
 		ctx.stroke()
+	}
+
+}
+
+const Itrochoid = (m, n, o, x, y, rc, theta, c, id = "fill", width) => {
+	const d = 255
+	const g = Math.abs(gcd(m, n))
+	m /= g
+	n /= g
+
+	const rm = rc / (m / n)
+	const rd = rm * o
+
+	ctx.beginPath()
+
+	for (let h = 0; h < g; h++) {
+
+		const b = new vec(rm + rc - rd, 0).rot(theta + 2 * Math.PI * h / g / m)
+		ctx.moveTo(b.x + x, b.y + y)
+
+		for (let i = 1; i < 1 + d * Math.abs(m); i++) {
+			const a = new vec(
+				(rm + rc) * Math.cos(2 * Math.PI / d * i) - rd * Math.cos((rc / rm + 1) * (2 * Math.PI / d * i)),
+				(rm + rc) * Math.sin(2 * Math.PI / d * i) - rd * Math.sin((rc / rm + 1) * (2 * Math.PI / d * i))
+			).rot(theta + 2 * Math.PI * h / g / m)
+
+			ctx.lineTo(a.x + x, a.y + y)
+		}
+	}
+
+	if (id == "fill") {
+		ctx.fillStyle = c
+		ctx.fill()
+	} else {
+		ctx.strokeStyle = c
+		ctx.lineWidth = width
+		ctx.stroke()
+	}
+
+}
+
+//奇数角形の時はるーろー
+const Ireuleaux = (m, n, x, y, r, c = "white", theta = 0, id = "fill", width = 2) => {
+	const g = Math.abs(gcd(m, n))
+
+	m /= g
+	n /= g
+
+	const angle = Math.PI / m * n
+	const length = 2 * r * Math.cos(angle / 2)
+
+	ctx.strokeStyle = c
+	ctx.lineWidth = width
+
+	for (let h = 0; h < g; h++) {
+		ctx.beginPath()
+		for (let i = 0; i < Math.abs(m); i++) {
+			const point = new vec(x, y).add(new vec(0, -r).rot(2 * Math.PI / m * n * i + theta + 2 * Math.PI * h / g / m))
+			ctx.arc(point.x, point.y, length,
+				Math.PI / 2 + 2 * Math.PI / m * n * i - angle / 2 + theta + 2 * Math.PI * h / g / m,
+				Math.PI / 2 + 2 * Math.PI / m * n * i + angle / 2 + theta + 2 * Math.PI * h / g / m)
+		}
+		ctx.stroke()
+
+	}
+
+	if (id == "fill") {
+		ctx.fillStyle = c
+		ctx.fill()
 	}
 
 }
@@ -522,6 +599,12 @@ function IimageC(image, x, y, width, height) {
 function Icommand(c, x, y, line_space, option, f, loop) {
 	let o = Iget(option, c.current_branch)
 
+	c.cancel = false
+	if (pushed.includes("cancel")) {
+		c.cancel = true
+		Sound_Data.cancel.play()
+	}
+
 	if (o != null) {
 		Itext4(c.frame * 2, x + line_space, y, line_space, o)
 		Itext(c.frame, x, y + line_space * c.current_value, "→")
@@ -546,11 +629,10 @@ function Icommand(c, x, y, line_space, option, f, loop) {
 	let l = Iget(loop, c.current_branch)
 	if (l != null) { l(c) }
 
-	if (pushed.includes("cancel") && c.current_branch != "") {
+	if (c.cancel && c.current_branch != "") {
 		c.current_value = Number(c.current_branch.charAt(c.current_branch.length - 1))
 		c.current_branch = c.current_branch.slice(0, -1)
 		c.frame = 0
-		Sound_Data.cancel.play()
 	}
 
 	c.frame++;

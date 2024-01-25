@@ -26,21 +26,36 @@ let next_enemies = []
 
 let difficulty = 0
 
-let save = new LocalStorage("save")
+const default_save = {}
+ILoop([0, 0], [0, 3], (stage, difficulty) => {
+  default_save["stage_" + stage] ??= {}
+  default_save["stage_" + stage]["difficulty_" + difficulty] = {
+    cleared: false,
+    no_miss_clear: false,
+    highest_score: 0
+  }
+})
 
-//セーブデータが存在しないなら
-if (!save.load()) {
-  save.data = {}
-  ILoop([0, 0], [0, 3], (stage, difficulty) => {
-    save.data["stage_" + stage] ??= {}
-    save.data["stage_" + stage]["difficulty_" + difficulty] = {
-      cleared: false,
-      no_miss_clear: false,
-      highest_score: 0
-    }
-  })
-}
+let save = new LocalStorage("save", default_save)
 
+let key_config = new LocalStorage("key_config",
+  {
+    up: "ArrowUp",
+    down: "ArrowDown",
+    right: "ArrowRight",
+    left: "ArrowLeft",
+    slow: "ShiftLeft",
+    dash: "ControlLeft",
+    turn: "KeyA"
+  }
+)
+
+let config = new LocalStorage("config", {
+  "brighten": true,
+  "control_mode": "key",
+  "mute_bgm": false,
+  "mute_se": false
+})
 
 //message window
 const lefttop = new vec(40, 500)
@@ -74,15 +89,14 @@ const scene_main = new class extends Scene {
     Sound_Data.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
     Sound_Data.u = new Iaudio("./sounds/u.wav")
 
-    this.brighten = true
     this.colours = {}
 
     this.chapter_num = 0
-
-    this.mouse_mode = false
   }
 
   start() {
+    fpsInterval = 1000 / 24
+
     bullets = []
     enemies = []
     enemy_vrs.p = new vec(game_width / 2, -100)
@@ -306,19 +320,23 @@ const scene_main = new class extends Scene {
   }
 
   control_player() {
+    const key = key_config.data
     //プレイヤー操作
     player.v = new vec(0, 0)
 
-    if (pressed.includes("ArrowLeft")) { player.v.x--; }
-    if (pressed.includes("ArrowRight")) { player.v.x++; }
-    if (pressed.includes("ArrowUp")) { player.v.y--; }
-    if (pressed.includes("ArrowDown")) { player.v.y++; }
+    if (pressed.includes(key["left"])) { player.v.x--; }
+    if (pressed.includes(key["right"])) { player.v.x++; }
+    if (pressed.includes(key["up"])) { player.v.y--; }
+    if (pressed.includes(key["down"])) { player.v.y++; }
 
-    player.speed = pressed.includes("ShiftLeft") ? 6 : 16
+    player.speed = pressed.includes(key["slow"]) ? 6 : 16
 
     if (player.dash > 0) { player.speed = 60 }
 
-    if (pushed.includes("ControlLeft") && player.dash_interval == 0) {
+    player.v = player.v.nor()
+    player.p = player.v.mlt(player.speed).add(player.p)
+
+    if (pushed.includes(key["dash"]) && player.dash_interval == 0) {
       player.dash_interval = dash_interval
       player.dash = 12
       player.inv = true
@@ -335,23 +353,17 @@ const scene_main = new class extends Scene {
 
     if (player.dash_interval > 0) { player.dash_interval--; }
 
-    player.v = player.v.nor()
-    player.p = player.v.mlt(player.speed).add(player.p)
-
-    if (this.mouse_mode) { player.p = mouse.p.add(new vec(-20, -20)) }
+    if (config.data.control_mode == "mouse") { player.p = mouse.p.add(new vec(-20, -20)) }
 
     if (player.p.x < 0) { player.p.x = 0 }
     if (player.p.x > game_width) { player.p.x = game_width }
     if (player.p.y < 0) { player.p.y = 0 }
     if (player.p.y > game_height) { player.p.y = game_height }
 
-    if (pushed.includes("KeyA")) { player.direction = 1 - player.direction }
+    if (pushed.includes(key["turn"])) { player.direction = 1 - player.direction }
 
-  }
-
-  danmaku() {
     if (this.frame % 3 == 0) {
-      if (pressed.includes("ShiftLeft")) {
+      if (pressed.includes(key["slow"])) {
         for (let i = 0; i < 5; i++) {
           bullets.push(...remodel([player_bullet], ["p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
         }
@@ -359,6 +371,10 @@ const scene_main = new class extends Scene {
         bullets.push(...remodel([player_bullet], ["p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
       }
     }
+
+  }
+
+  danmaku() {
 
     if (player.dead > 0) {
       bullets = []
@@ -446,7 +462,7 @@ const scene_main = new class extends Scene {
     const colour_player = player.dead > 0 ? "80" : "ff";
     IcircleC(player.p.x, player.p.y, player.r, "#ff0000" + colour_player)
     IarcC(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / dash_interval), "#ffffff" + colour_player, "stroke", 2)
-    if (this.brighten) {
+    if (config.data.brighten) {
       IcircleC(player.p.x, player.p.y, player.r + player.graze_r, "rgba(255,255,255,0.2)", "stroke", 8)
       IcircleC(player.p.x, player.p.y, player.r, "rgba(255,0,0,0.2)", "stroke", 8)
     }
@@ -472,7 +488,7 @@ const scene_main = new class extends Scene {
           IcircleC(b.p.x, b.p.y, b.r, b.colour)
       }
 
-      if (this.brighten) {
+      if (config.data.brighten) {
         this.colours[b.colour] ??= chroma(b.colour).brighten(2).hex()
         const c = chroma(this.colours[b.colour])
 
@@ -507,7 +523,7 @@ const scene_main = new class extends Scene {
 
       const colour_pattern = colour_enemy + "80"
 
-      if (this.brighten) {
+      if (config.data.brighten) {
         IcircleC(e.p.x, e.p.y, e.r, colour_enemy + "1a", "stroke", 12)
         if (e.is_boss) {
           IcircleC(e.p.x, e.p.y, e.r - 24, colour_enemy + "1a", "stroke", 12)
@@ -561,11 +577,13 @@ const scene_title = new class extends Scene {
   constructor() {
     super()
 
+    const key = ["up", "down", "right", "left", "slow", "dash", "turn", "Reset"]
+
     Image_Data.ethanolSD = new Iimage("images/EthanolSD.png", 44, 170, 36, 36)
 
     this.sc = { frame: 0, current_value: 0 }
 
-    this.option = { "": ["PLAY", "MANUAL", "STORY", "ACHIEVEMENTS", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane!"], "3": Igenerator(function* () { for (let i = 0; i < 8; i++) { yield "  " + i } }) }
+    this.option = { "": ["PLAY", "MANUAL", "STORY", "ACHIEVEMENTS", "KEY CONFIG", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane!"], "3": Igenerator(function* () { for (let i = 0; i < 8; i++) { yield "  " + i } }), "4": key }
 
     this.function = {
       "0": (c) => {
@@ -575,6 +593,13 @@ const scene_title = new class extends Scene {
         difficulty = c.current_value
         scene_anten.next_scene = scene_main
         scene_manager.MoveTo(scene_anten)
+      },
+      "4": (c) => {
+        if (c.current_value == 7) {
+          key_config.reset()
+          key_config.save()
+          c.cancel = true
+        }
       }
     }
 
@@ -621,6 +646,18 @@ const scene_title = new class extends Scene {
         Itext5(null, 150, 200, font_size, this.achive[c.current_branch.charAt(1)])
       },
       "4": (c) => {
+        Itext4(c.frame * 2, 220, 200, font_size, Igenerator(function* () { for (let i = 0; i < 7; i++) { yield key_config.data[key[i]] } }))
+      },
+      "4.": (c) => {
+        Itext(null, 20, 200, "Press the key you want to use!")
+        if (c.frame > 0 && pushed.length > 0) {
+          key_config.data[key[c.current_branch.charAt(1)]] = pushed[0]
+          key_config.save()
+
+          c.cancel = true
+        }
+      },
+      "5": (c) => {
         Ifont(24, "white", "serif")
         Itext6(c.frame * 2, 20, 200, font_size,
           "制作: お躁式ラケッツ! <link>https://www.nicovideo.jp/user/131397716<br>"
@@ -633,11 +670,14 @@ const scene_title = new class extends Scene {
     Sound_Data.ok = new Iaudio("./sounds/ok.wav")
     Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
     Sound_Data.select = new Iaudio("./sounds/select.wav")
+    Sound_Data.whimsicalness = new Iaudio("./sounds/Whimsicalness.wav", "bgm")
+    Sound_Data.whimsicalness.set_volume(1)
 
-    this.mn = [3, 4]
+    this.mn = [3, 1]
   }
 
   start() {
+    fpsInterval = 1000 / 18
     this.frame = 0
     this.c = { frame: 0, current_branch: "", current_value: 0 }
     Sound_Data.text = false
@@ -646,6 +686,11 @@ const scene_title = new class extends Scene {
       ...Igenerator(function* () { for (let i = 0; i < 4; i++) { yield "Stage0の" + ["Easy", "Normal", "Hard", "Insane!"][i] + "をクリアする:<br>" + (save.data["stage_0"]["difficulty_" + i]["cleared"] ? "Achieved!" : "Unachived") } }),
       ...Igenerator(function* () { for (let i = 0; i < 4; i++) { yield "Stage0の" + ["Easy", "Normal", "Hard", "Insane!"][i] + "をノーミスクリアする:<br>" + (save.data["stage_0"]["difficulty_" + i]["no_miss_clear"] ? "Achieved!" : "Unachived") } }),
     ]
+
+    BGM = Sound_Data.whimsicalness
+    BGM.set_volume(1)
+    BGM.reset()
+    BGM.play()
   }
 
   loop() {
@@ -654,17 +699,22 @@ const scene_title = new class extends Scene {
     Ifont(60, "white", "serif")
     Itext(this.frame, 20, 20 + font_size, "The Whimsical Days!")
 
-    Ipolygon(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
+    //Ipolygon(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
+    //Ipolygon(this.mn[0], this.mn[1], width / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
+
+    Ireuleaux(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 100, "#ffffff80", Math.PI * this.frame / 144, "stroke", 2)
+
+    //Itrochoid(-this.mn[0], this.mn[1], 0.5, width * 3 / 4, height * 3 / 4, 120, Math.PI * this.frame / 144, "white", "stroke", 2)
 
     Ifont(36, "white", "serif")
     this.c = Icommand(this.c, 20, 200, font_size, this.option, this.function, this.loopf)
 
     this.frame++;
 
-    if (this.frame % 14 == 0) {
+    if (this.frame % 10 == 7) {
       let a
       do {
-        a = [Math.floor(Math.random() * 12) + 2, Math.floor(Math.random() * 3) + 2]
+        a = [Math.floor(Math.random() * 6) + 2, Math.floor(Math.random() * 3) + 2]
       } while (this.mn[0] / this.mn[1] == a[0] / a[1] || a[0] / a[1] < 2)
 
       this.mn = a
@@ -684,7 +734,7 @@ const scene_pretitle = new class extends Scene {
 
   end() {
     //bodyにボタンを追加
-    const buttons = { "brighten": "Brighten:ON", "control_mode": "Control_mode:key", "mute_bgm": "Mute_bgm", "mute_se": "Mute_se" };
+    const buttons = { "brighten": "Brighten:" + (config.data.brighten ? "ON" : "OFF"), "control_mode": "Control_mode:" + config.data.control_mode, "mute_bgm": "Mute_bgm", "mute_se": "Mute_se" };
     const keys = Object.keys(buttons)
     $(function () {
       for (let key of keys) {
@@ -693,6 +743,10 @@ const scene_pretitle = new class extends Scene {
       //ボタンの数をcss側に伝えます
       $("body").css("--button_num", keys.length)
     });
+
+    Sound_Data.mute_bgm = config.data.mute_bgm
+    Sound_Data.mute_se = config.data.mute_se
+
   }
 
   loop() {
@@ -799,7 +853,7 @@ const scene_manager = new class {
 
 let BGM = null
 
-const fpsInterval = 1000 / 24;
+let fpsInterval = 1000 / 24;
 let then = Date.now();
 let start_time = then;
 
@@ -824,22 +878,28 @@ const button = (id) => {
   console.log(id)
   switch (id) {
     case "brighten":
-      scene_main.brighten = !scene_main.brighten
-      $("#brighten").val("Brighten:" + (scene_main.brighten ? "ON" : "OFF"))
+      config.data.brighten = !config.data.brighten
+      config.save()
+      $("#brighten").val("Brighten:" + (config.data.brighten ? "ON" : "OFF"))
       break
 
     case "control_mode":
-      scene_main.mouse_mode = !scene_main.mouse_mode
-      $("#control_mode").val("Control_mode:" + (scene_main.mouse_mode ? "mouse" : "key"))
+      config.data.control_mode = { mouse: "key", key: "mouse" }[config.data.control_mode]
+      config.save()
+      $("#control_mode").val("Control_mode:" + config.data.control_mode)
       break
     case "mute_bgm":
       Sound_Data.mute_bgm = !Sound_Data.mute_bgm
+      config.data.mute_bgm = !config.data.mute_bgm
+      config.save()
       if (BGM != null) {
         BGM.mute()
       }
       break
     case "mute_se":
       Sound_Data.mute_se = !Sound_Data.mute_se
+      config.data.mute_se = !config.data.mute_se
+      config.save()
       break
   }
 }
