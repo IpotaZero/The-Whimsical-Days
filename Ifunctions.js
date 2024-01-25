@@ -1,7 +1,40 @@
-let Sound_Data = {};
+const Sound_Data = {};
 Sound_Data.text = false;
 Sound_Data.mute_bgm = false;
 Sound_Data.mute_se = false;
+
+const LocalStorage = class {
+	constructor(name, dflt) {
+		this.name = name;
+		this.data = { ...dflt };
+		this.dflt = { ...dflt }
+
+		this.load()
+	}
+	reset() {
+		this.data = { ...this.dflt }
+	}
+	delete() {
+		localStorage.removeItem(this.name);
+	}
+	load() {
+		let data = null;
+		if (localStorage != null) {
+			data = JSON.parse(localStorage.getItem(this.name));
+		}
+		if (data != null) {
+			this.data = data;
+			return true;
+		}
+		return false;
+	}
+	save() {
+		let data = JSON.stringify(this.data);
+		if (localStorage != null) {
+			localStorage.setItem(this.name, data);
+		}
+	}
+}
 
 const Iaudio = class {
 	constructor(path, type = "se") {
@@ -9,6 +42,8 @@ const Iaudio = class {
 		this.type = type
 
 		this.ended = false
+
+		this.volume = 1
 	}
 	play() {
 		if (this.ended) { return }
@@ -16,9 +51,12 @@ const Iaudio = class {
 		if (this.type == "se") {
 			this.audio.currentTime = 0
 			this.audio.muted = Sound_Data.mute_se
+			this.audio.volume = config.data.volume_se * this.volume / 12
 		} else if (this.type == "bgm") {
 			this.audio.loop = true
 			this.audio.muted = Sound_Data.mute_bgm
+			this.audio.volume = config.data.volume_bgm * this.volume / 12
+
 		}
 
 		this.audio.play()
@@ -36,10 +74,6 @@ const Iaudio = class {
 
 	mute() {
 		this.audio.muted = !this.audio.muted
-	}
-
-	set_volume(v) {
-		this.audio.volume = v
 	}
 
 	fadeout(frame, time) {
@@ -123,8 +157,10 @@ const Iimage = class {
 	}
 }
 
-let Image_Data = {};
+const Image_Data = {};
 
+const gcd = (x, y) => x % y ? gcd(y, x % y) : y
+const lcm = (x, y) => x * y / gcd(x, y)
 
 function Ilink(frame, x, y, link) {
 	let a = ctx.measureText(link)
@@ -215,7 +251,27 @@ function Itext6(frame, x, y, line_space, text) {
 	}
 }
 
-function Icircle(x, y, r, c, id = "fill", size = 2) {
+//文字の表示をいい感じに
+function Iadjust(max_width, text) {
+	const lines = text.split("<br>");
+
+	for (let h = 0; h < lines.length; h++) {
+		let line = lines[h];
+		for (let i = 0; i < line.length; i++) {
+			let substring = line.slice(0, i);
+			if (ctx.measureText(substring).width > max_width) {
+				lines[h] = substring + "<br>" + line.slice(i);
+				break;
+			}
+		}
+	}
+
+	const adjusted_text = lines.join("<br>");
+
+	return adjusted_text
+}
+
+function Icircle(x, y, r, c, id = "fill", width = 2) {
 	ctx.beginPath();
 	ctx.arc(x, y, r, 0, 2 * Math.PI);
 
@@ -226,13 +282,13 @@ function Icircle(x, y, r, c, id = "fill", size = 2) {
 			break;
 		case "stroke":
 			ctx.strokeStyle = c;
-			ctx.lineWidth = size;
+			ctx.lineWidth = width;
 			ctx.stroke();
 			break;
 	}
 }
 
-function Iarc(x, y, r, start, end, c, id = "fill", size = 2) {
+function Iarc(x, y, r, start, end, c, id = "fill", width = 2) {
 	ctx.beginPath();
 	ctx.arc(x, y, r, start, end);
 
@@ -243,11 +299,128 @@ function Iarc(x, y, r, start, end, c, id = "fill", size = 2) {
 			break;
 		case "stroke":
 			ctx.strokeStyle = c;
-			ctx.lineWidth = size;
+			ctx.lineWidth = width;
 			ctx.stroke();
 			break;
 	}
 }
+
+function Ipolygon(m, n, x, y, r, c, theta = 0, id = "fill", width = 2) {
+	ctx.beginPath()
+	const g = gcd(m, n)
+	m /= g
+	n /= g
+
+	for (let h = 0; h < g; h++) {
+		const first = new vec(x, y).add(new vec(0, -r).rot(theta + 2 * Math.PI * h / g / m))
+		ctx.moveTo(first.x, first.y)
+
+		const angle = 2 * Math.PI * n / m
+		for (let i = 1; i <= m; i++) {
+			const to = new vec(x, y).add(new vec(0, -r).rot(theta + angle * i + 2 * Math.PI * h / g / m))
+			ctx.lineTo(to.x, to.y)
+		}
+	}
+
+	if (id == "fill") {
+		ctx.fillStyle = c
+		ctx.fill()
+	} else {
+		ctx.strokeStyle = c
+		ctx.lineWidth = width
+		ctx.stroke()
+	}
+
+}
+
+const Itrochoid = (m, n, o, x, y, rc, theta, c, id = "fill", width) => {
+	const d = 255
+	const g = Math.abs(gcd(m, n))
+	m /= g
+	n /= g
+
+	const rm = rc / (m / n)
+	const rd = rm * o
+
+	ctx.beginPath()
+
+	for (let h = 0; h < g; h++) {
+
+		const b = new vec(rm + rc - rd, 0).rot(theta + 2 * Math.PI * h / g / m)
+		ctx.moveTo(b.x + x, b.y + y)
+
+		for (let i = 1; i < 1 + d * Math.abs(m); i++) {
+			const a = new vec(
+				(rm + rc) * Math.cos(2 * Math.PI / d * i) - rd * Math.cos((rc / rm + 1) * (2 * Math.PI / d * i)),
+				(rm + rc) * Math.sin(2 * Math.PI / d * i) - rd * Math.sin((rc / rm + 1) * (2 * Math.PI / d * i))
+			).rot(theta + 2 * Math.PI * h / g / m)
+
+			ctx.lineTo(a.x + x, a.y + y)
+		}
+	}
+
+	if (id == "fill") {
+		ctx.fillStyle = c
+		ctx.fill()
+	} else {
+		ctx.strokeStyle = c
+		ctx.lineWidth = width
+		ctx.stroke()
+	}
+
+}
+
+//奇数角形の時はるーろー
+const Ireuleaux = (m, n, x, y, r, c = "white", theta = 0, id = "fill", width = 2) => {
+	const g = Math.abs(gcd(m, n))
+
+	m /= g
+	n /= g
+
+	const angle = Math.PI / m * n
+	const length = 2 * r * Math.cos(angle / 2)
+
+	ctx.strokeStyle = c
+	ctx.lineWidth = width
+
+	for (let h = 0; h < g; h++) {
+		ctx.beginPath()
+		for (let i = 0; i < Math.abs(m); i++) {
+			const point = new vec(x, y).add(new vec(0, -r).rot(2 * Math.PI / m * n * i + theta + 2 * Math.PI * h / g / m))
+			ctx.arc(point.x, point.y, length,
+				Math.PI / 2 + 2 * Math.PI / m * n * i - angle / 2 + theta + 2 * Math.PI * h / g / m,
+				Math.PI / 2 + 2 * Math.PI / m * n * i + angle / 2 + theta + 2 * Math.PI * h / g / m)
+		}
+		ctx.stroke()
+		if (id == "fill") {
+			ctx.fillStyle = c
+			ctx.fill()
+		}
+
+	}
+
+
+
+}
+
+const Iellipse = (x, y, r0, r1, arg, colour, start = 0, end = 2 * Math.PI, id = "fill", width = 2) => {
+	ctx.beginPath()
+
+	ctx.ellipse(x, y, r0, r1, arg, start, end)
+
+	switch (id) {
+		case "fill":
+			ctx.fillStyle = colour
+			ctx.fill()
+			break
+		case "stroke":
+			ctx.strokeStyle = colour
+			ctx.lineWidth = width
+			ctx.stroke()
+			break
+	}
+}
+
 
 //座標、幅、高さ、色、ID,太さ
 function Irect(x, y, width, height, c, id = "fill", size = 2) {
@@ -313,6 +486,67 @@ const vec = class {
 	rot(rad) { return new vec(this.x * Math.cos(rad) - this.y * Math.sin(rad), this.x * Math.sin(rad) + this.y * Math.cos(rad)); }
 	new() { return new vec(this.x, this.y); }
 	dot(v) { return this.x * v.x + this.y * v.y; }
+	arg() { return Math.atan2(this.y, this.x) }
+}
+
+const vec3 = class {
+	constructor(_x, _y, _z) {
+		this.x = _x;
+		this.y = _y;
+		this.z = _z
+	}
+	length() { return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2); }
+
+	add(v) { return new vec3(this.x + v.x, this.y + v.y, this.z + v.z); }
+	sub(v) { return new vec3(this.x - v.x, this.y - v.y, this.z - v.z); }
+	mlt(m) { return new vec3(this.x * m, this.y * m, this.z * m); }
+	nor() { if (this.length() == 0) { return this; } else { const l = this.length(); return new vec3(this.x / l, this.y / l, this.z / l); } }
+	rot(theta, v) {
+		//軸ベクトル
+		const u = v.nor()
+
+		//作用素
+		const r = new qua(Math.cos(theta / 2), Math.sin(theta / 2) * u.x, Math.sin(theta / 2) * u.y, Math.sin(theta / 2) * u.z)
+
+		//四元数にす
+		const a = new qua(0, this.x, this.y, this.z)
+
+		//回転させる
+		const e = r.mlt(a).mlt(r.cnj())
+
+		//ベクトルに戻す
+		const i = new vec3(e.b, e.c, e.d)
+
+		return i
+	}
+	to2() { return new vec(this.x, this.y) }
+	new() { return new vec3(this.x, this.y, this.z) }
+}
+
+const qua = class {
+	constructor(a, b, c, d) {
+		this.a = a
+		this.b = b
+		this.c = c
+		this.d = d
+	}
+	length() { return Math.sqrt(this.a ** 2 + this.b ** 2 + this.c ** 2 + this.d ** 2) }
+	add(q) { return new qua(this.a + q.a, this.b + q.b, this.c + q.c, this.d + q.d) }
+	mlt(q) {
+		if (typeof q == "number") {
+			return new qua(this.a * q, this.b * q, this.c * q, this.d * q)
+		} else {
+			return new qua(
+				this.a * q.a - this.b * q.b - this.c * q.c - this.d * q.d,
+				this.a * q.b + this.b * q.a + this.c * q.d - this.d * q.c,
+				this.a * q.c - this.b * q.d + this.c * q.a + this.d * q.b,
+				this.a * q.d + this.b * q.c - this.c * q.b + this.d * q.a
+			)
+		}
+	}
+	cnj() {
+		return new qua(this.a, -this.b, -this.c, -this.d)
+	}
 }
 
 //多重for文(f:関数, a:初期値, b:終了値)
@@ -346,6 +580,10 @@ function IarcC(x, y, r, start, end, c, id, size) {
 	Iarc(x - Icamera.p.x, y - Icamera.p.y, r, start, end, c, id, size);
 }
 
+function IpolygonC(m, n, x, y, r, c, theta, id, width) {
+	Ipolygon(m, n, x - Icamera.p.x, y - Icamera.p.y, r, c, theta, id, width)
+}
+
 function IrectC(x, y, width, height, c, id, size) {
 	Irect(x - Icamera.p.x, y - Icamera.p.y, width, height, c, id, size);
 }
@@ -360,16 +598,14 @@ function IimageC(image, x, y, width, height) {
 	ctx.drawImage(image, x, y, width, height);
 }
 
-function Idice(a, b) {
-	let n = 0;
-	for (let i = 0; i < a; i++) {
-		n += Math.floor(Math.random() * b) + 1;
-	}
-	return n;
-}
-
 function Icommand(c, x, y, line_space, option, f, loop) {
 	let o = Iget(option, c.current_branch)
+
+	c.cancel = false
+	if (pushed.includes("cancel")) {
+		c.cancel = true
+		Sound_Data.cancel.play()
+	}
 
 	if (o != null) {
 		Itext4(c.frame * 2, x + line_space, y, line_space, o)
@@ -395,11 +631,10 @@ function Icommand(c, x, y, line_space, option, f, loop) {
 	let l = Iget(loop, c.current_branch)
 	if (l != null) { l(c) }
 
-	if (pushed.includes("cancel") && c.current_branch != "") {
+	if (c.cancel && c.current_branch != "") {
 		c.current_value = Number(c.current_branch.charAt(c.current_branch.length - 1))
 		c.current_branch = c.current_branch.slice(0, -1)
 		c.frame = 0
-		Sound_Data.cancel.play()
 	}
 
 	c.frame++;

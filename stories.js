@@ -54,50 +54,70 @@ Sound_Data.kohaku = new Iaudio("./sounds/select.wav")
 Sound_Data.Ethanol = new Iaudio("./sounds/select.wav")
 
 Sound_Data.uhm = new Iaudio("./sounds/⤵.wav")
-Sound_Data.uhm.set_volume(0.4)
+Sound_Data.uhm.volume = 0.4
 
+Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 80, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
+Image_Data.Kohaku = new Iimage("images/Kohaku.apng", -50, 50, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
 
-Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 50, 960, 1920, { ratio: 0.4, alpha: 1 })
-
+Ifont(24)
 const story = [
   [
-    { type: "text", text: "Kohaku:<br>くんくん...<br>こっちからプログラムの気配がする<br>な...", voice: Sound_Data.kohaku },
+    { type: "text", text: Iadjust(game_width - 140, "Arthur:<br>前方2kmにプログラムの気配あり"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "image", image: Image_Data.Kohaku },
+    { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>本当か?<br>"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "text", text: Iadjust(game_width - 140, "Arthur:<br>Crosshand家の名誉に誓って<br>"), voice: Sound_Data.kohaku },
     { type: "ok" },
     { type: "text", text: "" },
+    { type: "delete_image" },
     { type: "bgm", bgm: Sound_Data.Drunkenness },
     { type: "sleep", interval: 48 },
     { type: "text", text: "" },
 
+
     ...translate([
       { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
-      { time: 265, type: "do", value: { type: "text", text: "第3話: 酩酊" } },
-      { time: 335, type: "do", value: { type: "text", text: "" } },
+      { time: 255, type: "do", value: { type: "text", text: "第3話: 酩酊" } },
+      { time: 325, type: "do", value: { type: "text", text: "" } },
       { time: 350, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
       { time: 422, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
       { time: 580, type: "enemies", enemies: [enemy_data.zako_2] },
       { time: 580, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_3_" + i] } }) },
       { time: 790, type: "enemies", enemies: Igenerator(function* () { for (let i = 0; i < 3; i++) { yield enemy_data["zako_5_" + i] } }) },
-      { time: 1065, type: "enemies", enemies: [enemy_data.zako_7] },
+      { time: 1045, type: "enemies", enemies: [enemy_data.zako_7] },
     ]),
 
-    { type: "sleep", interval: 697 },
+    { type: "sleep", interval: 695 },
 
-    { type: "do", f: () => { BGM.end(); enemies.forEach((e) => { e.life = 0 }); scene_main.boss = true; scene_main.story_frame = 0 } },
+    {
+      type: "do", f: () => {
+        BGM.end();
+        enemies.forEach((e) => { e.life = 0 });
+        scene_main.boss = true;
+        scene_main.story_frame = 0
+      }
+    },
+    { type: "enemy", enemy: enemy_data.ethanol_m1 },
+    { type: "sleep", interval: 48 },
     { type: "image", image: Image_Data.Ethanol },
-    { type: "text", text: "Ethanol:<br>追いかけてくるなよー", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>尾けてくるなよー"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Kohaku:<br>こっちも仕事なもんでね", voice: Sound_Data.kohaku },
+    { type: "image", image: Image_Data.Kohaku },
+    { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>こっちも仕事なもんでね"), voice: Sound_Data.kohaku },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>うーん", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>うーん"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>別に戦わなくても<br>いいんだけどね<br>", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>別に戦わなくてもいいんだけどね"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>君があたしを倒すつもりなら、<br>", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>あんたがあたしを倒すつもりなら"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>受けて立とうじゃないか!", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>受けて立とうじゃないか!"), voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "delete_image" },
+    { type: "do", f: () => { enemies = [] } },
+
 
     { type: "enemy", enemy: enemy_data.ethanol_0 },
     { type: "bgm", bgm: Sound_Data.Intoxicarion },
@@ -108,22 +128,27 @@ const story = [
     { type: "wait" },
 
     { type: "image", image: Image_Data.Ethanol },
-    { type: "text", text: "Ethanol:<br>うううッー!", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>うううッー!"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>まだッあたしはッ負けてない!", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>まだッあたしはッ<br>負けてない!"), voice: Sound_Data.Ethanol },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "delete_image" },
     { type: "enemy", enemy: enemy_data.ethanol_5 },
     { type: "wait" },
 
+
+    { type: "sleep", interval: 24 },
     { type: "image", image: Image_Data.Ethanol },
     { type: "do", f: () => { scene_main.boss = false } },
-    { type: "text", text: "Ethanol:<br>ぐわーッ", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>ぐわーッ"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Kohaku:<br>さあ、ハイクを詠むんだな!", voice: Sound_Data.Ethanol },
+    { type: "image", image: Image_Data.Kohaku },
+    { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>さあ、ハイクを詠むんだな!<br>"), voice: Sound_Data.Ethanol },
     { type: "ok" },
-    { type: "text", text: "Ethanol:<br>苦しくて、 投げ出したいのは<br>きっとアセトアルデヒド", voice: Sound_Data.Ethanol },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>苦しくて、投げ出したいのはきっとアセトアルデヒド"), voice: Sound_Data.Ethanol },
+    { type: "ok" },
+    { type: "score" },
     { type: "ok" },
     { type: "text", text: "" },
     { type: "end" }

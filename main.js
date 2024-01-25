@@ -1,16 +1,3 @@
-const Scene_Manager = class {
-  constructor(_scene) {
-    this.current_scene = _scene;
-    this.current_scene.start()
-  }
-
-  MoveTo(_scene) {
-    this.current_scene.end();
-    this.current_scene = _scene;
-    this.current_scene.start();
-  }
-}
-
 const Scene = class {
   constructor() {
 
@@ -39,11 +26,59 @@ let next_enemies = []
 
 let difficulty = 0
 
-const Scene_Main = class extends Scene {
+const default_save = {}
+ILoop([0, 0], [0, 3], (stage, difficulty) => {
+  default_save["stage_" + stage] ??= {}
+  default_save["stage_" + stage]["difficulty_" + difficulty] = {
+    cleared: false,
+    no_miss_clear: false,
+    highest_score: 0
+  }
+})
+
+let save = new LocalStorage("save", default_save)
+
+let key_config = new LocalStorage("key_config",
+  {
+    up: "ArrowUp",
+    down: "ArrowDown",
+    right: "ArrowRight",
+    left: "ArrowLeft",
+    slow: "ShiftLeft",
+    dash: "ControlLeft",
+    turn: "KeyA"
+  }
+)
+
+let config = new LocalStorage("config", {
+  "brighten": true,
+  "control_mode": "key",
+  "volume_bgm": 12,
+  "volume_se": 12
+})
+
+//message window
+const lefttop = new vec(40, 500)
+const leftbottom = new vec(40, 680)
+const righttop = new vec(432, 500)
+const rightbottom = new vec(432, 680)
+
+const dash_interval = 48
+
+const player_bullet = remodel([bullet_model], ["r", 3, "app", "none", "colour", "#ffffff80", "type", "friend"])[0]
+
+const damage_effect = {
+  type: "effect", colour: "#00ffff80", app: "laser",
+  p: new vec(0, 0), r: 6, life: 6, v: new vec(0, 0), f: [
+    (me) => { me.life-- }
+  ]
+}
+
+const scene_main = new class extends Scene {
   constructor() {
     super()
     Image_Data.background = new Iimage("./images/ba.png", 0, 0, width, height)
-    Image_Data.battle_bg = new Iimage("./images/battle_bg.png", -width + 20 + game_width / 2, -height + 20 + game_height / 2, width * 2, height * 2, { alpha: 0.1, center_x: width, center_y: height, repeat_x: 32, repeat_y: 32 })
+    Image_Data.battle_bg = new Iimage("./images/battle_bg.png", -width + 20 + game_width / 2, -height + 20 + game_height / 2, width * 2, height * 2, { alpha: 0.0, center_x: width, center_y: height, repeat_x: 32, repeat_y: 32 })
 
     Sound_Data.graze = new Iaudio("./sounds/graze.wav")
     Sound_Data.dash = new Iaudio("./sounds/dash.wav")
@@ -54,24 +89,25 @@ const Scene_Main = class extends Scene {
     Sound_Data.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
     Sound_Data.u = new Iaudio("./sounds/u.wav")
 
-    this.dash_interval = 48
-
-    this.brighten = true
-
     this.colours = {}
 
     this.chapter_num = 0
-
-    this.mouse_mode = false
   }
 
   start() {
+    fpsInterval = 1000 / 24
+
     bullets = []
     enemies = []
     enemy_vrs.p = new vec(game_width / 2, -100)
+    this.graze = 0
+    this.score = 0
+    this.socre_text = ""
 
     this.frame = 0
     this.is_paused = false
+
+    this.battle_image_frame = 0
 
     this.story_frame = 0
     this.story_num = 0
@@ -84,20 +120,26 @@ const Scene_Main = class extends Scene {
     this.story_text = ""
     this.story_popup = ""
 
-    this.s = 0
-
     this.c = { frame: 0, current_branch: "", current_value: 0 }
 
-    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, life: 8, graze: 0, attack: 1, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
+    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, life: 8, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
   }
 
   end() {
+    const a = save.data["stage_" + this.chapter_num]["difficulty_" + difficulty]
+    a["highest_score"] = Math.max(a["highest_score"], this.score)
+    save.save()
+  }
 
+  scoring(score, text = "CRUSH!") {
+    this.score += score
+    this.socre_text = text + ": " + score
   }
 
   continue_story() {
     this.story_num++;
     this.story_frame = 0;
+    this.story_interval = 0
   }
 
   story() {
@@ -110,6 +152,15 @@ const Scene_Main = class extends Scene {
           case "text":
             this.story_text = element.text
             if (element.voice == null) { Sound_Data.text = false } else { Sound_Data.text = true; Sound_Data.text_sending = element.voice }
+            break
+
+          case "score":
+            this.scoring((difficulty + 1) * player.life * 10 ** 5, "Life Bonus")
+            this.story_text = "Score: " + this.score
+            const a = save.data["stage_" + this.chapter_num]["difficulty_" + difficulty]
+            a["cleared"] = true
+            if (player.life == 8) { a["no_miss_clear"] = true }
+            a["highest_score"] = Math.max(a["highest_score"], this.score)
             break
 
           case "popup":
@@ -128,7 +179,7 @@ const Scene_Main = class extends Scene {
           case "se":
             console.log(element)
             element.se.reset()
-            element.se.set_volume(0.4)
+            element.se.volume = 0.4
             element.se.play()
             break
 
@@ -136,7 +187,7 @@ const Scene_Main = class extends Scene {
             if (BGM != null) { BGM.pause() }
             BGM = element.bgm
             BGM.reset()
-            BGM.set_volume(0.4)
+            element.bgm.volume = 0.4
             BGM.play()
             break
 
@@ -176,19 +227,29 @@ const Scene_Main = class extends Scene {
         break
     }
 
+    this.story_image.forEach((i) => { i.alpha += 1 / 24; i.draw() })
+
     if (this.story_popup != "") {
       Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-      Itext5(this.story_frame, game_width + 20, game_height - 180, font_size, this.story_popup)
+      Itext5(this.story_frame, game_width + 40, game_height - 180, font_size, this.story_popup)
     }
 
     if (this.story_text != "") {
-      Irect(40, game_height - 180, game_width - 40, 180, "rgba(255,255,255,0.8)")
+      Irect(lefttop.x, lefttop.y, rightbottom.x - lefttop.x, rightbottom.y - lefttop.y, "#ffffffcc")
+
+      Iline2("#808080CC", 12, [lefttop.add(new vec(20, 40)), leftbottom.add(new vec(20, -20)), rightbottom.add(new vec(-40, -20))])
+      Iline2("#808080CC", 12, [lefttop.add(new vec(40, 20)), righttop.add(new vec(-20, 20)), rightbottom.add(new vec(-20, -40))])
+
+      Iline2("#808080CC", 6, [lefttop.add(new vec(13, 13)), lefttop.add(new vec(40, 40))])
+      Iline2("#808080CC", 6, [lefttop.add(new vec(10, 30)), lefttop.add(new vec(10, 10)), lefttop.add(new vec(30, 10))])
+
+      Iline2("#808080CC", 6, [rightbottom.add(new vec(-13, -13)), rightbottom.add(new vec(-40, -40))])
+      Iline2("#808080CC", 6, [rightbottom.add(new vec(-10, -30)), rightbottom.add(new vec(-10, -10)), rightbottom.add(new vec(-30, -10))])
 
       Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-      Itext5(this.story_frame, 45, game_height - 150, font_size, this.story_text + ok)
+      Itext5(this.story_frame, lefttop.x + 40, lefttop.y + 50, font_size, this.story_text + ok)
     }
 
-    this.story_image.forEach((i) => { i.alpha += 1 / 24; i.draw() })
     this.story_frame++;
   }
 
@@ -209,7 +270,13 @@ const Scene_Main = class extends Scene {
       this.frame = 0
     }
 
-    if (pushed.includes("KeyB")) { this.brighten = !this.brighten }
+    if (pushed.includes("KeyB")) {
+      let e = this.chapter[this.story_num]
+      do {
+        this.continue_story()
+        e = this.chapter[this.story_num]
+      } while (!["text", "do", "image"].includes(e.type))
+    }
 
     if (pushed.includes("Delete") && enemies.length > 0) {
       enemies[0].life = 0
@@ -218,11 +285,16 @@ const Scene_Main = class extends Scene {
     this.draw()
 
     if (this.is_paused) {
+      if (pushed.includes("KeyR")) {
+        scene_anten.next_scene = scene_main
+        scene_manager.MoveTo(scene_anten)
+      }
+
       Ifont(48, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
       Itext(this.frame, game_width + 80, height / 2 + 24, "Pause")
 
       Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-      this.c = Icommand(this.c, game_width + 40, 530, font_size, { "": ["Back to Game", "Back to Title"] })
+      this.c = Icommand(this.c, game_width + 40, 450, font_size, { "": ["Back to Game", "Retry[R]", "Back to Title"] })
 
       switch (this.c.current_branch) {
         case "0":
@@ -231,6 +303,10 @@ const Scene_Main = class extends Scene {
 
           break
         case "1":
+          scene_anten.next_scene = scene_main
+          scene_manager.MoveTo(scene_anten)
+          break
+        case "2":
           scene_anten.next_scene = scene_title
           scene_manager.MoveTo(scene_anten)
           break
@@ -244,20 +320,24 @@ const Scene_Main = class extends Scene {
   }
 
   control_player() {
+    const key = key_config.data
     //プレイヤー操作
     player.v = new vec(0, 0)
 
-    if (pressed.includes("ArrowLeft")) { player.v.x--; }
-    if (pressed.includes("ArrowRight")) { player.v.x++; }
-    if (pressed.includes("ArrowUp")) { player.v.y--; }
-    if (pressed.includes("ArrowDown")) { player.v.y++; }
+    if (pressed.includes(key["left"])) { player.v.x--; }
+    if (pressed.includes(key["right"])) { player.v.x++; }
+    if (pressed.includes(key["up"])) { player.v.y--; }
+    if (pressed.includes(key["down"])) { player.v.y++; }
 
-    player.speed = pressed.includes("ShiftLeft") ? 6 : 16
+    player.speed = pressed.includes(key["slow"]) ? 6 : 16
 
     if (player.dash > 0) { player.speed = 60 }
 
-    if (pushed.includes("ControlLeft") && player.dash_interval == 0) {
-      player.dash_interval = this.dash_interval
+    player.v = player.v.nor()
+    player.p = player.v.mlt(player.speed).add(player.p)
+
+    if (pushed.includes(key["dash"]) && player.dash_interval == 0) {
+      player.dash_interval = dash_interval
       player.dash = 12
       player.inv = true
       Sound_Data.dash.play()
@@ -265,77 +345,86 @@ const Scene_Main = class extends Scene {
 
     if (player.dash > 0) {
       player.dash--;
-      bullets.push({ type: "effect", app: "none", colour: "red", life: 12, p: player.p, r: player.r, f: [(me) => { me.life--; me.colour = "rgba(255,0,0," + (me.life / 12) + ")" }] })
-      bullets.push({ type: "effect", app: "donut", colour: "white", life: 12, p: player.p, r: player.r + player.graze_r, f: [(me) => { me.life--; me.colour = "rgba(255,255,255," + (me.life / 12) + ")" }] })
+      bullets.push({ type: "effect", app: "none", colour: "red", life: 12, p: player.p, r: player.r, f: [(me) => { me.life--; me.colour = "rgba(255,0,0," + (me.life / 24) + ")" }] })
+      bullets.push({ type: "effect", app: "donut", colour: "white", life: 12, p: player.p, r: player.r + player.graze_r, f: [(me) => { me.life--; me.colour = "rgba(255,255,255," + (me.life / 24) + ")" }] })
     } else {
       player.inv = false
     }
+
     if (player.dash_interval > 0) { player.dash_interval--; }
 
-    player.v = player.v.nor()
-    player.p = player.v.mlt(player.speed).add(player.p)
-
-    if (this.mouse_mode) {
-      player.p = mouse.p.add(new vec(-20, -20))
-    }
+    if (config.data.control_mode == "mouse") { player.p = mouse.p.add(new vec(-20, -20)) }
 
     if (player.p.x < 0) { player.p.x = 0 }
     if (player.p.x > game_width) { player.p.x = game_width }
     if (player.p.y < 0) { player.p.y = 0 }
     if (player.p.y > game_height) { player.p.y = game_height }
 
-    if (pushed.includes("KeyA")) {
-      player.direction = 1 - player.direction
-    }
+    if (pushed.includes(key["turn"])) { player.direction = 1 - player.direction }
 
+    if (this.frame % 3 == 0) {
+      if (pressed.includes(key["slow"])) {
+        for (let i = 0; i < 5; i++) {
+          bullets.push(...remodel([player_bullet], ["p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
+        }
+      } else {
+        bullets.push(...remodel([player_bullet], ["p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
+      }
+    }
 
   }
 
   danmaku() {
-    if (this.frame % 3 == 0) {
-      if (pressed.includes("ShiftLeft")) {
-        for (let i = 0; i < 5; i++) {
-          bullets.push(...remodel([bullet_model], ["r", 3, "app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
-        }
-      } else {
-        bullets.push(...remodel([bullet_model], ["r", 3, "app", "none", "colour", "rgba(255,255,255,0.5)", "type", "friend", "p", player.p, "v", new vec(0, -16).rot(Math.PI * player.direction), "nway", 5, Math.PI / 12, player.p]))
-      }
-    }
-
-    if (pushed.includes("Enter")) { console.log(bullets) }
 
     if (player.dead > 0) {
       bullets = []
       player.dead--;
     }
 
-    //敵と弾
     enemies.forEach((e) => {
       e.damaged = false
 
+      //closer, higher damage
+      const damage = 1 + Math.floor(3 * (1 - e.p.sub(player.p).length() / game_height))
+
+
+      //player_bullet vs enemy
       bullets.forEach((b) => {
-        if (b.type == "friend" && b.r + e.r >= b.p.sub(e.p).length()) {
+        if (b.type == "friend" && !e.is_inv && b.r + e.r >= b.p.sub(e.p).length()) {
           b.life = 0
-          e.life -= player.attack;
+          e.life -= damage;
           e.damaged = true
+          //next_bullets.push(...remodel([damage_effect], ["colour", c, "p", b.p]))
+          this.scoring(100 * damage, "HIT")
         }
       })
+
+      //enemy's function
       e.f.forEach((f) => { f(e) })
     })
 
-
     bullets.forEach((b) => {
+      //bullet's function
       b.f.forEach((f) => { f(b) })
 
-      if (b.type == "enemy" && !player.inv && player.dead == 0 && b.r + player.r + player.graze_r >= b.p.sub(player.p).length()) {
-        player.graze++;
-        Sound_Data.graze.play()
-        if (b.r + player.r >= b.p.sub(player.p).length()) {
+      //enemy_bullet vs player
+      if (["enemy", "score"].includes(b.type) && !player.inv && player.dead == 0 && b.life > 0 && b.r + player.r + player.graze_r >= b.p.sub(player.p).length()) {
+        if (b.type == "enemy") {
+          //graze
+          this.graze++;
+          this.scoring(1000, "GRAZE")
+
+          if (b.r + player.r >= b.p.sub(player.p).length()) {
+            b.life = 0
+            player.dead = 24
+            player.life--;
+            Sound_Data.u.play()
+          }
+        } else {
+          this.scoring(100, "BULLET")
           b.life = 0
-          player.dead = 24
-          player.life--;
-          Sound_Data.u.play()
         }
+        Sound_Data.graze.play()
       }
     })
 
@@ -347,7 +436,7 @@ const Scene_Main = class extends Scene {
     next_bullets = []
     next_enemies = []
 
-    if (player.life <= 0) {
+    if (player.life < 0) {
       scene_manager.MoveTo(scene_gameover)
     }
   }
@@ -362,20 +451,22 @@ const Scene_Main = class extends Scene {
 
     if (this.boss) {
       //Image_Data.battle_bg.move(-2, -2, 64, 64)
+      Image_Data.battle_bg.alpha = 0.1 * Math.min(48, this.battle_image_frame) / 48
       Image_Data.battle_bg.rotate += Math.PI / 360;
       Image_Data.battle_bg.draw()
+
+      this.battle_image_frame++
     }
 
     //player
-    ctx.globalAlpha = player.dead > 0 ? 0.4 : 1;
-    IcircleC(player.p.x, player.p.y, player.r, "red")
-    IarcC(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / this.dash_interval), "white", "stroke", 2)
-    if (this.brighten) {
+    const colour_player = player.dead > 0 ? "80" : "ff";
+    IcircleC(player.p.x, player.p.y, player.r, "#ff0000" + colour_player)
+    IarcC(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / dash_interval), "#ffffff" + colour_player, "stroke", 2)
+    if (config.data.brighten) {
       IcircleC(player.p.x, player.p.y, player.r + player.graze_r, "rgba(255,255,255,0.2)", "stroke", 8)
       IcircleC(player.p.x, player.p.y, player.r, "rgba(255,0,0,0.2)", "stroke", 8)
     }
-    IarcC(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "yellow", "stroke", 2)
-    ctx.globalAlpha = 1;
+    IarcC(player.p.x, player.p.y, player.r + player.graze_r / 2, -Math.PI / 2 + 2 * Math.PI * player.dash / 12, -Math.PI / 2, "#ffff00" + colour_player, "stroke", 2)
 
     let laser_count = 0
 
@@ -397,30 +488,20 @@ const Scene_Main = class extends Scene {
           IcircleC(b.p.x, b.p.y, b.r, b.colour)
       }
 
-      if (this.brighten) {
-        this.colours[b.colour] ??= chroma(b.colour).brighten(2).css()
+      if (config.data.brighten) {
+        this.colours[b.colour] ??= chroma(b.colour).brighten(2).hex()
+        const c = chroma(this.colours[b.colour])
 
         if (!["none", "ball", "laser"].includes(b.app)) {
-          IcircleC(b.p.x, b.p.y, b.r - 1, this.colours[b.colour], "stroke", 2)
-          IcircleC(b.p.x, b.p.y, b.r, chroma(b.colour).alpha(0.1).css(), "stroke", 12)
+          IcircleC(b.p.x, b.p.y, b.r - 1, c.hex(), "stroke", 2)
+          IcircleC(b.p.x, b.p.y, b.r, c.alpha(0.1 * c.alpha()).hex(), "stroke", 12)
         } else if (b.app == "laser") {
           if (laser_count % 4 == 0) {
-            IcircleC(b.p.x, b.p.y, b.r * 2, chroma(b.colour).alpha(0.1).css(), "stroke", 18)
+            IcircleC(b.p.x, b.p.y, b.r * 1.5, c.alpha(0.1 * c.alpha()).hex(), "stroke", 18)
           }
           laser_count++;
         }
       }
-    })
-
-    //敵
-    enemies.forEach((e) => {
-      let c = e.damaged ? "red" : "white"
-
-      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, "white");
-      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, "white", "stroke", 2);
-
-      if (this.brighten) { IcircleC(e.p.x, e.p.y, e.r, chroma(c).alpha(0.1).css(), "stroke", 12) }
-      IcircleC(e.p.x, e.p.y, e.r, c, "stroke", 2)
     })
 
     // let background_colour = "pink"
@@ -431,36 +512,78 @@ const Scene_Main = class extends Scene {
 
     ctx.globalCompositeOperation = "source-over"
 
+    //敵
+    enemies.forEach((e) => {
+      const colour_enemy = e.damaged ? "#ec1c24" : "#ffffff"
+
+      const colour_life_bar = e.is_inv ? "#ec1c24" : "#ffffff"
+
+      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r * e.life / e.maxlife, 6, colour_life_bar);
+      IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, colour_life_bar, "stroke", 2);
+
+      const colour_pattern = colour_enemy + "80"
+
+      if (config.data.brighten) {
+        IcircleC(e.p.x, e.p.y, e.r, colour_enemy + "1a", "stroke", 12)
+        if (e.is_boss) {
+          IcircleC(e.p.x, e.p.y, e.r - 24, colour_enemy + "1a", "stroke", 12)
+        }
+      }
+
+      if (e.is_boss) {
+        IpolygonC(7, 2, e.p.x, e.p.y, (e.r - 24) * 0.9, colour_pattern, Math.PI * e.frame / 144, "stroke", 2)
+        IpolygonC(11, 2, e.p.x, e.p.y, e.r * 0.9, colour_pattern, -Math.PI * e.frame / 144, "stroke", 2)
+        IcircleC(e.p.x, e.p.y, e.r - 24, colour_enemy, "stroke", 2)
+      } else {
+        IpolygonC(7, 2, e.p.x, e.p.y, e.r * 0.9, colour_pattern, Math.PI * e.frame / 144, "stroke", 2)
+      }
+
+      IcircleC(e.p.x, e.p.y, e.r, colour_enemy, "stroke", 2)
+
+      if (e.app != null) {
+        e.app.x = e.p.x - 13
+        e.app.y = e.p.y - 10
+        e.app.draw()
+      }
+    })
+
     Image_Data.background.draw()
 
     Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext4(null, game_width + 40, height - 100, font_size, ["Lives: ", "Graze: " + player.graze, "Difficulty: " + ["Easy", "Normal", "Hard", "Insane!"][difficulty]])
+    Itext4(null, game_width + 40, lefttop.y + font_size, font_size,
+      [
+        "Difficulty: " + ["Easy", "Normal", "Hard", "Insane!"][difficulty],
+        "Lives: ", "Graze: " + this.graze,
+        "Score: " + this.score, "",
+        "HScore: " + save.data["stage_" + this.chapter_num]["difficulty_" + difficulty]["highest_score"]
+      ]
+    )
+
+    Itext(null, game_width + 40, lefttop.y + font_size * 5, this.socre_text)
 
     Ifont(20, "lightgreen", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext(null, game_width + 40 + 70, height - 100, "★".repeat(player.life))
+    Itext(null, game_width + 40 + 70, lefttop.y + 24 * 2, "★".repeat(Math.max(player.life, 0)))
 
-    if (pressed.includes("MetaLeft") && pressed.includes("ShiftLeft")) {
-      this.s = 24
-    }
-
-    if (this.s > 0) {
-      Itext(null, game_width + 40, height - 20, "おや、スクショかい？")
-      this.s--;
-    }
-
-    Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext(null, game_width + 40, 100, "" + this.story_interval)
-    Itext(null, game_width + 40, 150, "" + this.story_num)
-    Itext(null, game_width + 40, 200, this.chapter[this.story_num].type)
-    Itext(null, game_width + 40, 250, "bullets: " + bullets.length)
-    Itext(null, game_width + 40, 300, "enemies: " + enemies.length)
+    // Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+    // Itext(null, game_width + 40, 100, "" + this.story_interval)
+    // Itext(null, game_width + 40, 150, "" + this.story_num)
+    // Itext(null, game_width + 40, 200, this.chapter[this.story_num].type)
+    // Itext(null, game_width + 40, 250, "bullets: " + bullets.length)
+    // Itext(null, game_width + 40, 300, "enemies: " + enemies.length)
   }
-}
+}()
 
-const Scene_Title = class extends Scene {
+const scene_title = new class extends Scene {
   constructor() {
     super()
-    this.option = { "": ["PLAY", "MANUAL", "STORY", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane!"] }
+
+    const key = ["up", "down", "right", "left", "slow", "dash", "turn", "Reset"]
+
+    Image_Data.ethanolSD = new Iimage("images/EthanolSD.png", 44, 170, 36, 36)
+
+    this.sc = { frame: 0, current_value: 0 }
+
+    this.option = { "": ["PLAY", "MANUAL", "STORY", "ACHIEVEMENTS", "KEY CONFIG", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane!"], "3": Igenerator(function* () { for (let i = 0; i < 8; i++) { yield "  " + i } }), "4": key }
 
     this.function = {
       "0": (c) => {
@@ -470,32 +593,104 @@ const Scene_Title = class extends Scene {
         difficulty = c.current_value
         scene_anten.next_scene = scene_main
         scene_manager.MoveTo(scene_anten)
+      },
+      "4": (c) => {
+        if (c.current_value == 7) {
+          key_config.reset()
+          key_config.save()
+          c.cancel = true
+        }
       }
     }
 
     this.loopf = {
+      "0": (c) => {
+        Ifont(36, "white", "serif")
+        Itext5(c.frame, 60, 400, font_size, ["vs Ethanol"][c.current_value]);
+      },
+      "0.": (c) => {
+        Ifont(36, "white", "serif")
+        Itext5(c.frame, 60, 400, font_size, ["初めての人向け", "操作を使いこなせたら", "隙間をすり抜けろ!", "テストプレイなんてしてないよ!"][c.current_value]);
+        Itext5(c.frame, 60, 400 + font_size, font_size, "Highest Score: " + save.data["stage_" + c.current_branch.charAt(1)]["difficulty_" + c.current_value]["highest_score"]);
+        Itext5(c.frame, 60, 400 + font_size * 2, font_size, save.data["stage_" + c.current_branch.charAt(1)]["difficulty_" + c.current_value]["cleared"] ? "Cleared!" : "not Cleared");
+      },
       "1": (c) => {
-        Itext5(c.frame, 20, 200, font_size, "・十字キーで移動<br>・Shiftキーで低速<br>・Aで後ろを向く<br>・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵)<br>・赤い点が当たり判定<br>・白い円がかすり判定<br>・Escでポーズ<br>[X]")
+        Ifont(24, "white", "serif")
+        Itext5(c.frame * 4, 20, 200, font_size,
+          "・十字キーで移動<br>・Shiftキーで低速 <br>"
+          + "・Aで後ろを向く <br>・Ctrlで0.5秒ダッシュ(ダッシュ中は無敵) <br>"
+          + "・赤い点が当たり判定 <br>"
+          + "・白い円がかすり判定 <br>"
+          + "・Escでポーズ <br>"
+          + "・敵に近づくほど攻撃力が上がる!(最大3倍)<br>"
+          + "・HPバーが赤い敵は無敵!持久力勝負だぜ!<br>"
+          + "・8回まで逝ける<br>"
+          + "・重くて動かないよ!って人は <br> BrightenをOFFしてください <br>[X]"
+        )
       },
       "2": (c) => {
-        Ifont(24, "white", "serif")
-        Itext5(c.frame, 20, 200, font_size, "警視庁公安部対天使科のコハクは今夜も天使の気配を感じて<br>夜の東京を飛翔するのであった...[X]")
+        Ifont(36, "white", "serif")
+        Itext5(c.frame, 20, 200, font_size, "警視庁公安部対天使科実動隊のコハクは<br>今夜も天使の気配を感じて夜の東京を<br>飛翔するのであった...[X]")
       },
       "3": (c) => {
+        Image_Data.ethanolSD.height = 36 * this.achive.length
+        Image_Data.ethanolSD.repeat_y = this.achive.length
+
+        Image_Data.ethanolSD.draw()
+
         Ifont(24, "white", "serif")
-        Itext6(c.frame * 2, 20, 200, font_size, "制作: お躁式ラケッツ! <link>https://www.nicovideo.jp/user/131397716<br>効果音: 効果音ラボ <link>https://soundeffect-lab.info<br>背景、キャラクター: Craiyon <link>https://www.craiyon.com<br>[X]")
+        Itext5(null, 150, 200, font_size, this.achive[c.current_value])
+      },
+      "3.": (c) => {
+        Ifont(24, "white", "serif")
+        Itext5(null, 150, 200, font_size, this.achive[c.current_branch.charAt(1)])
+      },
+      "4": (c) => {
+        Itext4(c.frame * 2, 220, 200, font_size, Igenerator(function* () { for (let i = 0; i < 7; i++) { yield key_config.data[key[i]] } }))
+      },
+      "4.": (c) => {
+        Itext(null, 20, 200, "Press the key you want to use!")
+        if (c.frame > 0 && pushed.length > 0) {
+          key_config.data[key[c.current_branch.charAt(1)]] = pushed[0]
+          key_config.save()
+
+          c.cancel = true
+        }
+      },
+      "5": (c) => {
+        Ifont(24, "white", "serif")
+        Itext6(c.frame * 2, 20, 200, font_size,
+          "制作: お躁式ラケッツ! <link>https://www.nicovideo.jp/user/131397716<br>"
+          + "効果音: 効果音ラボ <link>https://soundeffect-lab.info<br>"
+          + "背景、キャラクター: Craiyon <link>https://www.craiyon.com<br>[X]"
+        )
       }
     }
 
     Sound_Data.ok = new Iaudio("./sounds/ok.wav")
     Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
     Sound_Data.select = new Iaudio("./sounds/select.wav")
+    Sound_Data.whimsicalness = new Iaudio("./sounds/Whimsicalness.wav", "bgm")
+    Sound_Data.whimsicalness.volume = 1
+
+    this.mn = [3, 1]
   }
 
   start() {
+    fpsInterval = 1000 / 18
     this.frame = 0
     this.c = { frame: 0, current_branch: "", current_value: 0 }
     Sound_Data.text = false
+
+    this.achive = [
+      ...Igenerator(function* () { for (let i = 0; i < 4; i++) { yield "Stage0の" + ["Easy", "Normal", "Hard", "Insane!"][i] + "をクリアする:<br>" + (save.data["stage_0"]["difficulty_" + i]["cleared"] ? "Achieved!" : "Unachived") } }),
+      ...Igenerator(function* () { for (let i = 0; i < 4; i++) { yield "Stage0の" + ["Easy", "Normal", "Hard", "Insane!"][i] + "をノーミスクリアする:<br>" + (save.data["stage_0"]["difficulty_" + i]["no_miss_clear"] ? "Achieved!" : "Unachived") } }),
+    ]
+
+    BGM = Sound_Data.whimsicalness
+    BGM.volume = 0.7
+    BGM.reset()
+    BGM.play()
   }
 
   loop() {
@@ -504,14 +699,33 @@ const Scene_Title = class extends Scene {
     Ifont(60, "white", "serif")
     Itext(this.frame, 20, 20 + font_size, "The Whimsical Days!")
 
+    //Ipolygon(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
+    //Ipolygon(this.mn[0], this.mn[1], width / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
+
+    Ireuleaux(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 100, "#ffffff80", Math.PI * this.frame / 144, "stroke", 2)
+    if (config.data.brighten) {
+      Ireuleaux(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 100, "#ffffff19", Math.PI * this.frame / 144, "stroke", 12)
+    }
+    //Itrochoid(-this.mn[0], this.mn[1], 0.5, width * 3 / 4, height * 3 / 4, 120, Math.PI * this.frame / 144, "white", "stroke", 2)
+
     Ifont(36, "white", "serif")
     this.c = Icommand(this.c, 20, 200, font_size, this.option, this.function, this.loopf)
 
     this.frame++;
-  }
-}
 
-const Scene_preTitle = class extends Scene {
+    if (this.frame % 10 == 7) {
+      let a
+      do {
+        a = [Math.floor(Math.random() * 6) + 2, Math.floor(Math.random() * 3) + 2]
+      } while (this.mn[0] / this.mn[1] == a[0] / a[1] || a[0] / a[1] < 2)
+
+      this.mn = a
+
+    }
+  }
+}()
+
+const scene_pretitle = new class extends Scene {
   constructor() {
     super()
   }
@@ -521,38 +735,45 @@ const Scene_preTitle = class extends Scene {
   }
 
   end() {
+    $("body").append("BGM Volume:")
+    $("body").append("<input type='range' id=volume_bgm min=0 max=12 step=1 onchange='range(id)'></input>")
+    $("body").append("SE Volume:")
+    $("body").append("<input type='range' id=volume_se min=0 max=12 step=1 onchange='range(id)'></input>")
+
+    $("#volume_bgm").val(config.data.volume_bgm)
+    $("#volume_se").val(config.data.volume_se)
+
     //bodyにボタンを追加
-    const buttons = { "brighten": "Brighten:ON", "control_mode": "Control_mode:key", "mute_bgm": "Mute_bgm", "mute_se": "Mute_se" };
+    const buttons = { "brighten": "Brighten:" + (config.data.brighten ? "ON" : "OFF"), "control_mode": "Control_mode:" + config.data.control_mode };
     const keys = Object.keys(buttons)
-    $(function () {
-      for (let key of keys) {
-        $("body").append("<input type='button' id=" + key + " value=" + buttons[key] + " onclick='button(id);'></input>");
-      }
-      //ボタンの数をcss側に伝えます
-      $("body").css("--button_num", keys.length)
-    });
+    for (let key of keys) {
+      $("body").append("<input type='button' id=" + key + " value=" + buttons[key] + " onclick='button(id)'></input>");
+    }
+
   }
 
   loop() {
-    Irect(0, 0, width, height, "#121212")
+    if (this.frame <= 9) {
+      Irect(0, 0, width, height, "#121212")
 
-    Ifont(48, "white", "serif")
-    //中央ぞろえ
-    let text = "Push KeyZ"
-    let sub_text = text.slice(0, this.frame)
-    length = ctx.measureText(sub_text).width
-    Itext(this.frame, (width - length) / 2, height / 2, text)
+      Ifont(48, "white", "serif")
+      //中央ぞろえ
+      let text = "Push KeyZ"
+      let sub_text = text.slice(0, this.frame)
+      length = ctx.measureText(sub_text).width
+      Itext(this.frame, (width - length) / 2, height / 2, text)
+
+      this.frame++;
+    }
 
     if (pushed.includes("KeyZ")) {
       scene_manager.MoveTo(scene_title)
     }
-
-    this.frame++;
   }
 
-}
+}()
 
-const Scene_Anten = class extends Scene {
+const scene_anten = new class extends Scene {
   start() {
     this.frame = 0
   }
@@ -570,9 +791,9 @@ const Scene_Anten = class extends Scene {
       scene_manager.MoveTo(this.next_scene)
     }
   }
-}
+}()
 
-const Scene_Gameover = class extends Scene {
+const scene_gameover = new class extends Scene {
   constructor() {
     super()
     Sound_Data.gameover = new Iaudio("./sounds/gameover.wav")
@@ -595,10 +816,18 @@ const Scene_Gameover = class extends Scene {
 
       let text = "GAMEOVER!"
       length = ctx.measureText(text).width
-      Itext((this.frame - 36) / 15, (width - length) / 2, height / 2, text)
+      Itext((this.frame - 36) / 15, (width - length) / 2, height / 2 + 30, text)
+
+      Ifont(32, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
+      Itext4(null, 0, game_height - font_size, font_size, ["[Z] to back to title", "[R] to retry"])
 
       if (pushed.includes("ok")) {
         scene_anten.next_scene = scene_title
+        scene_manager.MoveTo(scene_anten)
+      }
+
+      if (pushed.includes("KeyR")) {
+        scene_anten.next_scene = scene_main
         scene_manager.MoveTo(scene_anten)
       }
     }
@@ -606,50 +835,94 @@ const Scene_Gameover = class extends Scene {
     this.frame++;
   }
 
-}
+  end() {
+    Sound_Data.gameover.pause()
+  }
 
-let scene_anten = new Scene_Anten()
-let scene_gameover = new Scene_Gameover()
-let scene_pretitle = new Scene_preTitle()
-let scene_title = new Scene_Title()
-let scene_main = new Scene_Main()
+}()
 
-let scene_manager = new Scene_Manager(scene_pretitle)
+const scene_manager = new class {
+  constructor(_scene) {
+    this.current_scene = _scene;
+    this.current_scene.start()
+  }
+
+  MoveTo(_scene) {
+    this.current_scene.end();
+    this.current_scene = _scene;
+    this.current_scene.start();
+  }
+}(scene_pretitle)
 
 let BGM = null
 
+let fpsInterval = 1000 / 24;
+let then = Date.now();
+let start_time = then;
+
 const main = () => {
-  scene_manager.current_scene.loop();
+  requestAnimationFrame(main)
 
-  Irect(0, 0, width, height, "white", "stroke", 2);
+  let now = Date.now();
+  let elapsed = now - then;
 
-  pushed = [];
+  if (elapsed > fpsInterval) {
+    then = now - (elapsed % fpsInterval);
 
+    scene_manager.current_scene.loop();
+
+    Irect(0, 0, width, height, "white", "stroke", 2);
+
+    pushed = [];
+  }
 }
 
 const button = (id) => {
   console.log(id)
   switch (id) {
     case "brighten":
-      scene_main.brighten = !scene_main.brighten
-      $("#brighten").val("Brighten:" + (scene_main.brighten ? "ON" : "OFF"))
+      config.data.brighten = !config.data.brighten
+      config.save()
+      $("#brighten").val("Brighten:" + (config.data.brighten ? "ON" : "OFF"))
       break
 
     case "control_mode":
-      scene_main.mouse_mode = !scene_main.mouse_mode
-      $("#control_mode").val("Control_mode:" + (scene_main.mouse_mode ? "mouse" : "key"))
+      config.data.control_mode = { mouse: "key", key: "mouse" }[config.data.control_mode]
+      config.save()
+      $("#control_mode").val("Control_mode:" + config.data.control_mode)
       break
     case "mute_bgm":
       Sound_Data.mute_bgm = !Sound_Data.mute_bgm
+      config.data.mute_bgm = !config.data.mute_bgm
+      config.save()
       if (BGM != null) {
         BGM.mute()
       }
       break
     case "mute_se":
       Sound_Data.mute_se = !Sound_Data.mute_se
+      config.data.mute_se = !config.data.mute_se
+      config.save()
       break
   }
 }
 
-//24fpsで実行
-main_loop = setInterval(main, 1000 / 24)
+const range = (id) => {
+  switch (id) {
+    case "volume_bgm":
+      const volume = $("#" + id).val()
+      config.data.volume_bgm = volume
+      config.save()
+
+      BGM.audio.volume = volume / 12
+      break
+    case "volume_se":
+      const volume_se = $("#" + id).val()
+      config.data.volume_se = volume_se
+      config.save()
+      break
+  }
+  console.log(id, $("#" + id).val())
+}
+
+main()
