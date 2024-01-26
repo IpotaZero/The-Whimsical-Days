@@ -703,9 +703,7 @@ const scene_title = new class extends Scene {
     //Ipolygon(this.mn[0], this.mn[1], width / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
 
     Ireuleaux(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 100, "#ffffff80", Math.PI * this.frame / 144, "stroke", 2)
-    if (config.data.brighten) {
-      Ireuleaux(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 100, "#ffffff19", Math.PI * this.frame / 144, "stroke", 12)
-    }
+
     //Itrochoid(-this.mn[0], this.mn[1], 0.5, width * 3 / 4, height * 3 / 4, 120, Math.PI * this.frame / 144, "white", "stroke", 2)
 
     Ifont(36, "white", "serif")

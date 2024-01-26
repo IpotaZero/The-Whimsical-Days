@@ -69,7 +69,6 @@ const Iaudio = class {
 	reset() {
 		this.audio.currentTime = 0
 		this.ended = false
-		if (this.type == "bgm") { this.audio.loop = true }
 	}
 
 	mute() {
