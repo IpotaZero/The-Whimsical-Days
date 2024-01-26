@@ -398,8 +398,62 @@ const Ireuleaux = (m, n, x, y, r, c = "white", theta = 0, id = "fill", width = 2
 
 	}
 
+}
 
+const Iinvolute = (r, m, x, y, c, theta, width) => {
+	ctx.beginPath()
+	let first = new vec(r, 0).rot(theta)
+	ctx.moveTo(first.x + x, first.y + y)
 
+	const d = 50
+	for (let i = 1; i < d * m; i++) {
+		let angle = 2 * Math.PI * i / d
+		let point = new vec(Math.cos(angle) + angle * Math.sin(angle), Math.sin(angle) - angle * Math.cos(angle)).mlt(r).rot(theta)
+		ctx.lineTo(point.x + x, point.y + y)
+	}
+
+	ctx.strokeStyle = c
+	ctx.lineWidth = width
+
+	ctx.stroke()
+}
+
+const Ipolar = (a, m, x, y, c, theta, width, fun) => {
+	ctx.beginPath()
+	let first = new vec(fun(0) * a, 0).to_descartes().rot(theta)
+	ctx.moveTo(first.x + x, first.y + y)
+
+	const d = 20 * m
+	for (let i = 1; i < d * m; i++) {
+		let angle = i / d * 2 * Math.PI
+		let p = new vec(fun(angle) * a, angle).to_descartes().rot(theta)
+
+		ctx.lineTo(p.x + x, p.y + y)
+	}
+
+	ctx.strokeStyle = c
+	ctx.lineWidth = width
+
+	ctx.stroke()
+}
+
+const Ilissajous = (A, B, m, delta, x, y, c, theta, width) => {
+	ctx.beginPath()
+	let first = new vec(A, B * Math.sin(delta)).rot(theta)
+	ctx.moveTo(first.x + x, first.y + y)
+
+	const d = 20 * (A + B) / 2
+	for (let i = 1; i < d / Math.min(1, Math.abs(m)) * + 1; i++) {
+		let t = i / d * 2 * Math.PI
+		let p = new vec(A * Math.cos(m * t), B * Math.sin(t + delta)).rot(theta)
+
+		ctx.lineTo(p.x + x, p.y + y)
+	}
+
+	ctx.strokeStyle = c
+	ctx.lineWidth = width
+
+	ctx.stroke()
 }
 
 const Iellipse = (x, y, r0, r1, arg, colour, start = 0, end = 2 * Math.PI, id = "fill", width = 2) => {
@@ -486,6 +540,7 @@ const vec = class {
 	new() { return new vec(this.x, this.y); }
 	dot(v) { return this.x * v.x + this.y * v.y; }
 	arg() { return Math.atan2(this.y, this.x) }
+	to_descartes() { let r = this.x; return new vec(r * Math.cos(this.y), r * Math.sin(this.y)) }
 }
 
 const vec3 = class {

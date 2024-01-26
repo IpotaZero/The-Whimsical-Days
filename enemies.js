@@ -53,7 +53,7 @@ const bullet_model = {
 }
 
 const enemy_data = {}
-const enemy_vrs = { p: new vec(game_width / 2, -100) }
+let enemy_vrs = { p: new vec(game_width / 2, -100) }
 
 const wall = (p) => {
   return p.x < 0 || game_width < p.x | p.y < 0 || game_height < p.y

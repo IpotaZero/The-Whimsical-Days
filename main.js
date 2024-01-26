@@ -16,7 +16,11 @@ const Scene = class {
   }
 }
 
-let player
+const player_model = {
+  p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, life: 8, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0
+}
+
+let player = { ...player_model }
 
 let bullets = []
 let enemies = []
@@ -74,6 +78,18 @@ const damage_effect = {
   ]
 }
 
+const dash_effect_point = {
+  type: "effect", app: "none", colour: "red",
+  life: 12, p: new vec(0, 0), r: player_model.r,
+  f: [(me) => { me.life--; me.colour = "rgba(255,0,0," + (me.life / 24) + ")" }]
+}
+
+const dash_effect_ring = {
+  type: "effect", app: "donut", colour: "white",
+  life: 12, p: new vec(0, 0), r: player_model.r + player_model.graze_r,
+  f: [(me) => { me.life--; me.colour = "rgba(255,255,255," + (me.life / 24) + ")" }]
+}
+
 const scene_main = new class extends Scene {
   constructor() {
     super()
@@ -122,7 +138,7 @@ const scene_main = new class extends Scene {
 
     this.c = { frame: 0, current_branch: "", current_value: 0 }
 
-    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, life: 8, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
+    player = { ...player_model }
   }
 
   end() {
@@ -331,11 +347,6 @@ const scene_main = new class extends Scene {
 
     player.speed = pressed.includes(key["slow"]) ? 6 : 16
 
-    if (player.dash > 0) { player.speed = 60 }
-
-    player.v = player.v.nor()
-    player.p = player.v.mlt(player.speed).add(player.p)
-
     if (pushed.includes(key["dash"]) && player.dash_interval == 0) {
       player.dash_interval = dash_interval
       player.dash = 12
@@ -343,10 +354,19 @@ const scene_main = new class extends Scene {
       Sound_Data.dash.play()
     }
 
+    if (player.dash > 0) { player.speed = 60 }
+
+    player.v = player.v.nor()
+    player.p = player.v.mlt(player.speed).add(player.p)
+
     if (player.dash > 0) {
       player.dash--;
-      bullets.push({ type: "effect", app: "none", colour: "red", life: 12, p: player.p, r: player.r, f: [(me) => { me.life--; me.colour = "rgba(255,0,0," + (me.life / 24) + ")" }] })
-      bullets.push({ type: "effect", app: "donut", colour: "white", life: 12, p: player.p, r: player.r + player.graze_r, f: [(me) => { me.life--; me.colour = "rgba(255,255,255," + (me.life / 24) + ")" }] })
+      let ring = { ...dash_effect_ring }
+      ring.p = player.p
+      bullets.push(ring)
+      let point = { ...dash_effect_point }
+      point.p = player.p
+      bullets.push(point)
     } else {
       player.inv = false
     }
@@ -703,6 +723,9 @@ const scene_title = new class extends Scene {
     //Ipolygon(this.mn[0], this.mn[1], width / 4, height * 3 / 4, 120, "white", Math.PI * this.frame / 144, "stroke", 2)
 
     Ireuleaux(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 100, "#ffffff80", Math.PI * this.frame / 144, "stroke", 2)
+
+    //Ipolar(120, 12, width / 4, height * 3 / 4, "#ffffff80", Math.PI * this.frame / 144, 2, theta => Math.cos(theta / 8))
+    Ilissajous(50, 100, 3 / 4, Math.PI / 4, width / 4, height * 3 / 4, "#ffffff80", Math.PI * this.frame / 144, 2)
 
     //Itrochoid(-this.mn[0], this.mn[1], 0.5, width * 3 / 4, height * 3 / 4, 120, Math.PI * this.frame / 144, "white", "stroke", 2)
 
