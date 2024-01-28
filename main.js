@@ -724,9 +724,10 @@ const scene_title = new class extends Scene {
 
     Ireuleaux(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 100, "#ffffff80", Math.PI * this.frame / 144, "stroke", 2)
 
-    //Ipolar(120, 12, width / 4, height * 3 / 4, "#ffffff80", Math.PI * this.frame / 144, 2, theta => Math.cos(theta / 8))
-    Ilissajous(50, 100, 3 / 4, Math.PI / 4, width / 4, height * 3 / 4, "#ffffff80", Math.PI * this.frame / 144, 2)
-
+    //Ipolar(120, 12, width / 4, height * 3 / 4, "#ffffff80", Math.PI * this.frame / 144, 2, theta => Math.cos(theta / 11))
+    //Ilissajous(100, 100, 12, 8, 0, width / 4, height * 3 / 4, "#ffffff80", Math.PI * this.frame / 144, 2)
+    Igear(10, 12, 15, 400, 400, "white", -Math.PI * this.frame / 72, 2)
+    Igear(10, 24, 15, 212, 400, "white", Math.PI * this.frame / 144, 2)
     //Itrochoid(-this.mn[0], this.mn[1], 0.5, width * 3 / 4, height * 3 / 4, 120, Math.PI * this.frame / 144, "white", "stroke", 2)
 
     Ifont(36, "white", "serif")

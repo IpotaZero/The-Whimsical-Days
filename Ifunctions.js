@@ -437,23 +437,72 @@ const Ipolar = (a, m, x, y, c, theta, width, fun) => {
 	ctx.stroke()
 }
 
-const Ilissajous = (A, B, m, delta, x, y, c, theta, width) => {
-	ctx.beginPath()
-	let first = new vec(A, B * Math.sin(delta)).rot(theta)
-	ctx.moveTo(first.x + x, first.y + y)
+const Ilissajous = (A, B, m, n, delta, x, y, c, theta, width) => {
+	const g = gcd(m, n)
 
-	const d = 20 * (A + B) / 2
-	for (let i = 1; i < d / Math.min(1, Math.abs(m)) * + 1; i++) {
-		let t = i / d * 2 * Math.PI
-		let p = new vec(A * Math.cos(m * t), B * Math.sin(t + delta)).rot(theta)
-
-		ctx.lineTo(p.x + x, p.y + y)
-	}
+	m /= g
+	n /= g
 
 	ctx.strokeStyle = c
 	ctx.lineWidth = width
 
-	ctx.stroke()
+	for (let h = 0; h < g; h++) {
+		ctx.beginPath()
+		let first = new vec(A, B * Math.sin(delta)).rot(theta + 2 * Math.PI * h / g)
+		ctx.moveTo(first.x + x, first.y + y)
+
+		const d = 20 * (A + B) / 2
+		for (let i = 1; i < d * n + 1; i++) {
+			let t = i / d * 2 * Math.PI
+			let p = new vec(A * Math.cos(m * t), B * Math.sin(n * t + delta)).rot(theta + 2 * Math.PI * h / g)
+
+			ctx.lineTo(p.x + x, p.y + y)
+		}
+
+		ctx.stroke()
+	}
+}
+
+const Igear = (module, teeth_num, pressure_angle_degree, x, y, c = "white", theta = 0, width = 2) => {
+	//基準円
+	r_p = teeth_num * module / 2
+	//歯先円
+	r_k = r_p + module
+	//歯底円
+	r_f = r_p - 1.25 * module
+	//基礎円
+	r_b = r_p * Math.cos(Math.PI * pressure_angle_degree / 180)
+
+	console.log(r_b)
+
+	sa = r_p - r_f
+
+	Icircle(x, y, r_f, "white", "stroke", 2)
+	Icircle(x, y, r_b, "white", "stroke", 2)
+
+	ctx.strokeStyle = c
+	ctx.lineWidth = width
+
+	for (let i = 0; i < teeth_num * 2; i++) {
+		ctx.beginPath()
+		let root = new vec(r_b, 0).rot(2 * Math.PI * i / teeth_num / 2 + theta)
+		ctx.moveTo(root.x + x, root.y + y)
+		let top = new vec(r_b + module, 0).rot(2 * Math.PI * i / teeth_num / 2 + theta)
+		ctx.lineTo(top.x + x, top.y + y)
+		ctx.stroke()
+
+		ctx.beginPath()
+		ctx.moveTo(root.x + x, root.y + y)
+		let bottom = new vec(r_b - sa, 0).rot(2 * Math.PI * i / teeth_num / 2 + theta)
+		ctx.lineTo(bottom.x + x, bottom.y + y)
+		ctx.stroke()
+
+		if (i % 2 == 0) {
+			ctx.beginPath()
+			ctx.arc(x, y, r_k, 2 * Math.PI * i / teeth_num / 2 + theta, 2 * Math.PI * (i + 1) / teeth_num / 2 + theta)
+			ctx.stroke()
+		}
+	}
 }
 
 const Iellipse = (x, y, r0, r1, arg, colour, start = 0, end = 2 * Math.PI, id = "fill", width = 2) => {
