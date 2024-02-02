@@ -400,24 +400,6 @@ const Ireuleaux = (m, n, x, y, r, c = "white", theta = 0, id = "fill", width = 2
 
 }
 
-const Iinvolute = (r, m, x, y, c, theta, width) => {
-	ctx.beginPath()
-	let first = new vec(r, 0).rot(theta)
-	ctx.moveTo(first.x + x, first.y + y)
-
-	const d = 50
-	for (let i = 1; i < d * m; i++) {
-		let angle = 2 * Math.PI * i / d
-		let point = new vec(Math.cos(angle) + angle * Math.sin(angle), Math.sin(angle) - angle * Math.cos(angle)).mlt(r).rot(theta)
-		ctx.lineTo(point.x + x, point.y + y)
-	}
-
-	ctx.strokeStyle = c
-	ctx.lineWidth = width
-
-	ctx.stroke()
-}
-
 const Ipolar = (a, m, x, y, c, theta, width, fun) => {
 	ctx.beginPath()
 	let first = new vec(fun(0) * a, 0).to_descartes().rot(theta)
@@ -464,45 +446,85 @@ const Ilissajous = (A, B, m, n, delta, x, y, c, theta, width) => {
 }
 
 const Igear = (module, teeth_num, pressure_angle_degree, x, y, c = "white", theta = 0, width = 2) => {
+	const get_inv = (alpha) => Math.tan(alpha) - alpha
+	const get_alpha = (r) => Math.acos(r_b / r)
+
 	//基準円
-	r_p = teeth_num * module / 2
+	const r_p = teeth_num * module / 2
 	//歯先円
-	r_k = r_p + module
+	const r_k = r_p + module
 	//歯底円
-	r_f = r_p - 1.25 * module
+	const r_f = r_p - 1.25 * module
 	//基礎円
-	r_b = r_p * Math.cos(Math.PI * pressure_angle_degree / 180)
+	const r_b = r_p * Math.cos(Math.PI * pressure_angle_degree / 180)
 
-	console.log(r_b)
+	const s = Math.PI * module / 2
 
-	sa = r_p - r_f
+	const theta_b = s / r_p + 2 * get_inv(Math.PI * pressure_angle_degree / 180)
 
-	Icircle(x, y, r_f, "white", "stroke", 2)
-	Icircle(x, y, r_b, "white", "stroke", 2)
+	const sa = r_b - r_f
+
+	Icircle(x, y, r_p, "green", "stroke", 2)
+	Icircle(x, y, r_f, c, "stroke", width)
 
 	ctx.strokeStyle = c
 	ctx.lineWidth = width
 
-	for (let i = 0; i < teeth_num * 2; i++) {
-		ctx.beginPath()
-		let root = new vec(r_b, 0).rot(2 * Math.PI * i / teeth_num / 2 + theta)
-		ctx.moveTo(root.x + x, root.y + y)
-		let top = new vec(r_b + module, 0).rot(2 * Math.PI * i / teeth_num / 2 + theta)
-		ctx.lineTo(top.x + x, top.y + y)
-		ctx.stroke()
+	const d = 50
 
+	for (let i = 0; i < teeth_num; i++) {
 		ctx.beginPath()
-		ctx.moveTo(root.x + x, root.y + y)
-		let bottom = new vec(r_b - sa, 0).rot(2 * Math.PI * i / teeth_num / 2 + theta)
-		ctx.lineTo(bottom.x + x, bottom.y + y)
-		ctx.stroke()
-
-		if (i % 2 == 0) {
-			ctx.beginPath()
-			ctx.arc(x, y, r_k, 2 * Math.PI * i / teeth_num / 2 + theta, 2 * Math.PI * (i + 1) / teeth_num / 2 + theta)
-			ctx.stroke()
+		let root0 = new vec(r_b * Math.cos(get_inv(get_alpha(r_b))), r_b * Math.sin(get_inv(get_alpha(r_b)))).rot(2 * Math.PI * i / teeth_num + theta)
+		ctx.moveTo(x + root0.x, y + root0.y)
+		for (let j = 0; j <= d; j++) {
+			let r = r_b + (r_k - r_b) * j / d
+			let inv = get_inv(get_alpha(r))
+			let l = new vec(r * Math.cos(inv), r * Math.sin(inv)).rot(2 * Math.PI * i / teeth_num + theta)
+			ctx.lineTo(x + l.x, y + l.y)
 		}
+		ctx.stroke()
+
+		ctx.beginPath()
+		let root1 = new vec(r_b * Math.cos(get_inv(get_alpha(r_b))), -r_b * Math.sin(get_inv(get_alpha(r_b)))).rot(2 * Math.PI * i / teeth_num + theta + theta_b)
+		ctx.moveTo(x + root1.x, y + root1.y)
+		for (let j = 0; j <= d; j++) {
+			let r = r_b + (r_k - r_b) * j / d
+			let inv = get_inv(get_alpha(r))
+			let l = new vec(r * Math.cos(inv), -r * Math.sin(inv)).rot(2 * Math.PI * i / teeth_num + theta + theta_b)
+			ctx.lineTo(x + l.x, y + l.y)
+		}
+		ctx.stroke()
+
+		let inv = get_inv(get_alpha(r_k))
+		ctx.beginPath()
+		let top = new vec(r_k * Math.cos(inv), r_k * Math.sin(inv)).rot(2 * Math.PI * i / teeth_num + theta)
+		ctx.moveTo(x + top.x, y + top.y)
+		let top2 = new vec(r_k * Math.cos(inv), -r_k * Math.sin(inv)).rot(2 * Math.PI * i / teeth_num + theta + theta_b)
+		ctx.lineTo(x + top2.x, y + top2.y)
+		ctx.stroke()
+
+
+		ctx.beginPath()
+		ctx.moveTo(root0.x + x, root0.y + y)
+		let bottom0 = new vec(r_b - sa, 0).rot(2 * Math.PI * i / teeth_num + theta)
+		ctx.lineTo(bottom0.x + x, bottom0.y + y)
+		ctx.stroke()
+
+		ctx.beginPath()
+		ctx.moveTo(root1.x + x, root1.y + y)
+		let bottom1 = new vec(r_b - sa, 0).rot(2 * Math.PI * i / teeth_num + theta + theta_b)
+		ctx.lineTo(bottom1.x + x, bottom1.y + y)
+		ctx.stroke()
+
+		// ctx.beginPath()
+		// ctx.arc(x, y, r_k, 2 * Math.PI * i / teeth_num / 2 + theta, 2 * Math.PI * (i + 1) / teeth_num + theta)
+		// ctx.stroke()
+
 	}
+}
+
+const internal_gear = (module, teeth_num, pressure_angle_degree, x, y, c = "white", theta = 0, width = 2) => {
+
 }
 
 const Iellipse = (x, y, r0, r1, arg, colour, start = 0, end = 2 * Math.PI, id = "fill", width = 2) => {

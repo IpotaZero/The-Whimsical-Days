@@ -726,8 +726,20 @@ const scene_title = new class extends Scene {
 
     //Ipolar(120, 12, width / 4, height * 3 / 4, "#ffffff80", Math.PI * this.frame / 144, 2, theta => Math.cos(theta / 11))
     //Ilissajous(100, 100, 12, 8, 0, width / 4, height * 3 / 4, "#ffffff80", Math.PI * this.frame / 144, 2)
-    Igear(10, 12, 15, 400, 400, "white", -Math.PI * this.frame / 72, 2)
-    Igear(10, 24, 15, 212, 400, "white", Math.PI * this.frame / 144, 2)
+
+    const z_s = 12
+    const z_p = 6
+    const module = 5
+    const d = (z_s + z_p) / 2 * module
+    Igear(module, z_s, 14.5, 400, 400, "#ffffff80", 0, 2)
+    //180=(z1+z2)/2*m
+    Igear(module, z_p, 14.5, 400 + Math.cos(Math.PI * this.frame / 144) * d, 400 + Math.sin(Math.PI * this.frame / 144) * d, "#ffffff80", Math.PI * this.frame / 144 * z_s / z_p * 3 / 2, 2)
+    Igear(module, z_p, 14.5, 400 + Math.cos(Math.PI * this.frame / 144 + Math.PI / 2) * d, 400 + Math.sin(Math.PI * this.frame / 144 + Math.PI / 2) * d, "#ffffff80", Math.PI * this.frame / 144 * z_s / z_p * 6 / 4 + Math.PI / 6, 2)
+    Igear(module, z_p, 14.5, 400 + Math.cos(Math.PI * this.frame / 144 + Math.PI) * d, 400 + Math.sin(Math.PI * this.frame / 144 + Math.PI) * d, "#ffffff80", Math.PI * this.frame / 144 * z_s / z_p * 6 / 4, 2)
+    Igear(module, z_p, 14.5, 400 + Math.cos(Math.PI * this.frame / 144 + Math.PI * 3 / 2) * d, 400 + Math.sin(Math.PI * this.frame / 144 + Math.PI * 3 / 2) * d, "#ffffff80", Math.PI * this.frame / 144 * z_s / z_p * 6 / 4 + Math.PI / 6, 2)
+
+
+
     //Itrochoid(-this.mn[0], this.mn[1], 0.5, width * 3 / 4, height * 3 / 4, 120, Math.PI * this.frame / 144, "white", "stroke", 2)
 
     Ifont(36, "white", "serif")
