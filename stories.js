@@ -127,16 +127,10 @@ const story = [
     { type: "popup", text: "" },
     { type: "wait" },
 
-    { type: "image", image: Image_Data.Ethanol },
-    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>うううッー!"), voice: Sound_Data.Ethanol },
-    { type: "ok" },
-    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>まだッあたしはッ<br>負けてない!"), voice: Sound_Data.Ethanol },
-    { type: "ok" },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>シンプルな絶望をお前に!"), voice: Sound_Data.Ethanol },
+    { type: "sleep", interval: 60 },
     { type: "text", text: "" },
-    { type: "delete_image" },
-    { type: "enemy", enemy: enemy_data.ethanol_5 },
     { type: "wait" },
-
 
     { type: "sleep", interval: 24 },
     { type: "image", image: Image_Data.Ethanol },
@@ -152,5 +146,9 @@ const story = [
     { type: "ok" },
     { type: "text", text: "" },
     { type: "end" }
+  ],
+  [
+    { type: "enemy", enemy: enemy_data.test },
+    { type: "wait" }
   ]
 ]

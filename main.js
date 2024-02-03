@@ -16,7 +16,11 @@ const Scene = class {
   }
 }
 
-let player
+const player_model = {
+  p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, life: 8, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0
+}
+
+let player = { ...player_model }
 
 let bullets = []
 let enemies = []
@@ -27,7 +31,7 @@ let next_enemies = []
 let difficulty = 0
 
 const default_save = {}
-ILoop([0, 0], [0, 3], (stage, difficulty) => {
+ILoop([0, 0], [1, 3], (stage, difficulty) => {
   default_save["stage_" + stage] ??= {}
   default_save["stage_" + stage]["difficulty_" + difficulty] = {
     cleared: false,
@@ -72,6 +76,18 @@ const damage_effect = {
   p: new vec(0, 0), r: 6, life: 6, v: new vec(0, 0), f: [
     (me) => { me.life-- }
   ]
+}
+
+const dash_effect_point = {
+  type: "effect", app: "none", colour: "red",
+  life: 12, p: new vec(0, 0), r: player_model.r,
+  f: [(me) => { me.life--; me.colour = "rgba(255,0,0," + (me.life / 24) + ")" }]
+}
+
+const dash_effect_ring = {
+  type: "effect", app: "donut", colour: "white",
+  life: 12, p: new vec(0, 0), r: player_model.r + player_model.graze_r,
+  f: [(me) => { me.life--; me.colour = "rgba(255,255,255," + (me.life / 24) + ")" }]
 }
 
 const scene_main = new class extends Scene {
@@ -122,7 +138,7 @@ const scene_main = new class extends Scene {
 
     this.c = { frame: 0, current_branch: "", current_value: 0 }
 
-    player = { p: new vec(game_width / 2, game_height / 2), v: new vec(0, 0), r: 3, graze_r: 16, speed: 12, life: 8, inv: false, dash: 0, dash_interval: 0, dead: 0, direction: 0 }
+    player = { ...player_model }
   }
 
   end() {
@@ -320,33 +336,44 @@ const scene_main = new class extends Scene {
   }
 
   control_player() {
+    let input = { slow: false, dash: false, turn: false }
+
     const key = key_config.data
     //プレイヤー操作
     player.v = new vec(0, 0)
+
+    input.slow = pressed.includes(key["slow"])
+    input.dash = pushed.includes(key["dash"])
+    input.turn = pushed.includes(key["turn"])
 
     if (pressed.includes(key["left"])) { player.v.x--; }
     if (pressed.includes(key["right"])) { player.v.x++; }
     if (pressed.includes(key["up"])) { player.v.y--; }
     if (pressed.includes(key["down"])) { player.v.y++; }
 
-    player.speed = pressed.includes(key["slow"]) ? 6 : 16
 
-    if (player.dash > 0) { player.speed = 60 }
+    player.speed = input.slow ? 6 : 16
 
-    player.v = player.v.nor()
-    player.p = player.v.mlt(player.speed).add(player.p)
-
-    if (pushed.includes(key["dash"]) && player.dash_interval == 0) {
+    if (input.dash && player.dash_interval == 0) {
       player.dash_interval = dash_interval
       player.dash = 12
       player.inv = true
       Sound_Data.dash.play()
     }
 
+    if (player.dash > 0) { player.speed = 60 }
+
+    player.v = player.v.nor()
+    player.p = player.v.mlt(player.speed).add(player.p)
+
     if (player.dash > 0) {
       player.dash--;
-      bullets.push({ type: "effect", app: "none", colour: "red", life: 12, p: player.p, r: player.r, f: [(me) => { me.life--; me.colour = "rgba(255,0,0," + (me.life / 24) + ")" }] })
-      bullets.push({ type: "effect", app: "donut", colour: "white", life: 12, p: player.p, r: player.r + player.graze_r, f: [(me) => { me.life--; me.colour = "rgba(255,255,255," + (me.life / 24) + ")" }] })
+      let ring = { ...dash_effect_ring }
+      ring.p = player.p
+      bullets.push(ring)
+      let point = { ...dash_effect_point }
+      point.p = player.p
+      bullets.push(point)
     } else {
       player.inv = false
     }
@@ -360,10 +387,10 @@ const scene_main = new class extends Scene {
     if (player.p.y < 0) { player.p.y = 0 }
     if (player.p.y > game_height) { player.p.y = game_height }
 
-    if (pushed.includes(key["turn"])) { player.direction = 1 - player.direction }
+    if (input.turn) { player.direction = 1 - player.direction }
 
     if (this.frame % 3 == 0) {
-      if (pressed.includes(key["slow"])) {
+      if (input.slow) {
         for (let i = 0; i < 5; i++) {
           bullets.push(...remodel([player_bullet], ["p", player.p.add(new vec(20 * (i - 2), 0)), "v", new vec(0, -32).rot(Math.PI * player.direction)]))
         }
@@ -583,11 +610,11 @@ const scene_title = new class extends Scene {
 
     this.sc = { frame: 0, current_value: 0 }
 
-    this.option = { "": ["PLAY", "MANUAL", "STORY", "ACHIEVEMENTS", "KEY CONFIG", "CREDIT"], "0": ["Stage0"], "0.": ["Easy", "Normal", "Hard", "Insane!"], "3": Igenerator(function* () { for (let i = 0; i < 8; i++) { yield "  " + i } }), "4": key }
+    this.option = { "": ["PLAY", "MANUAL", "STORY", "ACHIEVEMENTS", "KEY CONFIG", "CREDIT"], "0": ["Stage0", "Stage1"], "0.": ["Easy", "Normal", "Hard", "Insane!"], "3": Igenerator(function* () { for (let i = 0; i < 8; i++) { yield "  " + i } }), "4": key }
 
     this.function = {
       "0": (c) => {
-        scene_main.chapter = c.current_value
+        scene_main.chapter_num = c.current_value
       },
       "0.": (c) => {
         difficulty = c.current_value
@@ -606,7 +633,7 @@ const scene_title = new class extends Scene {
     this.loopf = {
       "0": (c) => {
         Ifont(36, "white", "serif")
-        Itext5(c.frame, 60, 400, font_size, ["vs Ethanol"][c.current_value]);
+        Itext5(c.frame, 60, 400, font_size, ["vs Ethanol", "Under Contructing..."][c.current_value]);
       },
       "0.": (c) => {
         Ifont(36, "white", "serif")
@@ -704,6 +731,31 @@ const scene_title = new class extends Scene {
 
     Ireuleaux(this.mn[0], this.mn[1], width * 3 / 4, height * 3 / 4, 100, "#ffffff80", Math.PI * this.frame / 144, "stroke", 2)
 
+    //Ipolar(120, 12, width / 4, height * 3 / 4, "#ffffff80", Math.PI * this.frame / 144, 2, theta => Math.cos(theta / 11))
+    //Ilissajous(100, 100, 12, 8, 0, width / 4, height * 3 / 4, "#ffffff80", Math.PI * this.frame / 144, 2)
+
+    // const z_s = 16
+    // const z_p = 22
+    // const z_c = z_s + z_p * 2 // =60
+
+    // const angle = 20
+    // const module = 6
+    // const d = (z_s + z_p) / 2 * module
+
+    // const T = 288
+
+    // Igear(module, z_s, angle, 400, 400, "#ffffff80", -0.03, 2)
+    // //180=(z1+z2)/2*m
+    // Igear(module, z_p, angle, 400 + Math.cos(Math.PI * this.frame / T) * d, 400 + Math.sin(Math.PI * this.frame / T) * d, "#ffffff80", Math.PI * this.frame / T * (z_s / z_p + 1) + Math.PI / z_p, 2)
+    // Igear(module, z_p, angle, 400 + Math.cos(Math.PI * this.frame / T + Math.PI * 2 / 3) * d, 400 + Math.sin(Math.PI * this.frame / T + Math.PI * 2 / 3) * d, "#ffffff80", Math.PI * this.frame / T * (z_s / z_p + 1), 2)
+    // // Igear(module, z_p, angle, 400 + Math.cos(Math.PI * this.frame / T + Math.PI * 4 / 3) * d, 400 + Math.sin(Math.PI * this.frame / T + Math.PI * 4 / 3) * d, "#ffffff80", Math.PI * this.frame / T * (z_s / z_p + 1) - Math.PI / 7 - 0.01, 2)
+
+    // Iinternal_gear(module, z_c, angle, 400, 400, "#ffffff80", Math.PI * this.frame / T * (z_s / z_c + 1) + Math.PI / z_c, 2)
+
+    // Icircle(400, 400, 200, "#ffffff80", "stroke", 2)
+
+
+
     //Itrochoid(-this.mn[0], this.mn[1], 0.5, width * 3 / 4, height * 3 / 4, 120, Math.PI * this.frame / 144, "white", "stroke", 2)
 
     Ifont(36, "white", "serif")
@@ -764,7 +816,7 @@ const scene_pretitle = new class extends Scene {
       this.frame++;
     }
 
-    if (pushed.includes("KeyZ")) {
+    if (pushed.includes("ok")) {
       scene_manager.MoveTo(scene_title)
     }
   }
@@ -872,6 +924,28 @@ const main = () => {
     Irect(0, 0, width, height, "white", "stroke", 2);
 
     pushed = [];
+
+    if (gamepad_connected) {
+      let gp = navigator.getGamepads()[0]
+
+      // console.log(gp)
+
+      let axes = gp.axes
+
+      if (axes[0] >= 0.1) { key_down({ code: "ArrowRight" }) } else { key_up({ code: "ArrowRight" }) }
+      if (axes[0] <= -0.1) { key_down({ code: "ArrowLeft" }) } else { key_up({ code: "ArrowLeft" }) }
+      if (axes[1] >= 0.1) { key_down({ code: "ArrowDown" }) } else { key_up({ code: "ArrowDown" }) }
+      if (axes[1] <= -0.1) { key_down({ code: "ArrowUp" }) } else { key_up({ code: "ArrowUp" }) }
+
+      let buttons = gp.buttons
+
+      buttons.forEach((b, i) => { if (b.pressed) { key_down({ code: "Button" + i }) } else { key_up({ code: "Button" + i }) } })
+
+      if (buttons[2].pressed) { key_down({ code: "cancel" }) } else { key_up({ code: "cancel" }) }
+      if (buttons[3].pressed) { key_down({ code: "ok" }) } else { key_up({ code: "ok" }) }
+      if (buttons[11].pressed) { key_down({ code: "Escape" }) } else { key_up({ code: "Escape" }) }
+
+    }
   }
 }
 
