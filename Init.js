@@ -14,7 +14,8 @@ let mouse = { clicked: false, p: new vec(0, 0) }
 
 const okKey = ["KeyZ", "Space", "Enter"];
 const cancelKey = ["KeyX", "Backspace", "Escape"];
-document.addEventListener("keydown", (e) => {
+
+const key_down = (e) => {
 	if (!pressed.includes(e.code)) {
 		pressed.push(e.code);
 		pushed.push(e.code);
@@ -22,10 +23,18 @@ document.addEventListener("keydown", (e) => {
 		if (cancelKey.includes(e.code)) { pushed.push("cancel"); }
 	}
 	console.log(pressed);
+}
+
+const key_up = (e) => {
+	pressed = pressed.filter((f) => { return e.code != f; });
+}
+
+document.addEventListener("keydown", (e) => {
+	key_down(e)
 });
 
 document.addEventListener("keyup", (e) => {
-	pressed = pressed.filter((f) => { return e.code != f; });
+	key_up(e)
 });
 
 cvs.addEventListener("mousemove", (e) => {
@@ -43,6 +52,18 @@ const mouse_up = (e) => { mouse.clicked = false }
 cvs.addEventListener("mouseup", mouse_up, false)
 cvs.addEventListener("mouseleave", mouse_up, false)
 
+window.addEventListener("gamepadconnected", (e) => {
+	gamepad_connected = true
+	console.log(e)
+})
+
+window.addEventListener("gamepaddisconnected", (e) => {
+	gamepad_connected = false
+	console.log(e)
+})
+
 let font_size = 24;
+
+let gamepad_connected = false
 
 console.log("Init.js_loaded");

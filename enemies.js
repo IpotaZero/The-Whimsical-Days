@@ -80,6 +80,8 @@ const explosion = (pos, speed = 6) => {
   }
 }
 
+const heart = t => new vec(16 * Math.sin(t) ** 3, -13 * Math.cos(t) + 5 * Math.cos(2 * t) + 2 * Math.cos(3 * t) + Math.cos(4 * t))
+
 const make_bullets_into_score = (speed = 24) => {
   next_bullets = []
   bullets.map((b) => {
@@ -455,7 +457,6 @@ enemy_data.ethanol_3 = new Enemy(null, 56, 600, { is_boss: true })
       for (let i = 0; i < 12; i++) { next_enemies.push({ ...enemy_data["ethanol_4_" + i] }) }
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
-      Sound_Data.hakkyou.play()
       scene_main.scoring(me.maxlife ** 2)
     }
   })
@@ -473,7 +474,7 @@ for (let i = 0; i < 12; i++) {
         me.p = me.p.add(new vec(90, 0).rot(2 * Math.PI * i / 12 + (me.frame - 60) / 36))
 
         if (me.frame % [12, 8, 4, 1][difficulty] == 0) {
-          bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame, "p", me.p, "v", new vec(0, [6, 12, 12, 12][difficulty]), "aim", player.p]))
+          bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(0, [6, 12, 12, 12][difficulty]), "aim", player.p]))
           Sound_Data.bullet1.play()
         }
       }
@@ -508,24 +509,26 @@ enemy_data.ethanol_4 = new Enemy(null, 56, 600, { is_boss: true })
       enemies = []
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
-
-      if (difficulty != 3) {
-        for (let i = 0; i < 4; i++) { explosion(me.p, 3) }
-        scene_main.story_num += 9
-      }
-
-      scene_main.continue_story()
-
       scene_main.scoring(me.maxlife ** 2)
+
+      if (difficulty == 3) {
+        Sound_Data.hakkyou.play()
+        next_enemies.push({ ...enemy_data["ethanol_5"] })
+        scene_main.continue_story()
+      } else {
+        for (let i = 0; i < 4; i++) { explosion(me.p, 3) }
+        scene_main.story_num += 4
+        scene_main.continue_story()
+      }
     }
   })
   .export()
 
-enemy_data.ethanol_5 = new Enemy(null, 56, 1500, { is_boss: true })
+enemy_data.ethanol_5 = new Enemy(null, 56, 3000, { is_boss: true })
   .addv("angle", 0)
-  .move(null, new vec(game_width / 2, game_height / 2), 0, 24, x => x ** 2)
+  .move(null, new vec(game_width / 2, game_height / 2), 0, 60, x => x ** 2)
   .addf((me) => {
-    if (me.frame > 24) {
+    if (me.frame > 60) {
       if (me.frame % 2 == 0) {
         me.angle += 6;
         bullets.push(...remodel([bullet_model], ["hakkyou_colourful", me.frame, "p", me.p, "v", new vec(0, 6).rot(me.angle * Math.PI / 180), "ex", 9, me.p]))
@@ -550,15 +553,27 @@ enemy_data.ethanol_5 = new Enemy(null, 56, 1500, { is_boss: true })
   })
   .export()
 
+
+enemy_data.test = new Enemy(new vec(game_width / 2, 100), 50, 1000)
+  .addf((me) => {
+    if (me.frame % 12 == 0) {
+      bullets.push(...remodel([bullet_model], ["colour", "purple", "r", 4, "p", me.p, "v", new vec(0, 12), "aim", player.p, "heart", 2, "ex", 16, me.p]))
+    } else if (me.frame % 24 == 6) {
+      bullets.push(...remodel([bullet_model], ["colour", "pink", "r", 4, "p", me.p, "v", new vec(0, 6), "aim", player.p, "rot", Math.PI / 16, "heart", 3, "ex", 16, me.p]))
+    }
+    me.frame++
+  })
+  .export()
+
 function remodel(bulletArr, pro) {
 
   //bulletArrの参照しないコピー
-  let buls = [];
+  let bullet_list = [];
   for (let i = 0; i < bulletArr.length; i++) {
-    buls.push({ ...bulletArr[i] });
+    bullet_list.push({ ...bulletArr[i] });
 
-    buls[i].f = [];
-    bulletArr[i].f.forEach((fun) => { buls[i].f.push(fun); });
+    bullet_list[i].f = [];
+    bulletArr[i].f.forEach((fun) => { bullet_list[i].f.push(fun); });
   }
 
   for (let i = 0; i < pro.length; i++) {
@@ -568,33 +583,33 @@ function remodel(bulletArr, pro) {
       //["colourful",seed値]
       case "colourful":
         const color_frame = pro[i + 1]
-        c.push(...remodel(buls, ["colour", "hsl(" + Math.floor(90 * Math.sin(2 * Math.PI * color_frame / 240) + 90) + ",100%,50%)"]))
+        c.push(...remodel(bullet_list, ["colour", "hsl(" + Math.floor(90 * Math.sin(2 * Math.PI * color_frame / 240) + 90) + ",100%,50%)"]))
         i++;
         break
 
       case "hakkyou_colourful":
         const color_frame2 = pro[i + 1]
-        c.push(...remodel(buls, ["colour", "hsl(" + Math.floor(90 * Math.sin(2 * Math.PI * color_frame2 / 240 + Math.PI / 2)) + ",100%,50%)"]))
+        c.push(...remodel(bullet_list, ["colour", "hsl(" + Math.floor(90 * Math.sin(2 * Math.PI * color_frame2 / 240 + Math.PI / 2) - 40) + ",100%,50%)"]))
         i++;
         break
 
       //["aim",目標地点]
       case "aim":
         const p = pro[i + 1];
-        buls.forEach((b) => { c.push(...remodel([b], ["v", p.sub(b.p).nor().mlt(b.v.length())])); });
+        bullet_list.forEach((b) => { c.push(...remodel([b], ["v", p.sub(b.p).nor().mlt(b.v.length())])); });
         i++; break;
 
       //["rot",rad]速度ベクトルの回転
       case "rot":
         const rad = pro[i + 1];
-        buls.forEach((b) => { c.push(...remodel([b], ["v", b.v.rot(rad)])); });
+        bullet_list.forEach((b) => { c.push(...remodel([b], ["v", b.v.rot(rad)])); });
         i++; break;
 
       //["rev",rad,center]全体をcenter中心に回転させる
       case "rev":
         const radRev = pro[i + 1];
         const center = pro[i + 2];
-        buls.forEach((b) => { c.push(...remodel([b], ["p", b.p.sub(center).rot(radRev).add(center), "v", b.v.rot(radRev)])) });
+        bullet_list.forEach((b) => { c.push(...remodel([b], ["p", b.p.sub(center).rot(radRev).add(center), "v", b.v.rot(radRev)])) });
         i += 2; break;
 
       //tフレームでp0からp1へ移動する
@@ -602,7 +617,7 @@ function remodel(bulletArr, pro) {
         const p1 = pro[i + 1];
         const t = pro[i + 2];
         const move_function = pro[i + 3]//f in C[0,1] such that =>[0,1]
-        for (b of buls) {
+        for (b of bullet_list) {
           c.push(...remodel([b], ["frameMove", 0, "f", (me) => { if (me.frameMove <= t) { me.p = b.p.add(p1.sub(b.p).mlt(move_function(me.frameMove / t))); } me.frameMove++; }]));
         }
         i += 3;
@@ -616,7 +631,7 @@ function remodel(bulletArr, pro) {
 
         const n = (numnway - 1) / 2;
         for (let i = 0; i < numnway; i++) {
-          c.push(...remodel(buls, ["rev", radnway * (i - n), centernway]));
+          c.push(...remodel(bullet_list, ["rev", radnway * (i - n), centernway]));
         }
         i += 3; break;
 
@@ -624,7 +639,7 @@ function remodel(bulletArr, pro) {
       case "ex":
         const num = pro[i + 1];
         const centerEx = pro[i + 2];
-        c.push(...remodel(buls, ["nway", num, 2 * Math.PI / num, centerEx]));
+        c.push(...remodel(bullet_list, ["nway", num, 2 * Math.PI / num, centerEx]));
         i += 2; break;
 
       //["line",間隔d,通る点points]線をなぞる
@@ -634,7 +649,7 @@ function remodel(bulletArr, pro) {
         for (let j = 0; j < points.length - 1; j++) {
           let l = points[j + 1].sub(points[j]).length();
           for (k = 0; k * d < l; k++) {
-            c.push(...remodel(buls, ["p", points[j].add(points[j + 1].sub(points[j]).mlt(k * d / l))]));
+            c.push(...remodel(bullet_list, ["p", points[j].add(points[j + 1].sub(points[j]).mlt(k * d / l))]));
           }
         }
         i += 2; break;
@@ -642,32 +657,32 @@ function remodel(bulletArr, pro) {
       //["laser",長さl]lineを利用してレーザーを作る
       case "laser":
         const l = pro[i + 1];
-        buls.forEach((b) => { c.push(...remodel([b], ["line", b.r, [b.p, b.p.add(b.v.nor().mlt(l))]])); });
+        bullet_list.forEach((b) => { c.push(...remodel([b], ["line", b.r, [b.p, b.p.add(b.v.nor().mlt(l))]])); });
         i++; break;
 
       //["arrow",長さl]laserを使って矢印を作る
       case "arrow":
-        const larrow = pro[i + 1];
+        const arrow_size = pro[i + 1];
         let bul = [];
-        buls.forEach((b) => {
-          bul.push(...remodel([b], ["v", new vec(1, 0), "laser", larrow]));
-          bul.push(...remodel([b], ["p", b.p.add(new vec(1, 0).nor().mlt(larrow)), "v", new vec(-1, -1), "laser", larrow / 2]));
-          bul.push(...remodel([b], ["p", b.p.add(new vec(1, 0).nor().mlt(larrow)), "v", new vec(-1, 1), "laser", larrow / 2]));
+        bullet_list.forEach((b) => {
+          bul.push(...remodel([b], ["v", new vec(1, 0), "laser", arrow_size]));
+          bul.push(...remodel([b], ["p", b.p.add(new vec(1, 0).nor().mlt(arrow_size)), "v", new vec(-1, -1), "laser", arrow_size / 2]));
+          bul.push(...remodel([b], ["p", b.p.add(new vec(1, 0).nor().mlt(arrow_size)), "v", new vec(-1, 1), "laser", arrow_size / 2]));
           c.push(...remodel(bul, ["v", new vec(b.v.length(), 0), "rev", get_angle(new vec(1, 0), b.v), b.p]));
         });
         i++; break;
 
       //["cross",直径]laserを使って十字を作る
       case "cross":
-        const size = pro[i + 1];
+        const cross_size = pro[i + 1];
         let bul1 = [];
-        buls.forEach((b) => {
+        bullet_list.forEach((b) => {
           if (b.v.x == 0 && b.v.y == 0) {
             b.v = new vec(0.01, 0);
           }
 
           for (let i = 0; i < 4; i++) {
-            bul1.push(...remodel([b], ["laser", size / 2, "rev", Math.PI / 2 * i, b.p, "v", b.v]));
+            bul1.push(...remodel([b], ["laser", cross_size / 2, "rev", Math.PI / 2 * i, b.p, "v", b.v]));
           }
 
         });
@@ -676,38 +691,57 @@ function remodel(bulletArr, pro) {
 
       //["circle",直径dia]円(arrowとかと大きさの感覚を合わせるために直径で指定)
       case "circle":
-        const dia = pro[i + 1];
-        buls.forEach((b) => {
-          for (let j = 0; j < Math.PI * dia / b.r / 2; j++) {
-            c.push(...remodel([b], ["p", b.p.add(new vec(Math.cos(4 * b.r / dia * j), Math.sin(4 * b.r / dia * j)).mlt(dia / 2))]));
+        const circle_diagram = pro[i + 1];
+        bullet_list.forEach((b) => {
+          for (let j = 0; j < Math.PI * circle_diagram / b.r / 2; j++) {
+            c.push(...remodel([b], ["p", b.p.add(new vec(Math.cos(4 * b.r / circle_diagram * j), Math.sin(4 * b.r / circle_diagram * j)).mlt(circle_diagram / 2))]));
           }
         });
         i++; break;
+
+      case "heart":
+        const heart_size = pro[i + 1]
+
+        bullet_list.forEach((b) => {
+          const heart_num = Math.floor(102.16754687718105 * heart_size / b.r / 2)
+
+          let buls = []
+
+          for (let i = 0; i <= heart_num; i++) {
+            let t = 2 * Math.PI / heart_num * i
+            buls.push(...remodel([b], ["p", b.p.add(heart(t).mlt(heart_size))]))
+          }
+
+          c.push(...remodel(buls, ["v", new vec(0, b.v.length()), "rev", -Math.PI / 2 + b.v.arg(), b.p]))
+        })
+
+        i++
+        break
 
       //["wait",使う変数,frame,f]待ってから実行
       case "wait":
         const thev = pro[i + 1]
         const frame = pro[i + 2];
         const f = pro[i + 3];
-        c.push(...remodel(buls, [thev, 0, "f", (me) => { if (me[thev] == frame) { f(me); } me[thev]++; }]));
+        c.push(...remodel(bullet_list, [thev, 0, "f", (me) => { if (me[thev] == frame) { f(me); } me[thev]++; }]));
         i += 3; break;
 
       //自身をnフレーム後に消す
       case "delete":
-        c.push(...remodel(buls, ["wait", "deadline", pro[i + 1], (me) => { me.life = 0; }]));
+        c.push(...remodel(bullet_list, ["wait", "deadline", pro[i + 1], (me) => { me.life = 0; }]));
         i++;
         break;
 
       //["bound"]壁で跳ね返るようにする
       case "bound":
-        c.push(...remodel(buls, ["f", (me) => { if (me.p.x - me.r < 0 || game_width < me.p.x + me.r) { me.v.x *= -1; me.life--; } if (me.p.y - me.r < 0 || game_height < me.p.y + me.r) { me.v.y *= -1; me.life--; } }]));
+        c.push(...remodel(bullet_list, ["f", (me) => { if (me.p.x - me.r < 0 || game_width < me.p.x + me.r) { me.v.x *= -1; me.life--; } if (me.p.y - me.r < 0 || game_height < me.p.y + me.r) { me.v.y *= -1; me.life--; } }]));
         break;
 
       //["sim",num,max_speed]
       case "sim":
         const sim_num = pro[i + 1]
         const sim_max_speed = pro[i + 2]
-        buls.forEach((b) => {
+        bullet_list.forEach((b) => {
           const default_speed = b.v.length()
           for (let i = 0; i < sim_num; i++) {
             c.push(...remodel([b], ["v", b.v.nor().mlt(default_speed + (sim_max_speed - default_speed) * i / (sim_num - 1))]))
@@ -717,15 +751,15 @@ function remodel(bulletArr, pro) {
         break
 
       //わざわざコマンドにするほどでもないことをして(数は変えられない)
-      case "do": buls.forEach((b) => { pro[i + 1](b); c.push(b) }); i++; break;
+      case "do": bullet_list.forEach((b) => { pro[i + 1](b); c.push(b) }); i++; break;
 
       //[対象,数値やベクトルや関数]代入(基本操作)
-      case "f": buls.forEach((b) => { b["f"].push(pro[i + 1]); c.push(b); }); i++; break;
-      default: buls.forEach((b) => { b[pro[i]] = pro[i + 1]; c.push(b); }); i++; break;
+      case "f": bullet_list.forEach((b) => { b["f"].push(pro[i + 1]); c.push(b); }); i++; break;
+      default: bullet_list.forEach((b) => { b[pro[i]] = pro[i + 1]; c.push(b); }); i++; break;
     }
 
-    buls = c;
+    bullet_list = c;
   }
 
-  return buls;
+  return bullet_list;
 }
