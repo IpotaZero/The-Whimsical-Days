@@ -18,21 +18,21 @@ const LocalStorage = class {
 		localStorage.removeItem(this.name);
 	}
 	load() {
-		let data = null;
-		if (localStorage != null) {
-			data = JSON.parse(localStorage.getItem(this.name));
+		let data = { ...this.dflt };
+
+		let item = JSON.parse(localStorage.getItem(this.name))
+
+		if (item != null) {
+			for (let key in item) {
+				data[key] = item[key]
+			}
 		}
-		if (data != null) {
-			this.data = data;
-			return true;
-		}
-		return false;
+
+		this.data = data;
 	}
 	save() {
 		let data = JSON.stringify(this.data);
-		if (localStorage != null) {
-			localStorage.setItem(this.name, data);
-		}
+		localStorage.setItem(this.name, data);
 	}
 }
 

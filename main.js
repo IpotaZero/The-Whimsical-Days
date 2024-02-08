@@ -108,6 +108,8 @@ const scene_main = new class extends Scene {
     this.colours = {}
 
     this.chapter_num = 0
+
+    this.composite_mode = "lighter"
   }
 
   start() {
@@ -472,7 +474,7 @@ const scene_main = new class extends Scene {
     //描画
     ctx.clearRect(0, 0, width, height)
 
-    ctx.globalCompositeOperation = "screen"
+    ctx.globalCompositeOperation = this.composite_mode
 
     Irect(0, 0, width, height, "#121212")
 
@@ -962,19 +964,6 @@ const button = (id) => {
       config.data.control_mode = { mouse: "key", key: "mouse" }[config.data.control_mode]
       config.save()
       $("#control_mode").val("Control_mode:" + config.data.control_mode)
-      break
-    case "mute_bgm":
-      Sound_Data.mute_bgm = !Sound_Data.mute_bgm
-      config.data.mute_bgm = !config.data.mute_bgm
-      config.save()
-      if (BGM != null) {
-        BGM.mute()
-      }
-      break
-    case "mute_se":
-      Sound_Data.mute_se = !Sound_Data.mute_se
-      config.data.mute_se = !config.data.mute_se
-      config.save()
       break
   }
 }

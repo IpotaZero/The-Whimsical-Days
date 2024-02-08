@@ -78,7 +78,7 @@ const story = [
 
     ...translate([
       { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
-      { time: 255, type: "do", value: { type: "text", text: "第3話: 酩酊" } },
+      { time: 255, type: "do", value: { type: "text", text: "『酩酊』" } },
       { time: 325, type: "do", value: { type: "text", text: "" } },
       { time: 350, type: "formation", enemy: enemy_data.zako_0, interval: 12, number: 6 },
       { time: 422, type: "formation", enemy: enemy_data.zako_1, interval: 12, number: 6 },
@@ -121,10 +121,6 @@ const story = [
 
     { type: "enemy", enemy: enemy_data.ethanol_0 },
     { type: "bgm", bgm: Sound_Data.Intoxicarion },
-    { type: "wait" },
-    { type: "popup", text: "Ctrl+↑!!!" },
-    { type: "sleep", interval: 72 },
-    { type: "popup", text: "" },
     { type: "wait" },
 
     { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>シンプルな絶望をお前に!"), voice: Sound_Data.Ethanol },
