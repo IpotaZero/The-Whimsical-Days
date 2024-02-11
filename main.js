@@ -597,7 +597,7 @@ const scene_main = new class extends Scene {
     // Itext(null, game_width + 40, 100, "" + this.story_interval)
     // Itext(null, game_width + 40, 150, "" + this.story_num)
     // Itext(null, game_width + 40, 200, this.chapter[this.story_num].type)
-    Itext(null, game_width + 40, 250, "bullets: " + bullets.length)
+    // Itext(null, game_width + 40, 250, "bullets: " + bullets.length)
     // Itext(null, game_width + 40, 300, "enemies: " + enemies.length)
   }
 }()
