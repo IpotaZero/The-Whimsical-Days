@@ -756,8 +756,6 @@ const scene_title = new class extends Scene {
 
     // Icircle(400, 400, 200, "#ffffff80", "stroke", 2)
 
-
-
     //Itrochoid(-this.mn[0], this.mn[1], 0.5, width * 3 / 4, height * 3 / 4, 120, Math.PI * this.frame / 144, "white", "stroke", 2)
 
     Ifont(36, "white", "serif")
