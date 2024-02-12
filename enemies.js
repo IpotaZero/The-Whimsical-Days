@@ -328,7 +328,6 @@ enemy_data.ethanol_0 = new Enemy(new vec(game_width, game_height / 6), 56, 240, 
       next_enemies.push({ ...enemy_data["ethanol_1"] })
       enemy_vrs.p = me.p
       Sound_Data.KO.play()
-      scene_main.continue_story()
       scene_main.scoring(me.maxlife ** 2)
     }
   })
@@ -707,7 +706,7 @@ function remodel(bulletArr, pro) {
 
           let buls = []
 
-          for (let i = 0; i <= heart_num; i++) {
+          for (let i = 0; i < heart_num; i++) {
             let t = 2 * Math.PI / heart_num * i
             buls.push(...remodel([b], ["p", b.p.add(heart(t).mlt(heart_size))]))
           }
