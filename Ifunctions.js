@@ -803,6 +803,12 @@ function IlineC(c, size, arr) {
 	Iline(c, size, a);
 }
 
+function Iline2C(c, size, arr) {
+	let a = [];
+	arr.forEach((p) => { a.push(p.sub(Icamera.p)); });
+	Iline2(c, size, a);
+}
+
 function IimageC(image, x, y, width, height) {
 	ctx.drawImage(image, x, y, width, height);
 }

@@ -490,6 +490,11 @@ const scene_main = new class extends Scene {
     //player
     const colour_player = player.dead > 0 ? "80" : "ff";
     IcircleC(player.p.x, player.p.y, player.r, "#ff0000" + colour_player)
+
+    // Iline2C("#ff0000" + colour_player, 4, [player.p.add(new vec(0, -6)), player.p.add(new vec(0, 6))])
+    // Iline2C("#ff0000" + colour_player, 4, [player.p.add(new vec(6, 0)), player.p.add(new vec(-6, 0))])
+
+
     IarcC(player.p.x, player.p.y, player.r + player.graze_r, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / dash_interval), "#ffffff" + colour_player, "stroke", 2)
     if (config.data.brighten) {
       IcircleC(player.p.x, player.p.y, player.r + player.graze_r, "rgba(255,255,255,0.2)", "stroke", 8)
@@ -745,6 +750,8 @@ const scene_title = new class extends Scene {
     // const d = (z_s + z_p) / 2 * module
 
     // const T = 288
+
+    Ipolar(100,12,400,400,"white",0,2,theta=>Math.cos(theta/4))
 
     // Igear(module, z_s, angle, 400, 400, "#ffffff80", -0.03, 2)
     // //180=(z1+z2)/2*m

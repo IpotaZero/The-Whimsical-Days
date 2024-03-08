@@ -553,7 +553,7 @@ enemy_data.ethanol_5 = new Enemy(null, 56, 3000, { is_boss: true })
   .export()
 
 
-enemy_data.test = new Enemy(new vec(game_width / 2, 100), 50, 1000)
+enemy_data.test = new Enemy(new vec(game_width / 2, 100), 56, 1000, { is_boss: true })
   .addf((me) => {
     if (me.frame % 12 == 0) {
       bullets.push(...remodel([bullet_model], ["colour", "purple", "r", 4, "p", me.p, "v", new vec(0, 12), "aim", player.p, "heart", 2, "ex", 16, me.p]))
@@ -561,8 +561,84 @@ enemy_data.test = new Enemy(new vec(game_width / 2, 100), 50, 1000)
       bullets.push(...remodel([bullet_model], ["colour", "pink", "r", 4, "p", me.p, "v", new vec(0, 6), "aim", player.p, "rot", Math.PI / 16, "heart", 3, "ex", 16, me.p]))
     }
     me.frame++
+
+    if (me.life <= 0) {
+      make_bullets_into_score()
+      enemies = []
+      Sound_Data.KO.play()
+      scene_main.scoring(me.maxlife ** 2)
+      next_enemies.push({ ...enemy_data["test2"] })
+      next_enemies.push({ ...enemy_data["test2_0"] })
+      next_enemies.push({ ...enemy_data["test2_1"] })
+    }
   })
   .export()
+
+enemy_data.test2 = new Enemy(new vec(game_width / 2, 100), 56, 600, { is_boss: true })
+  .addf((me) => {
+    if (me.frame % 12 == 0) {
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 4, "p", me.p, "v", new vec(0, 12), "aim", player.p, "frame", 0,
+        "f", (me0) => {
+          if (me0.frame % 60 < 30) {
+            me0.v = me0.v.rot(Math.PI / 120)
+          } else {
+            me0.v = me0.v.rot(-Math.PI / 120)
+          }
+
+          me0.frame++
+
+          next_bullets.push(...remodel([bullet_model], ["colour", me0.colour, "r", 4, "p", me0.p, "v", me0.v, "delete", 1, "heart", 2]))
+        },
+        "ex", 16, me.p]))
+    }
+
+    if (me.life <= 0) {
+      make_bullets_into_score()
+      enemies = []
+      Sound_Data.KO.play()
+      scene_main.scoring(me.maxlife ** 2)
+      next_enemies.push({ ...enemy_data["test3"] })
+    }
+
+    me.frame++
+  })
+  .export()
+
+for (let i = 0; i < 2; i++) {
+  enemy_data["test2_" + i] = new Enemy(new vec(game_width / 2, 100), 32, 160)
+    .addf((me) => {
+      me.p = new vec(game_width / 2, 100).add(new vec(100, 0).rot((i / 2 + me.frame / 144) * 2 * Math.PI))
+
+      if (me.frame % 12 == 0) {
+        bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 8, "p", me.p, "v", new vec(0, 6), "aim", player.p, "sim", 12, 12]))
+
+      }
+
+      me.frame++
+    })
+    .export()
+}
+
+enemy_data.test3 = new Enemy(new vec(game_width / 2, 100), 56, 600, { is_boss: true })
+  .addf((me) => {
+    me.p.x = Math.cos(me.frame / 144 * Math.PI) * game_width / 2 + game_width / 2
+
+    if (me.frame % 24 == 0) {
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "r", 4, "p", me.p, "v", new vec(0, 12), "heart", 1.5]))
+    }
+
+    if (me.life <= 0) {
+      make_bullets_into_score()
+      Sound_Data.KO.play()
+      scene_main.scoring(me.maxlife ** 2)
+      next_enemies.push({ ...enemy_data["test3"] })
+    }
+
+    me.frame++
+  })
+  .export()
+
+
 
 function remodel(bulletArr, pro) {
 
@@ -703,14 +779,11 @@ function remodel(bulletArr, pro) {
 
         bullet_list.forEach((b) => {
           const heart_num = Math.floor(102.16754687718105 * heart_size / b.r / 2)
-
           let buls = []
-
           for (let i = 0; i < heart_num; i++) {
             let t = 2 * Math.PI / heart_num * i
             buls.push(...remodel([b], ["p", b.p.add(heart(t).mlt(heart_size))]))
           }
-
           c.push(...remodel(buls, ["v", new vec(0, b.v.length()), "rev", -Math.PI / 2 + b.v.arg(), b.p]))
         })
 
