@@ -751,7 +751,7 @@ const scene_title = new class extends Scene {
 
     // const T = 288
 
-    Ipolar(100,12,400,400,"white",0,2,theta=>Math.cos(theta/4))
+    // Ipolar(100,12,400,400,"white",0,2,theta=>Math.cos(theta/4))
 
     // Igear(module, z_s, angle, 400, 400, "#ffffff80", -0.03, 2)
     // //180=(z1+z2)/2*m

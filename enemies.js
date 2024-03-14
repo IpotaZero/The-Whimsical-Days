@@ -691,7 +691,7 @@ function remodel(bulletArr, pro) {
       case "move":
         const p1 = pro[i + 1];
         const t = pro[i + 2];
-        const move_function = pro[i + 3]//f in C[0,1] such that =>[0,1]
+        const move_function = pro[i + 3]//f is in C[0,1] such that =>[0,1]
         for (b of bullet_list) {
           c.push(...remodel([b], ["frameMove", 0, "f", (me) => { if (me.frameMove <= t) { me.p = b.p.add(p1.sub(b.p).mlt(move_function(me.frameMove / t))); } me.frameMove++; }]));
         }
@@ -778,7 +778,7 @@ function remodel(bulletArr, pro) {
         const heart_size = pro[i + 1]
 
         bullet_list.forEach((b) => {
-          const heart_num = Math.floor(102.16754687718105 * heart_size / b.r / 2)
+          const heart_num = Math.floor(102.16754687718105 * heart_size / b.r / 2 )
           let buls = []
           for (let i = 0; i < heart_num; i++) {
             let t = 2 * Math.PI / heart_num * i
