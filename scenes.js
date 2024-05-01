@@ -90,6 +90,8 @@ const dash_effect_ring = {
   f: [(me) => { me.life--; me.colour = "rgba(255,255,255," + (me.life / 24) + ")" }]
 }
 
+const test_item = { value: 0, f: (me) => { me.value++ } }
+
 const scene_main = new class extends Scene {
   constructor() {
     super()
@@ -518,22 +520,30 @@ const scene_main = new class extends Scene {
         case "ball":
           IcircleC(b.p.x, b.p.y, b.r, b.colour)
           break
+        case "ofuda":
+          const m = 1.2
+          Iline2C(b.colour, 2, [new vec(-b.r * m, -b.r), new vec(-b.r * m, b.r), new vec(b.r * m, b.r), new vec(b.r * m, -b.r), new vec(-b.r * m, -b.r)].map(p => p.rot(b.v.arg()).add(b.p)));
+          break
         default:
           IcircleC(b.p.x, b.p.y, b.r, b.colour)
+          break
       }
 
       if (config.data.brighten) {
         this.colours[b.colour] ??= chroma(b.colour).brighten(2).hex()
         const c = chroma(this.colours[b.colour])
 
-        if (!["none", "ball", "laser"].includes(b.app)) {
-          IcircleC(b.p.x, b.p.y, b.r - 1, c.hex(), "stroke", 2)
-          IcircleC(b.p.x, b.p.y, b.r, c.alpha(0.1 * c.alpha()).hex(), "stroke", 12)
-        } else if (b.app == "laser") {
+        if (b.app == "laser") {
           if (laser_count % 4 == 0) {
             IcircleC(b.p.x, b.p.y, b.r * 1.5, c.alpha(0.1 * c.alpha()).hex(), "stroke", 18)
           }
           laser_count++;
+        } else if (b.app == "ofuda") {
+          const m = 1.2
+          Iline2C(c, 4, [new vec(-b.r * m, -b.r), new vec(-b.r * m, b.r), new vec(b.r * m, b.r), new vec(b.r * m, -b.r), new vec(-b.r * m, -b.r)].map(p => p.rot(b.v.arg()).add(b.p)));
+        } else if (b.app != "none") {
+          IcircleC(b.p.x, b.p.y, b.r - 1, c.hex(), "stroke", 2)
+          IcircleC(b.p.x, b.p.y, b.r, c.alpha(0.1 * c.alpha()).hex(), "stroke", 12)
         }
       }
     })
@@ -751,7 +761,7 @@ const scene_title = new class extends Scene {
 
     // const T = 288
 
-    // Ipolar(100,12,400,400,"white",0,2,theta=>Math.cos(theta/4))
+    // Ipolar(100, 12, 400, 400, "white", 0, 2, theta => Math.sqrt(theta / 8))
 
     // Igear(module, z_s, angle, 400, 400, "#ffffff80", -0.03, 2)
     // //180=(z1+z2)/2*m
