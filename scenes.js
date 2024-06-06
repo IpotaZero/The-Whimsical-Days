@@ -106,19 +106,25 @@ const scene_main = new class extends Scene {
     Sound_Data.KO = new Iaudio("./sounds/KO.wav")
     Sound_Data.hakkyou = new Iaudio("./sounds/hakkyou!.wav")
     Sound_Data.u = new Iaudio("./sounds/u.wav")
+    Sound_Data.player_hit = new Iaudio("./sounds/player_hit.wav")
 
     this.colours = {}
 
     this.chapter_num = 0
 
     this.composite_mode = "lighter"
+
+    this.objects = []
   }
 
   start() {
     fpsInterval = 1000 / 24
 
+    Icamera.vive = 0
+
     bullets = []
     enemies = []
+    this.objects = []
     enemy_vrs.p = new vec(game_width / 2, -100)
     this.graze = 0
     this.score = 0
@@ -146,7 +152,9 @@ const scene_main = new class extends Scene {
   }
 
   end() {
-    const a = save.data["stage_" + this.chapter_num]["difficulty_" + difficulty]
+    if (this.chapter_num == 0) { return }
+
+    const a = save.data["stage_" + (this.chapter_num - 1)]["difficulty_" + difficulty]
     a["highest_score"] = Math.max(a["highest_score"], this.score)
     save.save()
   }
@@ -177,7 +185,7 @@ const scene_main = new class extends Scene {
           case "score":
             this.scoring((difficulty + 1) * player.life * 10 ** 5, "Life Bonus")
             this.story_text = "Score: " + this.score
-            const a = save.data["stage_" + this.chapter_num]["difficulty_" + difficulty]
+            const a = save.data["stage_" + (this.chapter_num - 1)]["difficulty_" + difficulty]
             a["cleared"] = true
             if (player.life == 8) { a["no_miss_clear"] = true }
             a["highest_score"] = Math.max(a["highest_score"], this.score)
@@ -197,17 +205,19 @@ const scene_main = new class extends Scene {
             break
 
           case "se":
-            console.log(element)
+            // console.log(element)
             element.se.reset()
             element.se.volume = 0.4
             element.se.play()
             break
 
-          case "bgm":
-            if (BGM != null) { BGM.pause() }
+          case "set_bgm":
+            if (BGM != null) { BGM.end() }
             BGM = element.bgm
             BGM.reset()
-            element.bgm.volume = 0.4
+            break
+
+          case "play_bgm":
             BGM.play()
             break
 
@@ -407,8 +417,9 @@ const scene_main = new class extends Scene {
 
   danmaku() {
 
-    if (player.dead > 0) {
-      bullets = []
+    if (0 < player.dead) {
+      // bullets = bullets.filter(b => b.type != "enemy")
+
       player.dead--;
     }
 
@@ -439,28 +450,80 @@ const scene_main = new class extends Scene {
       b.f.forEach((f) => { f(b) })
 
       //enemy_bullet vs player
-      if (["enemy", "score"].includes(b.type) && !player.inv && player.dead == 0 && b.life > 0 && b.r + player.r + player.graze_r >= b.p.sub(player.p).length()) {
-        if (b.type == "enemy") {
-          //graze
-          this.graze++;
-          this.scoring(1000, "GRAZE")
+      if (b.life > 0 && ["enemy", "score"].includes(b.type) && b.r + player.r + player.graze_r >= b.p.sub(player.p).length()) {
 
-          if (b.r + player.r >= b.p.sub(player.p).length()) {
-            b.life = 0
-            player.dead = 24
-            player.life--;
-            Sound_Data.u.play()
-          }
-        } else {
+        if (b.type == "score") {
           this.scoring(100, "BULLET")
           b.life = 0
+          Sound_Data.graze.play()
+          return
         }
+
+        //if enemy
+        if (player.inv || player.dead > 0) { return }
+
         Sound_Data.graze.play()
+
+        //graze
+        this.graze++;
+        this.scoring(1000, "GRAZE")
+
+        //hit
+        if (b.r + player.r >= b.p.sub(player.p).length()) {
+          b.life = 0
+          player.dead = 24
+          player.life--;
+
+          Icamera.vive = 12
+
+          Sound_Data.u.play()
+          Sound_Data.player_hit.play()
+
+          this.objects.push({
+            life: 36,
+            p: player.p,
+            r: 0,
+            run() {
+              let x = (36 - this.life) / 36
+              this.r = game_height * 3 / 4 * (-((x - 1) ** 2) + 1)
+
+              bullets.forEach(b => {
+                if (b.type == "enemy" && b.p.sub(this.p).length() < b.r + this.r) {
+                  next_bullets.push(...remodel([bullet_model], ["p", b.p, "life", 6, "colour", "white", "type", "effect", "r", 12, "f", (me) => { me.life--; me.colour = chroma("white").alpha(me.life / 12).hex() }]))
+                  b.r = 3
+                  b.app = "laser"
+                  b.colour = "#80ffff40"
+                  b.type = "score"
+                  b.v = new vec(0, 12)
+                  b.f = [(me) => {
+                    // me.v = player.p.sub(me.p).nor().mlt(24)
+                    me.p = me.p.add(me.v)
+                    // if (me.p.sub(player.p) < player.graze_r * 4) { me.v = player.p.sub(ma.p).nor().mlt(12) }
+                    if (is_touched_wall(me.p)) { me.life = 0 }
+                  }]
+                }
+              })
+
+              this.life--
+            },
+            draw() {
+              ctx.globalAlpha = this.life / 36
+              IcircleC(this.p.x, this.p.y, this.r, "white", "stroke", "2")
+              ctx.globalAlpha = 1
+            }
+          })
+        }
+
       }
+    })
+
+    this.objects.forEach(obj => {
+      obj.run?.()
     })
 
     bullets = bullets.filter((b) => { return b.life > 0 })
     enemies = enemies.filter((e) => { return e.life > 0 })
+    this.objects = this.objects.filter(o => o.life > 0)
 
     bullets.push(...next_bullets)
     enemies.push(...next_enemies)
@@ -473,6 +536,11 @@ const scene_main = new class extends Scene {
   }
 
   draw() {
+    if (Icamera.vive > 0) {
+      Icamera.vive--
+      Icamera.p.x = Math.sin(Icamera.vive * 2) * 4 - 20
+    }
+
     //描画
     ctx.clearRect(0, 0, width, height)
 
@@ -554,6 +622,8 @@ const scene_main = new class extends Scene {
     // Irect(20, 0, game_width, 20, background_colour)
     // Irect(20, 20 + game_height, game_width, 20, background_colour)
 
+    this.objects.forEach(obj => { obj.draw?.() })
+
     ctx.globalCompositeOperation = "source-over"
 
     //敵
@@ -593,20 +663,24 @@ const scene_main = new class extends Scene {
 
     Image_Data.background.draw()
 
-    Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext4(null, game_width + 40, lefttop.y + font_size, font_size,
-      [
-        "Difficulty: " + ["Easy", "Normal", "Hard", "Insane!"][difficulty],
-        "Lives: ", "Graze: " + this.graze,
-        "Score: " + this.score, "",
-        "HScore: " + save.data["stage_" + this.chapter_num]["difficulty_" + difficulty]["highest_score"]
-      ]
-    )
+    if (this.chapter_num != 0) {
+      Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+      Itext4(null, game_width + 40, lefttop.y + font_size, font_size,
+        [
+          "Difficulty: " + ["Easy", "Normal", "Hard", "Insane!"][difficulty],
+          "Shields: ",
+          "Graze: " + this.graze,
+          "Score: " + this.score, "",
+          "HScore: " + save.data["stage_" + (this.chapter_num - 1)]["difficulty_" + difficulty]["highest_score"]
+        ]
+      )
 
-    Itext(null, game_width + 40, lefttop.y + font_size * 5, this.socre_text)
+      Itext(null, game_width + 40, lefttop.y + font_size * 5, this.socre_text)
 
-    Ifont(20, "lightgreen", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-    Itext(null, game_width + 40 + 70, lefttop.y + 24 * 2, "★".repeat(Math.max(player.life, 0)))
+      Ifont(18, "lightgreen", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+      Itext(null, game_width + 60 + 75, lefttop.y + 24 * 2 - 1, "★".repeat(Math.max(player.life, 0)))
+
+    }
 
     // Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
     // Itext(null, game_width + 40, 100, "" + this.story_interval)
@@ -627,11 +701,15 @@ const scene_title = new class extends Scene {
 
     this.sc = { frame: 0, current_value: 0 }
 
-    this.option = { "": ["PLAY", "MANUAL", "STORY", "ACHIEVEMENTS", "KEY CONFIG", "CREDIT"], "0": ["Stage0", "Stage1"], "0.": ["Easy", "Normal", "Hard", "Insane!"], "3": Igenerator(function* () { for (let i = 0; i < 8; i++) { yield "  " + i } }), "4": key }
+    this.option = { "": ["PLAY", "MANUAL", "STORY", "ACHIEVEMENTS", "KEY CONFIG", "CREDIT"], "0": ["Tutorial", "Stage0", "Stage1"], "0.": ["Easy", "Normal", "Hard", "Insane!"], "3": Igenerator(function* () { for (let i = 0; i < 8; i++) { yield "  " + i } }), "4": key }
 
     this.function = {
       "0": (c) => {
         scene_main.chapter_num = c.current_value
+        if (c.current_value == 0) {
+          scene_anten.next_scene = scene_main
+          scene_manager.MoveTo(scene_anten)
+        }
       },
       "0.": (c) => {
         difficulty = c.current_value
@@ -650,13 +728,17 @@ const scene_title = new class extends Scene {
     this.loopf = {
       "0": (c) => {
         Ifont(36, "white", "serif")
-        Itext5(c.frame, 60, 400, font_size, ["vs Ethanol", "Under Contructing..."][c.current_value]);
+        Itext5(c.frame, 60, 400, font_size, ["Let's start here", "vs Ethanol", "Under Contruction..."][c.current_value]);
       },
       "0.": (c) => {
+        if (c.current_branch.charAt(1) == 0) { return }
+
+        const stage = + c.current_branch.charAt(1) - 1
+
         Ifont(36, "white", "serif")
         Itext5(c.frame, 60, 400, font_size, ["初めての人向け", "操作を使いこなせたら", "隙間をすり抜けろ!", "テストプレイなんてしてないよ!"][c.current_value]);
-        Itext5(c.frame, 60, 400 + font_size, font_size, "Highest Score: " + save.data["stage_" + c.current_branch.charAt(1)]["difficulty_" + c.current_value]["highest_score"]);
-        Itext5(c.frame, 60, 400 + font_size * 2, font_size, save.data["stage_" + c.current_branch.charAt(1)]["difficulty_" + c.current_value]["cleared"] ? "Cleared!" : "not Cleared");
+        Itext5(c.frame, 60, 400 + font_size, font_size, "Highest Score: " + save.data["stage_" + stage]["difficulty_" + c.current_value]["highest_score"]);
+        Itext5(c.frame, 60, 400 + font_size * 2, font_size, save.data["stage_" + stage]["difficulty_" + c.current_value]["cleared"] ? "Cleared!" : "not Cleared");
       },
       "1": (c) => {
         Ifont(24, "white", "serif")
@@ -714,8 +796,8 @@ const scene_title = new class extends Scene {
     Sound_Data.ok = new Iaudio("./sounds/ok.wav")
     Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
     Sound_Data.select = new Iaudio("./sounds/select.wav")
-    Sound_Data.whimsicalness = new Iaudio("./sounds/Whimsicalness.wav", "bgm")
-    Sound_Data.whimsicalness.volume = 1
+    Sound_Data.whimsicalness = new IBGM("./sounds/Whimsicalness.wav")
+    Sound_Data.whimsicalness.volume = 0.7
 
     this.mn = [3, 1]
   }
@@ -732,9 +814,9 @@ const scene_title = new class extends Scene {
     ]
 
     BGM = Sound_Data.whimsicalness
-    BGM.volume = 0.7
     BGM.reset()
     BGM.play()
+
   }
 
   loop() {
@@ -761,13 +843,14 @@ const scene_title = new class extends Scene {
 
     // const T = 288
 
-    // Ipolar(100, 12, 400, 400, "white", 0, 2, theta => Math.sqrt(theta / 8))
+    // Itext(null, 400, 200, "" + (this.frame / 100))
+    // Ipolar(100, 12, 400, 400, "white", 0, 2, theta => Math.cos(theta / (this.frame / 100)) ** 2)
 
     // Igear(module, z_s, angle, 400, 400, "#ffffff80", -0.03, 2)
-    // //180=(z1+z2)/2*m
+    //180=(z1+z2)/2*m
     // Igear(module, z_p, angle, 400 + Math.cos(Math.PI * this.frame / T) * d, 400 + Math.sin(Math.PI * this.frame / T) * d, "#ffffff80", Math.PI * this.frame / T * (z_s / z_p + 1) + Math.PI / z_p, 2)
     // Igear(module, z_p, angle, 400 + Math.cos(Math.PI * this.frame / T + Math.PI * 2 / 3) * d, 400 + Math.sin(Math.PI * this.frame / T + Math.PI * 2 / 3) * d, "#ffffff80", Math.PI * this.frame / T * (z_s / z_p + 1), 2)
-    // // Igear(module, z_p, angle, 400 + Math.cos(Math.PI * this.frame / T + Math.PI * 4 / 3) * d, 400 + Math.sin(Math.PI * this.frame / T + Math.PI * 4 / 3) * d, "#ffffff80", Math.PI * this.frame / T * (z_s / z_p + 1) - Math.PI / 7 - 0.01, 2)
+    // Igear(module, z_p, angle, 400 + Math.cos(Math.PI * this.frame / T + Math.PI * 4 / 3) * d, 400 + Math.sin(Math.PI * this.frame / T + Math.PI * 4 / 3) * d, "#ffffff80", Math.PI * this.frame / T * (z_s / z_p + 1) - Math.PI / 7 - 0.01, 2)
 
     // Iinternal_gear(module, z_c, angle, 400, 400, "#ffffff80", Math.PI * this.frame / T * (z_s / z_c + 1) + Math.PI / z_c, 2)
 
@@ -942,29 +1025,34 @@ const main = () => {
 
     pushed = [];
 
-    if (gamepad_connected) {
-      let gp = navigator.getGamepads()[0]
-
-      // console.log(gp)
-
-      let axes = gp.axes
-
-      if (axes[0] >= 0.1) { key_down({ code: "ArrowRight" }) } else { key_up({ code: "ArrowRight" }) }
-      if (axes[0] <= -0.1) { key_down({ code: "ArrowLeft" }) } else { key_up({ code: "ArrowLeft" }) }
-      if (axes[1] >= 0.1) { key_down({ code: "ArrowDown" }) } else { key_up({ code: "ArrowDown" }) }
-      if (axes[1] <= -0.1) { key_down({ code: "ArrowUp" }) } else { key_up({ code: "ArrowUp" }) }
-
-      let buttons = gp.buttons
-
-      buttons.forEach((b, i) => { if (b.pressed) { key_down({ code: "Button" + i }) } else { key_up({ code: "Button" + i }) } })
-
-      if (buttons[2].pressed) { key_down({ code: "cancel" }) } else { key_up({ code: "cancel" }) }
-      if (buttons[3].pressed) { key_down({ code: "ok" }) } else { key_up({ code: "ok" }) }
-      if (buttons[11].pressed) { key_down({ code: "Escape" }) } else { key_up({ code: "Escape" }) }
-
-    }
+    gamepad_manager()
   }
 }
+
+const gamepad_manager = () => {
+  if (!gamepad_connected) { return }
+
+  let gp = navigator.getGamepads()[0]
+
+  console.log(gp)
+
+  let axes = gp.axes
+
+  if (axes[0] >= 0.1) { key_down({ code: "ArrowRight" }) } else { key_up({ code: "ArrowRight" }) }
+  if (axes[0] <= -0.1) { key_down({ code: "ArrowLeft" }) } else { key_up({ code: "ArrowLeft" }) }
+  if (axes[1] >= 0.1) { key_down({ code: "ArrowDown" }) } else { key_up({ code: "ArrowDown" }) }
+  if (axes[1] <= -0.1) { key_down({ code: "ArrowUp" }) } else { key_up({ code: "ArrowUp" }) }
+
+  let buttons = gp.buttons
+
+  buttons.forEach((b, i) => { if (b.pressed) { key_down({ code: "Button" + i }) } else { key_up({ code: "Button" + i }) } })
+
+  // if (buttons[2].pressed) { key_down({ code: "cancel" }) } else { key_up({ code: "cancel" }) }
+  // if (buttons[3].pressed) { key_down({ code: "ok" }) } else { key_up({ code: "ok" }) }
+  // if (buttons[11].pressed) { key_down({ code: "Escape" }) } else { key_up({ code: "Escape" }) }
+
+}
+
 
 const button = (id) => {
   console.log(id)
@@ -990,7 +1078,7 @@ const range = (id) => {
       config.data.volume_bgm = volume
       config.save()
 
-      BGM.audio.volume = volume / 12
+      BGM.gain.gain.value = BGM.volume * volume / 12
       break
     case "volume_se":
       const volume_se = $("#" + id).val()
@@ -1000,5 +1088,3 @@ const range = (id) => {
   }
   console.log(id, $("#" + id).val())
 }
-
-main()

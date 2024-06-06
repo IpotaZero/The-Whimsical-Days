@@ -67,3 +67,8 @@ let font_size = 24;
 let gamepad_connected = false
 
 console.log("Init.js_loaded");
+
+Irect(0, 0, width, height, "#121212")
+Irect(0, 0, width, height, "white", "stroke", 2)
+Ifont(24, "white", "serif")
+Itext(null, 10, height - 24, "Now Loading...")
