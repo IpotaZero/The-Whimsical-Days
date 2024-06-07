@@ -36,52 +36,82 @@ const LocalStorage = class {
 	}
 }
 
-const Iaudio = class {
-	constructor(path, type = "se") {
-		this.audio = new Audio(path)
-		this.type = type
+const IBGM = class {
+	constructor(src) {
+		this.context = new AudioContext()
+		this.context.suspend()
 
-		this.ended = false
+		this.gain = this.context.createGain()
+		this.gain.connect(this.context.destination)
+
+		fetch(src)
+			.then(response => response.arrayBuffer())
+			.then(array_buffer => this.context.decodeAudioData(array_buffer))
+			.then(audio_buffer => {
+				this.audio_buffer = audio_buffer
+				this.reset()
+			})
+			.catch(e => console.error(e));
+
+
+		this.volume = 1
+	}
+
+	reset() {
+		if (this.audio != null) {
+			this.audio.stop()
+			this.audio.disconnect()
+			this.audio.onended = undefined
+		}
+
+		this.audio = this.context.createBufferSource()
+		this.audio.buffer = this.audio_buffer
+		this.audio.loop = true
+		this.audio.connect(this.gain)
+
+		this.audio.start()
+
+		return this
+	}
+
+	end() {
+		this.audio.loop = false
+		this.audio.onended = () => {
+			this.context.suspend()
+			// console.log("suspended")
+		}
+	}
+
+	play() {
+		this.gain.gain.value = this.volume * config.data.volume_bgm / 12
+		this.context.resume()
+	}
+
+	pause() {
+		this.context.suspend()
+		// console.log("paused")
+	}
+
+	fadeout(frame, time) {
+		this.gain.gain.value = this.volume * config.data.volume_bgm / 12 * (1 - frame / time)
+	}
+}
+
+const Iaudio = class {
+	constructor(path) {
+		this.audio = new Audio(path)
 
 		this.volume = 1
 	}
 	play() {
-		if (this.ended) { return }
-
-		if (this.type == "se") {
-			this.audio.currentTime = 0
-			this.audio.muted = Sound_Data.mute_se
-			this.audio.volume = config.data.volume_se * this.volume / 12
-		} else if (this.type == "bgm") {
-			this.audio.loop = true
-			this.audio.muted = Sound_Data.mute_bgm
-			this.audio.volume = config.data.volume_bgm * this.volume / 12
-
-		}
-
+		this.audio.currentTime = 0
+		this.audio.muted = Sound_Data.mute_se
+		this.audio.volume = config.data.volume_se * this.volume / 12
 		this.audio.play()
 	}
 
 	pause() {
 		this.audio.pause()
-	}
-
-	reset() {
-		this.audio.currentTime = 0
-		this.ended = false
-	}
-
-	mute() {
-		this.audio.muted = !this.audio.muted
-	}
-
-	fadeout(frame, time) {
-		this.audio.volume = Math.min(this.volume / 12 * config.data.volume_bgm, 1) * (1 - frame / time)
-	}
-
-	end() {
-		this.audio.loop = false
-		this.ended = !this.ended
 	}
 }
 
@@ -779,7 +809,7 @@ function ILoop(a = null, b, f) {
 	f(...arr);
 }
 
-let Icamera = { p: new vec(-20, -20), v: new vec(0, 0) };
+let Icamera = { p: new vec(-20, -20), v: new vec(0, 0), vive: 0 };
 
 function IcircleC(x, y, r, c, id, size) {
 	Icircle(x - Icamera.p.x, y - Icamera.p.y, r, c, id, size);
@@ -801,6 +831,12 @@ function IlineC(c, size, arr) {
 	let a = [];
 	arr.forEach((p) => { a.push([p[0] - Icamera.p.x, p[1] - Icamera.p.y]); });
 	Iline(c, size, a);
+}
+
+function Iline2C(c, size, arr) {
+	let a = [];
+	arr.forEach((p) => { a.push(p.sub(Icamera.p)); });
+	Iline2(c, size, a);
 }
 
 function IimageC(image, x, y, width, height) {

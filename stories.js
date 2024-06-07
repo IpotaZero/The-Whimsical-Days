@@ -48,20 +48,58 @@ const translate = function (events) {
   return res
 }
 
-Sound_Data.Intoxicarion = new Iaudio("sounds/Intoxication.wav", "bgm")
-Sound_Data.Drunkenness = new Iaudio("sounds/Drunkenness.wav", "bgm")
+Sound_Data.Intoxicarion = new IBGM("sounds/Intoxication.wav")
+Sound_Data.Drunkenness = new IBGM("sounds/Drunkenness.wav")
+Sound_Data.Drunkenness.volume = 0.7
+Sound_Data.Tutorial = new IBGM("sounds/Tutorial.wav")
+// Sound_Data.Courage = new Iaudio("sounds/Courage.wav", "bgm")
+
 Sound_Data.kohaku = new Iaudio("./sounds/select.wav")
 Sound_Data.Ethanol = new Iaudio("./sounds/select.wav")
+Sound_Data.Phenetylalcohol = new Iaudio("./sounds/select.wav")
 
 Sound_Data.uhm = new Iaudio("./sounds/⤵.wav")
 Sound_Data.uhm.volume = 0.4
 
 Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 80, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
 Image_Data.Kohaku = new Iimage("images/kohaku.apng", -50, 50, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
+Image_Data.Phenetylalcohol = new Iimage("images/Phenetylalcohol.png", 250, 50, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
 
 Ifont(24)
 const story = [
   [
+    { type: "set_bgm", bgm: Sound_Data.Tutorial },
+    { type: "play_bgm" },
+    { type: "text", text: Iadjust(game_width - 140, "Pause: [Escape]<br>一時停止"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "text", text: Iadjust(game_width - 140, "Move: [ArrowKey]<br>移動"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "text", text: Iadjust(game_width - 140, "Slow: [Shift]<br>低速移動"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "text", text: Iadjust(game_width - 140, "Dash: [Control]<br>高速移動、最中は無敵、2秒に1回使える"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "text", text: Iadjust(game_width - 140, "Turn: [KeyA]<br>反対を向く"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "text", text: Iadjust(game_width - 140, "キーコンフィグはタイトル画面にある"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+
+    { type: "enemy", enemy: enemy_data.tutorial_0 },
+    { type: "text", text: Iadjust(game_width - 140, "敵に近づくほど与えるダメージが大きくなる"), voice: Sound_Data.kohaku },
+    { type: "wait" },
+    { type: "enemy", enemy: enemy_data.tutorial_1 },
+    { type: "text", text: Iadjust(game_width - 140, "赤い点が自機の当たり判定<br>弾を避けつつ敵をやっつけよう"), voice: Sound_Data.kohaku },
+    { type: "wait" },
+    { type: "enemy", enemy: enemy_data.tutorial_2 },
+    { type: "text", text: Iadjust(game_width - 140, "体力バーが赤い敵は無敵<br>攻撃を避け続ければいい"), voice: Sound_Data.kohaku },
+    { type: "wait" },
+    { type: "text", text: Iadjust(game_width - 140, ""), voice: Sound_Data.kohaku },
+
+    { type: "sleep", interval: 12 },
+
+    { type: "end" }
+  ],
+  [
+    { type: "set_bgm", bgm: Sound_Data.Drunkenness },
     { type: "text", text: Iadjust(game_width - 140, "Arthur:<br>前方2kmにプログラムの気配あり"), voice: Sound_Data.kohaku },
     { type: "ok" },
     { type: "image", image: Image_Data.Kohaku },
@@ -71,10 +109,9 @@ const story = [
     { type: "ok" },
     { type: "text", text: "" },
     { type: "delete_image" },
-    { type: "bgm", bgm: Sound_Data.Drunkenness },
+    { type: "play_bgm" },
     { type: "sleep", interval: 48 },
     { type: "text", text: "" },
-
 
     ...translate([
       { time: 0, type: "continuous", interval: 12, enemies: Igenerator(function* () { for (let i = 0; i < 8; i++) { yield enemy_data["zako_4_" + i] } }) },
@@ -92,12 +129,13 @@ const story = [
 
     {
       type: "do", f: () => {
-        BGM.end();
+        // BGM.end();
         enemies.forEach((e) => { e.life = 0 });
         scene_main.boss = true;
         scene_main.story_frame = 0
       }
     },
+    { type: "set_bgm", bgm: Sound_Data.Intoxicarion },
     { type: "enemy", enemy: enemy_data.ethanol_m1 },
     { type: "sleep", interval: 48 },
     { type: "image", image: Image_Data.Ethanol },
@@ -118,9 +156,8 @@ const story = [
     { type: "delete_image" },
     { type: "do", f: () => { enemies = [] } },
 
-
+    { type: "play_bgm" },
     { type: "enemy", enemy: enemy_data.ethanol_0 },
-    { type: "bgm", bgm: Sound_Data.Intoxicarion },
     { type: "wait" },
 
     { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>シンプルな絶望をお前に!"), voice: Sound_Data.Ethanol },
@@ -144,7 +181,36 @@ const story = [
     { type: "end" }
   ],
   [
-    { type: "enemy", enemy: enemy_data.test },
-    { type: "wait" }
+    { type: "image", image: Image_Data.Kohaku },
+    { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>ったく...夜中に何が起こったっていうんだ?"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>......花の、匂い...?"), voice: Sound_Data.kohaku },
+    { type: "ok" },
+    { type: "text", text: "" },
+    { type: "delete_image" },
+    // { type: "bgm", bgm: Sound_Data.Drunkenness },
+    { type: "sleep", interval: 48 },
+
+    { type: "enemy", enemy: enemy_data.phenetylalcohol_0 },
+
+    { type: "text", text: Iadjust(game_width - 140, "Laninamivir:<br>最終兵器発動までアト60フレーム..."), voice: Sound_Data.Laninamivir },
+    { type: "sleep", interval: 60 },
+    { type: "text", text: "" },
+    { type: "wait" },
+
+    { type: "sleep", interval: 24 },
+    { type: "image", image: Image_Data.Laninamivir },
+    { type: "do", f: () => { scene_main.boss = false } },
+    { type: "text", text: Iadjust(game_width - 140, "Ethanol:<br>ぐわーッ"), voice: Sound_Data.Ethanol },
+    { type: "ok" },
+    { type: "image", image: Image_Data.Kohaku },
+    { type: "text", text: Iadjust(game_width - 140, "Kohaku:<br>さあ、ハイクを詠むんだな!<br>"), voice: Sound_Data.Ethanol },
+    { type: "ok" },
+    { type: "text", text: Iadjust(game_width - 140, "Phenetylalcohol:<br>並んだ、並んだ、赤白黄色"), voice: Sound_Data.Ethanol },
+    { type: "ok" },
+    { type: "score" },
+    { type: "ok" },
+    { type: "text", text: "" },
+    { type: "end" }
   ]
 ]
