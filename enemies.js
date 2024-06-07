@@ -849,13 +849,76 @@ enemy_data.phenetylalcohol_0 = new Enemy(new vec(game_width / 2, 100), 56, 600, 
       Sound_Data.KO.play()
       scene_main.scoring(me.maxlife ** 2)
       enemy_vrs.p = me.p
-      next_enemies.push({ ...enemy_data["laninamivir_1"] })
+      explosion(me.p)
+
+      next_enemies.push({ ...enemy_data["phenetylalcohol_1"] })
     }
   }).export()
 
-enemy_data.phenetylalcohol_1 = new Enemy(null, 56, 600, { is_boss: true })
+enemy_data.phenetylalcohol_1 = new Enemy(new vec(game_width / 2, game_height / 6), 56, 600, { is_boss: true })
   .addf((me) => {
+    me.p.x = Math.sin(2 * Math.PI * me.frame / 288) * 100 + game_width / 2
+    if (me.frame % 16 < 6) {
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(0, 6), "ex", 13, me.p, "rot", 2 * Math.PI * me.frame / 288]))
+      bullets.push(...remodel([bullet_model], ["colourful", me.frame, "p", me.p, "v", new vec(0, 6), "ex", 13, me.p, "rot", -2 * Math.PI * me.frame / 288]))
+    }
 
+    if (me.frame % 24 == 0) {
+      bullets.push(...remodel([bullet_model], ["r", 16, "p", me.p, "v", new vec(0, 10), "aim", player.p, "nway", 3, Math.PI / 24, me.p]))
+    }
+
+    me.frame++
+
+    if (me.life <= 0) {
+      make_bullets_into_score()
+      enemy_vrs.p = me.p
+      Sound_Data.KO.play()
+      scene_main.scoring(me.maxlife ** 2)
+      enemy_vrs.p = me.p
+      explosion(me.p)
+
+      next_enemies.push({ ...enemy_data["phenetylalcohol_2"] })
+    }
+  })
+  .export()
+
+enemy_data.phenetylalcohol_2 = new Enemy(new vec(game_width / 2, game_height / 2), 56, 900, { is_boss: true })
+  .addf((me) => {
+    me.p.x = Math.sin(2 * Math.PI * me.frame / 144) * 100 + game_width / 2
+
+    if (me.frame % 12 == 0) {
+      bullets.push(...remodel([bullet_model], ["colour", "yellow", "p", me.p, "v", new vec(0, 6), "aim", player.p, "frame", 0, "f", (me0) => {
+        if (me0.frame == 12) {
+          me0.v = me0.v.rot(Math.PI / 2)
+        }
+        me0.frame++
+      }, "ex", 15, me.p]))
+
+      bullets.push(...remodel([bullet_model], ["colour", "cyan", "p", me.p, "v", new vec(0, 6), "aim", player.p, "frame", 0, "f", (me0) => {
+        if (me0.frame == 12) {
+          me0.v = me0.v.rot(-Math.PI / 2)
+        }
+        me0.frame++
+      }, "ex", 15, me.p]))
+    }
+
+    if (me.frame % 24 == 0) {
+      bullets.push(...remodel([bullet_model], ["colour", "magenta", "p", me.p, "v", new vec(0, 6), "aim", player.p, "ex", 15, me.p]))
+    }
+
+    me.frame++
+
+    if (me.life <= 0) {
+      make_bullets_into_score()
+      enemy_vrs.p = me.p
+
+      Sound_Data.KO.play()
+      scene_main.scoring(me.maxlife ** 2)
+      explosion(me.p)
+
+      next_enemies.push({ ...enemy_data["phenetylalcohol_3"] })
+
+    }
   })
   .export()
 

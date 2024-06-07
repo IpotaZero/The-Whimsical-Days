@@ -66,6 +66,21 @@ let font_size = 24;
 
 let gamepad_connected = false
 
+navigator.requestMIDIAccess?.().then((midiAccess) => {
+	console.log(midiAccess)
+	Array.from(midiAccess.inputs).forEach((input) => {
+		input[1].onmidimessage = (msg) => {
+			console.log(msg);
+		};
+	});
+});
+
+// fetch("sounds/chord19.mid")
+// 	.then(response => response.arrayBuffer())
+// 	.then(buffer => {
+// 		console.log(buffer)
+// 	})
+
 console.log("Init.js_loaded");
 
 Irect(0, 0, width, height, "#121212")

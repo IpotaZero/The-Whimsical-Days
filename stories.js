@@ -191,7 +191,7 @@ const story = [
     // { type: "bgm", bgm: Sound_Data.Drunkenness },
     { type: "sleep", interval: 48 },
 
-    { type: "enemy", enemy: enemy_data.phenetylalcohol0 },
+    { type: "enemy", enemy: enemy_data.phenetylalcohol_0 },
 
     { type: "text", text: Iadjust(game_width - 140, "Laninamivir:<br>最終兵器発動までアト60フレーム..."), voice: Sound_Data.Laninamivir },
     { type: "sleep", interval: 60 },
