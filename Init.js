@@ -1,8 +1,11 @@
-const cvs = document.getElementById("canvas0");
-const ctx = cvs.getContext("2d", { willReadFrequently: true });
+const canvas_background = document.getElementById("background");
+const layer_background = canvas_background.getContext("2d", { willReadFrequently: true });
 
-const width = cvs.width;
-const height = cvs.height;
+const canvas_front = document.getElementById("front")
+const layer_front = canvas_front.getContext("2d", { willReadFrequently: true })
+
+const width = canvas_background.width;
+const height = canvas_background.height;
 
 game_width = 432
 game_height = 680
@@ -37,20 +40,20 @@ document.addEventListener("keyup", (e) => {
 	key_up(e)
 });
 
-cvs.addEventListener("mousemove", (e) => {
+canvas_background.addEventListener("mousemove", (e) => {
 	let rect = e.target.getBoundingClientRect();
 	mouse.p = new vec(e.clientX - rect.left, e.clientY - rect.top)
 }, false)
 
-cvs.addEventListener("mousedown", (e) => {
+canvas_background.addEventListener("mousedown", (e) => {
 	mouse.clicked = true
 	console.log(mouse.p)
 }, false)
 
 const mouse_up = (e) => { mouse.clicked = false }
 
-cvs.addEventListener("mouseup", mouse_up, false)
-cvs.addEventListener("mouseleave", mouse_up, false)
+canvas_background.addEventListener("mouseup", mouse_up, false)
+canvas_background.addEventListener("mouseleave", mouse_up, false)
 
 window.addEventListener("gamepadconnected", (e) => {
 	gamepad_connected = true
@@ -66,14 +69,51 @@ let font_size = 24;
 
 let gamepad_connected = false
 
-navigator.requestMIDIAccess?.().then((midiAccess) => {
-	console.log(midiAccess)
-	Array.from(midiAccess.inputs).forEach((input) => {
-		input[1].onmidimessage = (msg) => {
-			console.log(msg);
-		};
-	});
-});
+// const number_to_scale = (number) => {
+// 	return "midi" + ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][number % 12] + Math.floor(number / 12)
+// }
+
+// navigator.requestMIDIAccess?.().then((midiAccess) => {
+// 	console.log(midiAccess)
+// 	midiAccess.inputs.forEach((input) => {
+// 		// console.log(input)
+// 		input.onmidimessage = (msg) => {
+// 			// console.log([msg.data[0], msg.data[1], msg.data[2]])
+// 			const data = msg.data
+// 			const scale = number_to_scale(msg.data[1])
+
+// 			//down
+// 			if (data[0] == 144) {
+// 				data[2] == 0 ? key_up({ code: scale }) : key_down({ code: scale })
+
+// 				// up
+// 			} else if (data[0] == 128) {
+// 				key_up({ code: scale })
+
+// 				// pitch
+// 			}
+
+// 			key_up({ code: "pitchUp" })
+// 			key_up({ code: "pitchDown" })
+
+// 			if (data[0] == 224) {
+// 				if (data[2] > 64) {
+// 					key_down({ code: "pitchUp" })
+// 				} else if (data[2] < 64) {
+// 					key_down({ code: "pitchDown" })
+// 				}
+// 			} else {
+
+// 			}
+
+// 		};
+// 	});
+
+// 	// midiAccess.outputs.forEach((output) => {
+// 	// 	console.log(output)
+// 	// 	output.send([0x80, 60, 127])
+// 	// });
+// });
 
 // fetch("sounds/chord19.mid")
 // 	.then(response => response.arrayBuffer())

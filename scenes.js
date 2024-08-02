@@ -50,7 +50,8 @@ let key_config = new LocalStorage("key_config",
     left: "ArrowLeft",
     slow: "ShiftLeft",
     dash: "ControlLeft",
-    turn: "KeyA"
+    turn: "KeyA",
+    retry: "KeyR"
   }
 )
 
@@ -152,6 +153,10 @@ const scene_main = new class extends Scene {
   }
 
   end() {
+
+  }
+
+  set_score() {
     if (this.chapter_num == 0) { return }
 
     const a = save.data["stage_" + (this.chapter_num - 1)]["difficulty_" + difficulty]
@@ -188,7 +193,7 @@ const scene_main = new class extends Scene {
             const a = save.data["stage_" + (this.chapter_num - 1)]["difficulty_" + difficulty]
             a["cleared"] = true
             if (player.life == 8) { a["no_miss_clear"] = true }
-            a["highest_score"] = Math.max(a["highest_score"], this.score)
+            this.set_score()
             break
 
           case "popup":
@@ -284,7 +289,7 @@ const scene_main = new class extends Scene {
   }
 
   loop() {
-    cvs.focus()
+    canvas_background.focus()
 
     if (!this.is_paused) {
       this.control_player()
@@ -315,7 +320,7 @@ const scene_main = new class extends Scene {
     this.draw()
 
     if (this.is_paused) {
-      if (pushed.includes("KeyR")) {
+      if (pushed.includes(key_config.data.retry)) {
         scene_anten.next_scene = scene_main
         scene_manager.MoveTo(scene_anten)
       }
@@ -507,9 +512,9 @@ const scene_main = new class extends Scene {
               this.life--
             },
             draw() {
-              ctx.globalAlpha = this.life / 36
+              layer_background.globalAlpha = this.life / 36
               IcircleC(this.p.x, this.p.y, this.r, "white", "stroke", "2")
-              ctx.globalAlpha = 1
+              layer_background.globalAlpha = 1
             }
           })
         }
@@ -542,9 +547,9 @@ const scene_main = new class extends Scene {
     }
 
     //描画
-    ctx.clearRect(0, 0, width, height)
+    layer_background.clearRect(0, 0, width, height)
 
-    ctx.globalCompositeOperation = this.composite_mode
+    layer_background.globalCompositeOperation = this.composite_mode
 
     Irect(0, 0, width, height, "#121212")
 
@@ -586,7 +591,8 @@ const scene_main = new class extends Scene {
           IlineC(b.colour, 2 * b.r, [[b.p.sub(v.nor().mlt(b.r)).x, b.p.sub(v.nor().mlt(b.r)).y], [b.p.add(v.nor().mlt(b.r)).x, b.p.add(v.nor().mlt(b.r)).y]]);
           break
         case "ball":
-          IcircleC(b.p.x, b.p.y, b.r, b.colour)
+          IcircleC(b.p.x, b.p.y, b.r + 2, b.colour)
+          IcircleC(b.p.x, b.p.y, b.r, "white")
           break
         case "ofuda":
           const m = 1.2
@@ -624,7 +630,7 @@ const scene_main = new class extends Scene {
 
     this.objects.forEach(obj => { obj.draw?.() })
 
-    ctx.globalCompositeOperation = "source-over"
+    layer_background.globalCompositeOperation = "source-over"
 
     //敵
     enemies.forEach((e) => {
@@ -695,7 +701,7 @@ const scene_title = new class extends Scene {
   constructor() {
     super()
 
-    const key = ["up", "down", "right", "left", "slow", "dash", "turn", "Reset"]
+    const key = ["up", "down", "right", "left", "slow", "dash", "turn", "retry", "Reset"]
 
     Image_Data.ethanolSD = new Iimage("images/EthanolSD.png", 44, 170, 36, 36)
 
@@ -717,7 +723,7 @@ const scene_title = new class extends Scene {
         scene_manager.MoveTo(scene_anten)
       },
       "4": (c) => {
-        if (c.current_value == 7) {
+        if (c.current_value == key.length - 1) {
           key_config.reset()
           key_config.save()
           c.cancel = true
@@ -772,7 +778,7 @@ const scene_title = new class extends Scene {
         Itext5(null, 150, 200, font_size, this.achive[c.current_branch.charAt(1)])
       },
       "4": (c) => {
-        Itext4(c.frame * 2, 220, 200, font_size, Igenerator(function* () { for (let i = 0; i < 7; i++) { yield key_config.data[key[i]] } }))
+        Itext4(c.frame * 2, 220, 200, font_size, Igenerator(function* () { for (let i = 0; i < key.length; i++) { yield key_config.data[key[i]] } }))
       },
       "4.": (c) => {
         Itext(null, 20, 200, "Press the key you want to use!")
@@ -910,7 +916,7 @@ const scene_pretitle = new class extends Scene {
       //中央ぞろえ
       let text = "Push KeyZ"
       let sub_text = text.slice(0, this.frame)
-      length = ctx.measureText(sub_text).width
+      length = layer_background.measureText(sub_text).width
       Itext(this.frame, (width - length) / 2, height / 2, text)
 
       this.frame++;
@@ -965,7 +971,7 @@ const scene_gameover = new class extends Scene {
       Ifont(60, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
 
       let text = "GAMEOVER!"
-      length = ctx.measureText(text).width
+      length = layer_background.measureText(text).width
       Itext((this.frame - 36) / 15, (width - length) / 2, height / 2 + 30, text)
 
       Ifont(32, "white", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
@@ -976,7 +982,7 @@ const scene_gameover = new class extends Scene {
         scene_manager.MoveTo(scene_anten)
       }
 
-      if (pushed.includes("KeyR")) {
+      if (pushed.includes(key_config.data.retry)) {
         scene_anten.next_scene = scene_main
         scene_manager.MoveTo(scene_anten)
       }
@@ -1047,9 +1053,9 @@ const gamepad_manager = () => {
 
   buttons.forEach((b, i) => { if (b.pressed) { key_down({ code: "Button" + i }) } else { key_up({ code: "Button" + i }) } })
 
-  // if (buttons[2].pressed) { key_down({ code: "cancel" }) } else { key_up({ code: "cancel" }) }
-  // if (buttons[3].pressed) { key_down({ code: "ok" }) } else { key_up({ code: "ok" }) }
-  // if (buttons[11].pressed) { key_down({ code: "Escape" }) } else { key_up({ code: "Escape" }) }
+  if (buttons[14].pressed) { key_down({ code: "cancel" }) } else { key_up({ code: "cancel" }) }
+  if (buttons[13].pressed) { key_down({ code: "ok" }) } else { key_up({ code: "ok" }) }
+  if (buttons[3].pressed) { key_down({ code: "Escape" }) } else { key_up({ code: "Escape" }) }
 
 }
 

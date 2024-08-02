@@ -189,7 +189,7 @@ const story = [
     { type: "text", text: "" },
     { type: "delete_image" },
     // { type: "bgm", bgm: Sound_Data.Drunkenness },
-    { type: "sleep", interval: 48 },
+    { type: "sleep", interval: 0 },
 
     { type: "enemy", enemy: enemy_data.phenetylalcohol_0 },
 
