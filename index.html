@@ -1,38 +1,36 @@
 <!DOCTYPE html>
 <html lang="ja">
+    <head>
+        <meta charset="utf-8" />
 
-<head>
-  <meta charset="utf-8">
+        <link href="images/favicon.ico" rel="icon" />
+        <title>The Whimsical Days! ~ その気まぐれなる日々</title>
 
-  <link href="images/favicon.ico" rel="icon">
-  <title>The Whimsical Days! ~ その気まぐれなる日々</title>
+        <link rel="stylesheet" href="deco.css" />
 
-  <link rel="stylesheet" href="deco.css">
+        <script src="jquery-3.7.1.min.js"></script>
+        <script src="chroma.min.js"></script>
+        <script src="apng-canvas.min.js"></script>
 
-  <script src="jquery-3.7.1.min.js"></script>
-  <script src="chroma.min.js"></script>
-  <script src="apng-canvas.min.js"></script>
+        <canvas id="background" width="720" height="720"></canvas>
+    </head>
 
-  <canvas id="canvas0" width="720" height="720"></canvas>
+    <body>
+        <script src="Ifunctions.js"></script>
+        <script src="Init.js"></script>
+        <script src="enemies.js"></script>
+        <script src="enemy_extra.js"></script>
+        <script src="stories.js"></script>
+        <script src="save.js"></script>
+        <script src="scenes.js"></script>
+        <script src="scene_main.js"></script>
+        <script src="scene_title.js"></script>
+        <br />
 
-</head>
-
-<body>
-
-  <script src="Ifunctions.js"></script>
-  <script src="Init.js"></script>
-  <script src="enemies.js"></script>
-  <script src="stories.js"></script>
-  <script src="scenes.js"></script>
-  <br>
-
-  <script>
-    window.onload = () => {
-
-      main()
-
-    }
-  </script>
-</body>
-
+        <script>
+            window.onload = () => {
+                main()
+            }
+        </script>
+    </body>
 </html>
