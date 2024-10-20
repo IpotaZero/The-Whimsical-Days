@@ -1,13 +1,7 @@
 const scene_main = new (class extends Scene {
     constructor() {
         super()
-        Image_Data.background = new Iimage(
-            "./images/ba.png",
-            0,
-            0,
-            width,
-            height,
-        )
+        Image_Data.background = new Iimage("./images/ba.png", 0, 0, width, height)
         Image_Data.battle_bg = new Iimage(
             "./images/battle_bg.png",
             -width + 20 + game_width / 2,
@@ -79,9 +73,7 @@ const scene_main = new (class extends Scene {
     end() {}
 
     set_score() {
-        save.data.stages[this.chapter_num].difficulties[
-            difficulty
-        ].set_highest_score(this.score)
+        save.data.stages[this.chapter_num].difficulties[difficulty].set_highest_score(this.score)
 
         save.save()
     }
@@ -115,15 +107,9 @@ const scene_main = new (class extends Scene {
                         break
 
                     case "score":
-                        this.scoring(
-                            (difficulty + 1) * player.life * 10 ** 5,
-                            "Life Bonus",
-                        )
+                        this.scoring((difficulty + 1) * player.life * 10 ** 5, "Life Bonus")
                         this.story_text = "Score: " + this.score
-                        const a =
-                            save.data.stages[this.chapter_num].difficulties[
-                                difficulty
-                            ]
+                        const a = save.data.stages[this.chapter_num].difficulties[difficulty]
                         a.is_cleard = true
                         if (player.life == 8) {
                             a.is_no_miss_cleard = true
@@ -211,23 +197,11 @@ const scene_main = new (class extends Scene {
 
         if (this.story_popup != "") {
             Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', Ariel")
-            Itext5(
-                this.story_frame,
-                game_width + 40,
-                game_height - 180,
-                font_size,
-                this.story_popup,
-            )
+            Itext5(this.story_frame, game_width + 40, game_height - 180, font_size, this.story_popup)
         }
 
         if (this.story_text != "") {
-            Irect(
-                lefttop.x,
-                lefttop.y,
-                rightbottom.x - lefttop.x,
-                rightbottom.y - lefttop.y,
-                "#ffffffcc",
-            )
+            Irect(lefttop.x, lefttop.y, rightbottom.x - lefttop.x, rightbottom.y - lefttop.y, "#ffffffcc")
 
             Iline2("#808080CC", 12, [
                 lefttop.add(new vec(20, 40)),
@@ -240,20 +214,14 @@ const scene_main = new (class extends Scene {
                 rightbottom.add(new vec(-20, -40)),
             ])
 
-            Iline2("#808080CC", 6, [
-                lefttop.add(new vec(13, 13)),
-                lefttop.add(new vec(40, 40)),
-            ])
+            Iline2("#808080CC", 6, [lefttop.add(new vec(13, 13)), lefttop.add(new vec(40, 40))])
             Iline2("#808080CC", 6, [
                 lefttop.add(new vec(10, 30)),
                 lefttop.add(new vec(10, 10)),
                 lefttop.add(new vec(30, 10)),
             ])
 
-            Iline2("#808080CC", 6, [
-                rightbottom.add(new vec(-13, -13)),
-                rightbottom.add(new vec(-40, -40)),
-            ])
+            Iline2("#808080CC", 6, [rightbottom.add(new vec(-13, -13)), rightbottom.add(new vec(-40, -40))])
             Iline2("#808080CC", 6, [
                 rightbottom.add(new vec(-10, -30)),
                 rightbottom.add(new vec(-10, -10)),
@@ -261,13 +229,7 @@ const scene_main = new (class extends Scene {
             ])
 
             Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-            Itext5(
-                this.story_frame,
-                lefttop.x + 40,
-                lefttop.y + 50,
-                font_size,
-                this.story_text + ok,
-            )
+            Itext5(this.story_frame, lefttop.x + 40, lefttop.y + 50, font_size, this.story_text + ok)
         }
 
         this.story_frame++
@@ -467,17 +429,11 @@ const scene_main = new (class extends Scene {
             e.damaged = false
 
             //closer, higher damage
-            const damage =
-                1 +
-                Math.floor(3 * (1 - e.p.sub(player.p).length() / game_height))
+            const damage = 1 + Math.floor(3 * (1 - e.p.sub(player.p).length() / game_height))
 
             //player_bullet vs enemy
             bullets.forEach((b) => {
-                if (
-                    b.type == "friend" &&
-                    !e.is_inv &&
-                    b.r + e.r >= b.p.sub(e.p).length()
-                ) {
+                if (b.type == "friend" && !e.is_inv && b.r + e.r >= b.p.sub(e.p).length()) {
                     b.life = 0
                     e.life -= damage
                     e.damaged = true
@@ -539,14 +495,10 @@ const scene_main = new (class extends Scene {
                         r: 0,
                         run() {
                             let x = (36 - this.life) / 36
-                            this.r =
-                                ((game_height * 3) / 4) * (-((x - 1) ** 2) + 1)
+                            this.r = ((game_height * 3) / 4) * (-((x - 1) ** 2) + 1)
 
                             bullets.forEach((b) => {
-                                if (
-                                    b.type == "enemy" &&
-                                    b.p.sub(this.p).length() < b.r + this.r
-                                ) {
+                                if (b.type == "enemy" && b.p.sub(this.p).length() < b.r + this.r) {
                                     next_bullets.push(
                                         ...remodel(
                                             [bullet_model],
@@ -593,14 +545,7 @@ const scene_main = new (class extends Scene {
                         },
                         draw() {
                             ctx.globalAlpha = this.life / 36
-                            IcircleC(
-                                this.p.x,
-                                this.p.y,
-                                this.r,
-                                "white",
-                                "stroke",
-                                "2",
-                            )
+                            IcircleC(this.p.x, this.p.y, this.r, "white", "stroke", "2")
                             ctx.globalAlpha = 1
                         },
                     })
@@ -645,8 +590,7 @@ const scene_main = new (class extends Scene {
 
         if (this.boss) {
             //Image_Data.battle_bg.move(-2, -2, 64, 64)
-            Image_Data.battle_bg.alpha =
-                (0.1 * Math.min(48, this.battle_image_frame)) / 48
+            Image_Data.battle_bg.alpha = (0.1 * Math.min(48, this.battle_image_frame)) / 48
             Image_Data.battle_bg.rotate += Math.PI / 360
             Image_Data.battle_bg.draw()
 
@@ -665,29 +609,14 @@ const scene_main = new (class extends Scene {
             player.p.y,
             player.r + player.graze_r,
             -Math.PI / 2,
-            -Math.PI / 2 +
-                2 * Math.PI * (1 - player.dash_interval / dash_interval),
+            -Math.PI / 2 + 2 * Math.PI * (1 - player.dash_interval / dash_interval),
             "#ffffff" + colour_player,
             "stroke",
             2,
         )
         if (config.data.brighten) {
-            IcircleC(
-                player.p.x,
-                player.p.y,
-                player.r + player.graze_r,
-                "rgba(255,255,255,0.2)",
-                "stroke",
-                8,
-            )
-            IcircleC(
-                player.p.x,
-                player.p.y,
-                player.r,
-                "rgba(255,0,0,0.2)",
-                "stroke",
-                8,
-            )
+            IcircleC(player.p.x, player.p.y, player.r + player.graze_r, "rgba(255,255,255,0.2)", "stroke", 8)
+            IcircleC(player.p.x, player.p.y, player.r, "rgba(255,0,0,0.2)", "stroke", 8)
         }
         IarcC(
             player.p.x,
@@ -714,14 +643,8 @@ const scene_main = new (class extends Scene {
                         v = new vec(0.01, 0)
                     } //速度が0ベクトルだと方向が指定されなくなりますので
                     IlineC(b.colour, 2 * b.r, [
-                        [
-                            b.p.sub(v.nor().mlt(b.r)).x,
-                            b.p.sub(v.nor().mlt(b.r)).y,
-                        ],
-                        [
-                            b.p.add(v.nor().mlt(b.r)).x,
-                            b.p.add(v.nor().mlt(b.r)).y,
-                        ],
+                        [b.p.sub(v.nor().mlt(b.r)).x, b.p.sub(v.nor().mlt(b.r)).y],
+                        [b.p.add(v.nor().mlt(b.r)).x, b.p.add(v.nor().mlt(b.r)).y],
                     ])
                     break
                 case "ball":
@@ -753,14 +676,7 @@ const scene_main = new (class extends Scene {
 
                 if (b.app == "laser") {
                     if (laser_count % 4 == 0) {
-                        IcircleC(
-                            b.p.x,
-                            b.p.y,
-                            b.r * 1.5,
-                            c.alpha(0.1 * c.alpha()).hex(),
-                            "stroke",
-                            18,
-                        )
+                        IcircleC(b.p.x, b.p.y, b.r * 1.5, c.alpha(0.1 * c.alpha()).hex(), "stroke", 18)
                     }
                     laser_count++
                 } else if (b.app == "ofuda") {
@@ -778,14 +694,7 @@ const scene_main = new (class extends Scene {
                     )
                 } else if (b.app != "none") {
                     IcircleC(b.p.x, b.p.y, b.r - 1, c.hex(), "stroke", 2)
-                    IcircleC(
-                        b.p.x,
-                        b.p.y,
-                        b.r,
-                        c.alpha(0.1 * c.alpha()).hex(),
-                        "stroke",
-                        12,
-                    )
+                    IcircleC(b.p.x, b.p.y, b.r, c.alpha(0.1 * c.alpha()).hex(), "stroke", 12)
                 }
             }
         })
@@ -808,75 +717,24 @@ const scene_main = new (class extends Scene {
 
             const colour_life_bar = e.is_inv ? "#ec1c24" : "#ffffff"
 
-            IrectC(
-                e.p.x - e.r,
-                e.p.y - e.r - 12,
-                (2 * e.r * e.life) / e.maxlife,
-                6,
-                colour_life_bar,
-            )
-            IrectC(
-                e.p.x - e.r,
-                e.p.y - e.r - 12,
-                2 * e.r,
-                6,
-                colour_life_bar,
-                "stroke",
-                2,
-            )
+            IrectC(e.p.x - e.r, e.p.y - e.r - 12, (2 * e.r * e.life) / e.maxlife, 6, colour_life_bar)
+            IrectC(e.p.x - e.r, e.p.y - e.r - 12, 2 * e.r, 6, colour_life_bar, "stroke", 2)
 
             const colour_pattern = colour_enemy + "80"
 
             if (config.data.brighten) {
                 IcircleC(e.p.x, e.p.y, e.r, colour_enemy + "1a", "stroke", 12)
                 if (e.is_boss) {
-                    IcircleC(
-                        e.p.x,
-                        e.p.y,
-                        e.r - 24,
-                        colour_enemy + "1a",
-                        "stroke",
-                        12,
-                    )
+                    IcircleC(e.p.x, e.p.y, e.r - 24, colour_enemy + "1a", "stroke", 12)
                 }
             }
 
             if (e.is_boss) {
-                IpolygonC(
-                    7,
-                    2,
-                    e.p.x,
-                    e.p.y,
-                    (e.r - 24) * 0.9,
-                    colour_pattern,
-                    (Math.PI * e.frame) / 144,
-                    "stroke",
-                    2,
-                )
-                IpolygonC(
-                    11,
-                    2,
-                    e.p.x,
-                    e.p.y,
-                    e.r * 0.9,
-                    colour_pattern,
-                    (-Math.PI * e.frame) / 144,
-                    "stroke",
-                    2,
-                )
+                IpolygonC(7, 2, e.p.x, e.p.y, (e.r - 24) * 0.9, colour_pattern, (Math.PI * e.frame) / 144, "stroke", 2)
+                IpolygonC(11, 2, e.p.x, e.p.y, e.r * 0.9, colour_pattern, (-Math.PI * e.frame) / 144, "stroke", 2)
                 IcircleC(e.p.x, e.p.y, e.r - 24, colour_enemy, "stroke", 2)
             } else {
-                IpolygonC(
-                    7,
-                    2,
-                    e.p.x,
-                    e.p.y,
-                    e.r * 0.9,
-                    colour_pattern,
-                    (Math.PI * e.frame) / 144,
-                    "stroke",
-                    2,
-                )
+                IpolygonC(7, 2, e.p.x, e.p.y, e.r * 0.9, colour_pattern, (Math.PI * e.frame) / 144, "stroke", 2)
             }
 
             IcircleC(e.p.x, e.p.y, e.r, colour_enemy, "stroke", 2)
@@ -892,10 +750,7 @@ const scene_main = new (class extends Scene {
 
         Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
 
-        const d =
-            this.chapter_num == 3
-                ? "EXTRA"
-                : ["Easy", "Normal", "Hard", "Insane!"][difficulty]
+        const d = this.chapter_num == 3 ? "EXTRA" : ["Easy", "Normal", "Hard", "Insane!"][difficulty]
 
         Itext4(null, game_width + 40, lefttop.y + font_size, font_size, [
             "Difficulty: " + d,
@@ -903,29 +758,22 @@ const scene_main = new (class extends Scene {
             "Graze: " + this.graze,
             "Score: " + this.score,
             "",
-            "HScore: " +
-                save.data.stages[this.chapter_num].difficulties[difficulty]
-                    .highest_score,
+            "HScore: " + save.data.stages[this.chapter_num].difficulties[difficulty].highest_score,
         ])
 
         Itext(null, game_width + 40, lefttop.y + font_size * 5, this.socre_text)
 
         Ifont(18, "lightgreen", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-        Itext(
-            null,
-            game_width + 60 + 75,
-            lefttop.y + 24 * 2 - 1,
-            "★".repeat(Math.max(player.life, 0)),
-        )
+        Itext(null, game_width + 60 + 75, lefttop.y + 24 * 2 - 1, "★".repeat(Math.max(player.life, 0)))
 
-        Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
-        Itext4(null, game_width + 40, 100, 24, [
-            "" + this.story_interval,
-            "" + this.story_num,
-            "" + this.story_frame,
-            this.chapter[this.story_num].type,
-            "bullets: " + bullets.length,
-            "enemies: " + enemies.length,
-        ])
+        // Ifont(24, "black", "'HG創英角ﾎﾟｯﾌﾟ体', serif")
+        // Itext4(null, game_width + 40, 100, 24, [
+        //     "" + this.story_interval,
+        //     "" + this.story_num,
+        //     "" + this.story_frame,
+        //     this.chapter[this.story_num].type,
+        //     "bullets: " + bullets.length,
+        //     "enemies: " + enemies.length,
+        // ])
     }
 })()

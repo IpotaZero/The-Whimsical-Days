@@ -1,23 +1,24 @@
-const electron = require('electron');
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
+const electron = require("electron")
+const app = electron.app
+const BrowserWindow = electron.BrowserWindow
 
-let mainWindow = null;
-app.on('ready', () => {
-  // mainWindow を作成
-  mainWindow = new BrowserWindow({
-    width: 1080,
-    height: 900
-  });
+let mainWindow = null
+app.on("ready", () => {
+    // mainWindow を作成
+    mainWindow = new BrowserWindow({
+        width: 1080,
+        height: 900,
+        fullscreen: true,
+    })
 
-  // html を指定
-  let path = 'file://' + __dirname + '/index.html';
-  mainWindow.loadURL(path);
+    // html を指定
+    let path = "file://" + __dirname + "/index.html"
+    mainWindow.loadURL(path)
 
-  // developper tool を開く
-  // mainWindow.webContents.openDevTools();
+    // developper tool を開く
+    // mainWindow.webContents.openDevTools();
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-});
+    mainWindow.on("closed", () => {
+        mainWindow = null
+    })
+})
