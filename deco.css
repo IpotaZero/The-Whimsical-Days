@@ -1,12 +1,23 @@
 body {
   background: linear-gradient(90deg, #000000, transparent), url("images/back.png");
-  background-size: 128px;
+  background-size: 256px;
   text-align: center;
 
   color: white;
   font-family: serif;
 
+
   text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
+}
+
+body,
+html {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
 }
 
 input[type="button"] {
