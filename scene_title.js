@@ -196,9 +196,11 @@ const scene_title = new (class extends Scene {
             }),
         ]
 
-        BGM = Sound_Data.whimsicalness
-        BGM.reset()
-        BGM.play()
+        setTimeout(() => {
+            BGM = Sound_Data.whimsicalness
+            BGM.reset()
+            BGM.play()
+        }, 1000)
     }
 
     loop() {
