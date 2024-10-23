@@ -122,10 +122,10 @@ const scene_pretitle = new (class extends Scene {
     }
 
     end() {
-        $("body").append("BGM Volume:")
-        $("body").append("<input type='range' id=volume_bgm min=0 max=12 step=1 onchange='range(id)'></input>")
-        $("body").append("SE Volume:")
-        $("body").append("<input type='range' id=volume_se min=0 max=12 step=1 onchange='range(id)'></input>")
+        $("#buttons").append("BGM Volume:")
+        $("#buttons").append("<input type='range' id=volume_bgm min=0 max=12 step=1 onchange='range(id)'></input>")
+        $("#buttons").append("SE Volume:")
+        $("#buttons").append("<input type='range' id=volume_se min=0 max=12 step=1 onchange='range(id)'></input>")
 
         $("#volume_bgm").val(config.data.volume_bgm)
         $("#volume_se").val(config.data.volume_se)
@@ -137,7 +137,7 @@ const scene_pretitle = new (class extends Scene {
         }
         const keys = Object.keys(buttons)
         for (let key of keys) {
-            $("body").append(
+            $("#buttons").append(
                 "<input type='button' id=" + key + " value=" + buttons[key] + " onclick='button(id)'></input>",
             )
         }

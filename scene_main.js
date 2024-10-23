@@ -73,6 +73,7 @@ const scene_main = new (class extends Scene {
     end() {}
 
     set_score() {
+        save.data.stages[this.chapter_num].difficulties[difficulty].__proto__ = Difficulty.prototype
         save.data.stages[this.chapter_num].difficulties[difficulty].set_highest_score(this.score)
 
         save.save()
