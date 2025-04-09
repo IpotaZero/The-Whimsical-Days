@@ -196,8 +196,9 @@ const scene_title = new (class extends Scene {
             }),
         ]
 
-        setTimeout(() => {
+        setTimeout(async () => {
             BGM = Sound_Data.whimsicalness
+            await BGM.promise
             BGM.reset()
             BGM.play()
         }, 1000)

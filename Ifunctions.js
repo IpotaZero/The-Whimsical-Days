@@ -46,7 +46,7 @@ const IBGM = class {
         this.gain = this.context.createGain()
         this.gain.connect(this.context.destination)
 
-        fetch(src)
+        this.promise = fetch(src)
             .then((response) => response.arrayBuffer())
             .then((array_buffer) => this.context.decodeAudioData(array_buffer))
             .then((audio_buffer) => {
