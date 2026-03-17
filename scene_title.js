@@ -155,7 +155,7 @@ const scene_title = new (class extends Scene {
                     20,
                     200,
                     font_size,
-                    "制作: お躁式ラケッツ! <link>https://www.nicovideo.jp/user/131397716<br>" +
+                    "制作: いぽた <link>https://x.com/ipota_zero<br>" +
                         "効果音: 効果音ラボ <link>https://soundeffect-lab.info<br>" +
                         "背景、キャラクター: Craiyon <link>https://www.craiyon.com<br>[X]",
                 )
