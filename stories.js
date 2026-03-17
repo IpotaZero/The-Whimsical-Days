@@ -65,11 +65,11 @@ Sound_Data.Drunkenness = new IBGM("sounds/BGM/Drunkenness.mp3")
 Sound_Data.Drunkenness.volume = 0.7
 Sound_Data.Tutorial = new IBGM("sounds/BGM/Tutorial.mp3")
 // Sound_Data.Courage = new Iaudio("sounds/Courage.wav", "bgm")
-Sound_Data.Desire = new IBGM("sounds/BGM/Desire.mp3")
-Sound_Data.Ascension = new IBGM("sounds/BGM/Ascension.mp3", {
-    loop_start: 26.666,
-    loop_end: 187.5,
-})
+// Sound_Data.Desire = new IBGM("sounds/BGM/Desire.mp3")
+// Sound_Data.Ascension = new IBGM("sounds/BGM/Ascension.mp3", {
+//     loop_start: 26.666,
+//     loop_end: 187.5,
+// })
 
 Sound_Data.kohaku = new Iaudio("./sounds/select.wav")
 Sound_Data.Ethanol = new Iaudio("./sounds/select.wav")
@@ -80,9 +80,9 @@ Sound_Data.uhm.volume = 0.4
 
 Image_Data.Ethanol = new Iimage("images/Ethanol.apng", 250, 80, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
 Image_Data.Kohaku = new Iimage("images/kohaku.apng", -50, 50, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
-Image_Data.Phenetylalcohol = new Iimage("images/Phenetylalcohol.png", 250, 50, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
+// Image_Data.Phenetylalcohol = new Iimage("images/Phenetylalcohol.png", 250, 50, 960 * 0.4, 1920 * 0.4, { alpha: 1 })
 
-Image_Data.Laninamivir = new Iimage("images/Laninamivir.apng", 150, 50, 1920 * 0.4, 1920 * 0.4, { alpha: 1 })
+// Image_Data.Laninamivir = new Iimage("images/Laninamivir.apng", 150, 50, 1920 * 0.4, 1920 * 0.4, { alpha: 1 })
 
 Ifont(24)
 const story = [
