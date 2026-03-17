@@ -165,7 +165,7 @@ const scene_title = new (class extends Scene {
         Sound_Data.ok = new Iaudio("./sounds/ok.wav")
         Sound_Data.cancel = new Iaudio("./sounds/cancel.wav")
         Sound_Data.select = new Iaudio("./sounds/select.wav")
-        Sound_Data.whimsicalness = new IBGM("./sounds/Whimsicalness.wav")
+        Sound_Data.whimsicalness = new IBGM("./sounds/BGM/Whimsicalness.mp3")
         Sound_Data.whimsicalness.volume = 0.7
 
         this.mn = [3, 1]
