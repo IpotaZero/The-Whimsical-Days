@@ -10,7 +10,7 @@ const scene_title = new (class extends Scene {
 
         this.option = {
             "": ["PLAY", "MANUAL", "STORY", "ACHIEVEMENTS", "KEY CONFIG", "CREDIT"],
-            "0": ["Tutorial", "Stage0", "Stage1", "Extra"],
+            "0": ["Tutorial", "Stage0"],
             "0[1-2]": ["Easy", "Normal", "Hard", "Insane!"],
             "3": Igenerator(function* () {
                 for (let i = 0; i < 8; i++) {
